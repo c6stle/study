@@ -1,7 +1,7 @@
 package hellojpa;
 
 import javax.persistence.*;
-import java.util.List;
+import java.time.LocalDateTime;
 
 public class JpaMain {
     public static void main(String[] args) {
@@ -12,19 +12,14 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Movie movie = new Movie();
-            movie.setDirector("aaaa");
-            movie.setActor("bbbb");
-            movie.setName("바람과 함께 사라지다");
-            movie.setPrice(10000);
-
-            em.persist(movie);
+            Member member = new Member();
+            member.setUsername("user1");
+            member.setCreatedBy("js.lee");
+            member.setCreatedDate(LocalDateTime.now());
+            em.persist(member);
 
             em.flush();
             em.clear();
-
-            Movie findMovie = em.find(Movie.class, movie.getId());
-            System.out.println("findMovie = " + findMovie);
 
             tx.commit(); //commit 하는 시점에 객체가 바뀐항목이 있으면 update 쿼리 날림
         } catch (Exception e) {

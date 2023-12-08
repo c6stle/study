@@ -1,8 +1,6 @@
 package jpabook.jpashop;
 
-import jpabook.jpashop.domain.Member;
-import jpabook.jpashop.domain.Order;
-import jpabook.jpashop.domain.OrderItem;
+import jpabook.jpashop.domain.Book;
 
 import javax.persistence.*;
 
@@ -15,8 +13,11 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Order order = new Order();
-            order.addOrderItem(new OrderItem());
+            Book book = new Book();
+            book.setName("JPA");
+            book.setAuthor("이재성");
+            em.persist(book);
+
 
 
             tx.commit(); //commit 하는 시점에 객체가 바뀐항목이 있으면 update 쿼리 날림
