@@ -1,6 +1,7 @@
 package hellojpa;
 
 import javax.persistence.*;
+import java.util.List;
 
 public class JpaMain {
     public static void main(String[] args) {
@@ -11,27 +12,19 @@ public class JpaMain {
         tx.begin();
 
         try {
+            Movie movie = new Movie();
+            movie.setDirector("aaaa");
+            movie.setActor("bbbb");
+            movie.setName("바람과 함께 사라지다");
+            movie.setPrice(10000);
 
-            Team team = new Team();
-            team.setName("TeamA");
-            em.persist(team);
-
-            Member member = new Member();
-            member.setUsername("member1");
-            member.setTeam(team);
-            em.persist(member);
+            em.persist(movie);
 
             em.flush();
             em.clear();
 
-            Member findMember = em.find(Member.class, member.getId());
-
-            Team findTeam = findMember.getTeam();
-            System.out.println("findTeam = " + findTeam.getName());
-
-            //
-            Team newTeam = em.find(Team.class, 100L);
-            findMember.setTeam(newTeam);
+            Movie findMovie = em.find(Movie.class, movie.getId());
+            System.out.println("findMovie = " + findMovie);
 
             tx.commit(); //commit 하는 시점에 객체가 바뀐항목이 있으면 update 쿼리 날림
         } catch (Exception e) {
