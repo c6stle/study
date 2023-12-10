@@ -19,7 +19,7 @@ public class Member extends BaseEntity {
     @JoinColumn(name = "LOCKER_ID")
     private Locker locker;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TEAM_ID")
     private Team team;
 
@@ -51,5 +51,25 @@ public class Member extends BaseEntity {
     public void changeTeam(Team team) {
         this.team = team;
 //        team.getMembers().add(this);
+    }
+
+    public Locker getLocker() {
+        return locker;
+    }
+
+    public void setLocker(Locker locker) {
+        this.locker = locker;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    public List<MemberProduct> getMemberProducts() {
+        return memberProducts;
+    }
+
+    public void setMemberProducts(List<MemberProduct> memberProducts) {
+        this.memberProducts = memberProducts;
     }
 }
