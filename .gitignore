@@ -1,0 +1,11 @@
+/core/.idea/
+/jpql/.idea/
+/jpql/target
+/ex1-hello-jpa/.idea/
+/ex1-hello-jpa/target
+/jpabook/.idea/
+/jpabook/target
+.idea
+*.iml
+*.iws
+*.ipr
