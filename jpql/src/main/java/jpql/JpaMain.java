@@ -43,22 +43,14 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            //String query = "select m from Member m join fetch m.team";
-            String query = "select t from Team t";
 
-            List<Team> resultList = em.createQuery(query, Team.class)
-                    .setFirstResult(0)
-                    .setMaxResults(2)
-                    .getResultList();
+            //FLUSH
 
-            System.out.println("resultList = " + resultList.size());
+            int resultCnt = em.createQuery("update Member m set m.age = 20")
+                    .executeUpdate();
 
-            for (Team s : resultList) {
-                System.out.println("s.getUsername() = " + s.getName() + ", " + s.getMembers().size());
-                for (Member member: s.getMembers()) {
-                    System.out.println("member = " + member);
-                }
-            }
+            System.out.println("resultCnt = " + resultCnt);
+
 
             tx.commit(); //commit 하는 시점에 객체가 바뀐항목이 있으면 update 쿼리 날림
         } catch (Exception e) {
