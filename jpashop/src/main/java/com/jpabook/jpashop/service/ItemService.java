@@ -1,6 +1,7 @@
 package com.jpabook.jpashop.service;
 
 import com.jpabook.jpashop.domain.Item;
+import com.jpabook.jpashop.domain.item.Book;
 import com.jpabook.jpashop.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,16 @@ public class ItemService {
     public void saveItem(Item item) {
         itemRepository.save(item);
     }
+
+    @Transactional
+    public void updateItem(Long itemId, String name, int price, int stockQuantity) {
+        Item findItem = itemRepository.findOne(itemId);
+        //setter 왠만하면 사용 금지, 이 로직만을 위한 메서드를 생성하는것이 좋음
+        findItem.setName(name);
+        findItem.setPrice(price);
+        findItem.setStockQuantity(stockQuantity);
+    }
+
 
     public List<Item> findItems() {
         return itemRepository.findAll();
