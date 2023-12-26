@@ -111,9 +111,9 @@ public class QuerydslBasicTest {
                 .selectFrom(member)
                 .fetch();
 
-        Member fetchOne = jpaQueryFactory
-                .selectFrom(QMember.member)
-                .fetchOne();
+//        Member fetchOne = jpaQueryFactory
+//                .selectFrom(QMember.member)
+//                .fetchOne();
 
         Member fetchFirst = jpaQueryFactory
                 .selectFrom(QMember.member)
@@ -626,8 +626,9 @@ public class QuerydslBasicTest {
         List<String> result = jpaQueryFactory
                 .select(member.username)
                 .from(member)
-                .where(member.username.eq(Expressions.stringTemplate("function('lower', {0})",
-                        member.username)))
+//                .where(member.username.eq(Expressions.stringTemplate("function('lower', {0})",
+//                        member.username)))
+                .where(member.username.eq(member.username.lower()))
                 .fetch();
         for (String s : result) {
             System.out.println("s = " + s);
