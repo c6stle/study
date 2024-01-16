@@ -23,7 +23,7 @@ public class MemberController {
         Member member = memberRepository.findById(id).get();
         return member.getUsername();
     }
-    @GetMapping("/members2/{id}")
+    @GetMapping("/members/{id}")
     public String findMember2(@PathVariable("id") Member member) {
         return member.getUsername();
     }
