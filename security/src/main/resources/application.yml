@@ -1,0 +1,59 @@
+server:
+    port: 8080
+    servlet:
+        context-path: /
+        encoding:
+            charset: UTF-8
+            enabled: true
+            force: true
+
+spring:
+    profiles:
+        active: local
+    datasource:
+        url: jdbc:h2:tcp://localhost/~/security
+        username: sa
+        password:
+        driver-class-name: org.h2.Driver
+    jpa:
+        hibernate:
+            ddl-auto: create-drop
+        properties:
+            hibernate:
+                show_sql: true
+                format_sql: true
+    mvc:
+        view:
+            prefix: /templates/
+            suffix: .mustache
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id: 851229469915-4b5g0c2vqf4g0niqrjtdmf6233n9dmk8.apps.googleusercontent.com
+                        client-secret: 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
+                        scope:
+                            - email
+                            - profile
+#                    facebook:
+#                        client-id: 851229469915-4b5g0c2vqf4g0niqrjtdmf6233n9dmk8.apps.googleusercontent.com
+#                        client-secret: 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
+#                        scope:
+#                            - email
+#                            - profile
+                    naver:
+                        client-id: 08l_E_9Gbp_SRJraL_EO
+                        client-secret: hxwHSziCTk
+                        scope:
+                            - name
+                            - email
+                        client-name: Naver
+                        authorization-grant-type: authorization_code
+                        redirect-uri: http://localhost:8080/login/oauth2/code/naver
+                provider:
+                    naver:
+                        authorization-uri: https://nid.naver.com/oauth2.0/authorize
+                        token-uri: https://nid.naver.com/oauth2.0/token
+                        user-info-uri: https://openapi.naver.com/v1/nid/me
+                        user-name-attribute: response
