@@ -46,8 +46,8 @@ public class SecurityConfig {
         // 3.사용자프로필 정보 가져옴
         // 4-1.3토대로 회원가입 자동 진행
         // 4-2.이메일, 전화번호, 이름, 아이디 ,, 쇼핑몰 -> 집주소, 백화점몰 -> vip 등급 등 추가적인 요소가 필요하면 자동x
-        http.oauth2Login(auth -> auth.loginPage("/loginForm")
-                .userInfoEndpoint(info -> info.userService(principalOauth2UserService)));
+//        http.oauth2Login(auth -> auth.loginPage("/loginForm")
+//                .userInfoEndpoint(info -> info.userService(principalOauth2UserService)));
         return http.build();
     }
 }
