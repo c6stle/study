@@ -13,8 +13,6 @@ public class HelloTraceV1 {
     private static final String COMPLETE_PREFIX = "<--";
     private static final String EX_PREFIX = "<X-";
 
-    private TraceId traceIdHolder; //traceId 동기화, 동시성 이슈 발생
-
     public TraceStatus begin(String message) {
         TraceId traceId = new TraceId();
         Long startTimeMs = System.currentTimeMillis();
