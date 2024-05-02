@@ -1,7 +1,9 @@
 package hello.proxy.app.v2;
 
 import hello.proxy.app.v1.OrderRepositoryV1;
+import org.springframework.stereotype.Service;
 
+@Service
 public class OrderServiceV2 {
     private final OrderRepositoryV2 orderRepository;
 
