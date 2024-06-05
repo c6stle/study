@@ -4,7 +4,6 @@ import collection.set.MyHashSetV2;
 
 public class HashAndEqualsMain3 {
 
-    //hashCode 만 구현 시
     public static void main(String[] args) {
         //중복 등록
         MyHashSetV2 set = new MyHashSetV2(10);
