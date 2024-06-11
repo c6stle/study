@@ -4,7 +4,7 @@ import com.example.main.algorithm.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Program18.doing();
+        Program11.doing();
     }
 }
 
