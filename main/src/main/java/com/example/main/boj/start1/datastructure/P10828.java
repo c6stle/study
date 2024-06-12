@@ -1,49 +1,45 @@
-package com.example.main.boj.기본1;
+package com.example.main.boj.start1.datastructure;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.Stack;
 import java.util.StringTokenizer;
 
-// 큐
-public class P10845 {
+//스택
+public class P10828 {
+
     public static void main(String[] args) throws Exception {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int n = Integer.parseInt(br.readLine());
+        StringTokenizer st;
 
-        Deque<Integer> queue = new ArrayDeque<>();
+        int n = Integer.parseInt(br.readLine());
+        Stack<Integer> stack = new Stack<>();
+
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++) {
-            StringTokenizer st = new StringTokenizer(br.readLine());
+            st = new StringTokenizer(br.readLine());
             String method = st.nextToken();
             if ("push".equals(method)) {
-                queue.offer(Integer.parseInt(st.nextToken()));
+                stack.push(Integer.parseInt(st.nextToken()));
             } else if ("pop".equals(method)) {
-                if (queue.isEmpty()) {
+                if (stack.isEmpty()) {
                     sb.append(-1).append("\n");
                 } else {
-                    sb.append(queue.poll()).append("\n");
+                    sb.append(stack.pop()).append("\n");
                 }
             } else if ("size".equals(method)) {
-                sb.append(queue.size()).append("\n");
+                sb.append(stack.size()).append("\n");
             } else if ("empty".equals(method)) {
-                if (queue.isEmpty()) {
+                if (stack.isEmpty()) {
                     sb.append(1).append("\n");
                 } else {
                     sb.append(0).append("\n");
                 }
-            } else if ("front".equals(method)) {
-                if (queue.isEmpty()) {
+            } else if ("top".equals(method)) {
+                if (stack.isEmpty()) {
                     sb.append(-1).append("\n");
                 } else {
-                    sb.append(queue.getFirst()).append("\n");
-                }
-            } else if ("back".equals(method)) {
-                if (queue.isEmpty()) {
-                    sb.append(-1).append("\n");
-                } else {
-                    sb.append(queue.getLast()).append("\n");
+                    sb.append(stack.peek()).append("\n");
                 }
             }
         }

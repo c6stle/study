@@ -1,4 +1,4 @@
-package com.example.main.boj.기본1;
+package com.example.main.boj.start1.datastructure;
 
 import java.util.Scanner;
 import java.util.Stack;

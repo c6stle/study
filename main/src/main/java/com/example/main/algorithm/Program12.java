@@ -1,7 +1,6 @@
 package com.example.main.algorithm;
 
 import java.io.*;
-import java.util.Scanner;
 import java.util.Stack;
 
 //오큰수 구하기(스택구조) 17298
@@ -36,5 +35,6 @@ public class Program12 {
         }
         bw.write("\n");
         bw.flush();
+        bw.close();
     }
 }
