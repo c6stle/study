@@ -16,9 +16,10 @@ public class P1929 {
         boolean[] arr = new boolean[n + 1];
         arr[0] = true;
         arr[1] = true;
+        //에라토스테네스의 체
         for (int i = 2; i * i <= n; i++) {
             if (!arr[i]) {
-                for (int j = i + i; j <= n; j += i) {
+                for (int j = i * i; j <= n; j += i) {
                     arr[j] = true;
                 }
             }
