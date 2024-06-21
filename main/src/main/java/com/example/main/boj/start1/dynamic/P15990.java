@@ -3,7 +3,7 @@ package com.example.main.boj.start1.dynamic;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-// 1,2,3 더하기 5
+// 1, 2, 3 더하기 5
 public class P15990 {
     public static void main(String[] args) throws Exception {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
