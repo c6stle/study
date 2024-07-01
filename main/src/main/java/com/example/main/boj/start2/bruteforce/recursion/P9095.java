@@ -1,9 +1,9 @@
-package com.example.main.boj.start2.bruteforce;
+package com.example.main.boj.start2.bruteforce.recursion;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-//1, 2, 3 더하기(bruteforce)
+//1, 2, 3 더하기(recursion)
 public class P9095 {
 
     static int cnt = 0;
