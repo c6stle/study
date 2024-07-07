@@ -1,0 +1,239 @@
+<!--
+	Description : (팝업)수집통합관리 > 수집설정 등록 양식
+
+	Modification Information
+	수정일				수정자			수정내용
+	-------		-----------------------------------
+	2016.01.25		송호현
+
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+
+	<style>
+		.guide_box {
+			margin-bottom: 15px;
+		    padding: 12px;
+		    border: 1px solid #d6d5c9;
+		    background-color: #fefbde;
+		}
+	</style>
+
+<script type="text/javascript" th:inline="javascript">
+
+//등록 실행
+function doSave() {
+
+	var frm = document.collect_frm;
+	//유효성 체크 시작
+
+	//수집실행여부
+	if (!fnCheckValid("#apiTrsmrcvStrtYn", "수집실행여부")) {
+		return false;
+	}
+
+	//수집코드 선택여부
+	if("" ==frm.cmmnApiClctTyCd.value){
+		alert("수집코드는 필수 입력 항목입니다.");
+		frm.cmmnApiClctTyCd.focus;
+		return false;
+	}
+
+	if(confirm("입력한 정보를 저장하겠습니까?")){
+		$('#frm').attr("target", "_self");
+
+		var _frm = document.frm;
+		var _frmArr = $(_frm).serializeArray();
+
+		var jsonObj = fnArrayToJson(_frmArr);
+		jsonObj['apiTrsmrcvStrtYn'] = $("#apiTrsmrcvStrtYn").val();
+		jsonObj['cmmnApiClctTyCd'] = $("[name='cmmnApiClctTyCd']:checked").val();
+
+		console.log("==== jsonObj ====");
+		console.log(jsonObj);
+
+		$.ajax({
+			url: "/json/collectInfo/saveMetaMngCollectInfo"
+			, contentType: "application/json"
+			, method: "POST"
+			, data: JSON.stringify(jsonObj)
+			, success: function(data) {
+				var resultCd = data.resultCd;
+				if (resultCd == "OK") {
+					alert("처리가 완료되었습니다.");
+					location.href="/collector/collect/collect_setting_form?apiCd="+$("#apiCd").val()+"&tIdx="+$("#tIdx").val();
+				}
+			}
+		});
+	}
+
+}
+
+//배열(form.serializeArray)을 JSON 으로 변경
+function fnArrayToJson(array) {
+	var jsonObj = {};
+
+	$.each(array, function(idx, value){
+		jsonObj[value.name] = value.value;
+	}); // end each
+
+	return jsonObj;
+}
+
+function fnGoMetaList() {
+	location.href='/collector/collect/collect_info_list';
+}
+
+</script>
+
+</head>
+<body>
+
+<div id="wrap">
+	<div class="container">
+		<div id="content">
+			<div class="page_info_area">
+				<div class="left">
+					<div class="title_area">
+						<p>수집통합관리</p>
+						<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+					</div>
+				</div>
+				<div class="right">
+					<div class="btn_wrap">
+						<button type="button" class="btn" onclick="fnGoMetaList();">목록</button>
+					</div>
+				</div>
+			</div><!-- page_info_area -->
+
+			<div class="content_area">
+				<th:block th:replace="collector/inc/metamng_tab_inc :: metamng_tab_inc" />
+				<div class="division20">
+
+					<form name="frm" id="frm"  method="post">
+						<input type="hidden" name="apiCd" id="apiCd" th:value="${params.apiCd}" />
+						<input type="hidden" name="tIdx" id="tIdx" th:value="${params.tIdx}" />
+					</form>
+
+					<div class="guide_box margint10">
+						<p>
+							<b>&#183;</b> 수집실행여부가 Y인 경우에만 데이터가 수집된다.<br>
+							<!-- <b>&#183;</b> 수집코드는 10분단위/1시간단위/매일오전8시/매월1일오전9시 단위로 설정하여 데이터를 수집할 수 있다.<br> -->
+							<b>&#183;</b> 수집코드 "CS99(즉시실행)" 선택 시 10초 후에 수집을 실행하며 1회 수집 후 "CS00(해당없음)" 항목으로 업데이트 합니다.<br>
+						</p>
+					</div>
+
+					<div class="view_wrap" style="min-height:50px;">
+						<table class="view">
+							<caption>테이블</caption>
+							<colgroup>
+								<col style="width: 10%;" />
+								<col style="width: 40%;" />
+								<col style="width: 10%;" />
+								<col style="width: 40%;" />
+							</colgroup>
+							<tbody>
+
+								<tr>
+									<th scope="row"><span class="star">*</span> 수집실행여부</th>
+									<td>
+										<select name="apiTrsmrcvStrtYn" id="apiTrsmrcvStrtYn">
+											<option value="" th:selected="${resultMap.apiTrsmrcvStrtYn eq ''}">선택</option>
+											<option value="Y" th:selected="${resultMap.apiTrsmrcvStrtYn eq 'Y'}">Y</option>
+											<option value="N" th:selected="${resultMap.apiTrsmrcvStrtYn eq 'N'}">N</option>
+		                          		</select>
+									</td>
+								</tr>
+
+							</tbody>
+						</table>
+					</div> <!-- //table_wrap -->
+
+					<div class="card">
+						<form name="collect_frm" id="collect_frm">
+							<table class="list fixed">
+								<caption>테이블</caption>
+								<colgroup>
+									<col style="width: 10%;" />
+									<col style="width: 24%;" />
+									<col style="width: 24%;" />
+									<col style="width: 24%;" />
+									<col style="width: 18%;" />
+								</colgroup>
+								<thead>
+									<tr>
+										<th>선택</th>
+										<th>수집코드</th>
+										<th>수집명</th>
+										<th>설정값</th>
+										<th>사용여부</th>
+									</tr>
+								</thead>
+								<tbody>
+									<th:block th:if="${#lists.size(colctTyList) != 0}" th:each="result : ${colctTyList}">
+									<tr>
+										<td>
+											<input type="radio" name="cmmnApiClctTyCd" th:checked="${resultMap.cmmnApiClctTyCd eq result.code}" th:value="${result.code}" th:disabled="${result.useYn eq 'N'}" />
+										</td>
+										<td>[[${result.code}]]</td>
+										<td>[[${result.codeNm}]]</td>
+										<td>[[${result.codeDc}]]</td>
+										<td>
+											[[${result.useYn}]]
+										</td>
+									</tr>
+									</th:block>
+
+									<th:block th:unless="${#lists.size(colctTyList) != 0}">
+										<tr id="nullTr">
+											<td colspan="5">조회된 데이터가 없습니다.</td>
+										</tr>
+									</th:block>
+
+								</tbody>
+							</table>
+						</form>
+					</div> <!-- //table_wrap -->
+
+					<div class="btn_wrap">
+						<div class="left">
+
+						</div>
+						<div class="right">
+							<button type="button" class="btn" onclick="doSave();">저장</button>
+						</div>
+					</div>
+
+
+					<div style="display:none;">
+						<div class="tb_top_area">
+							<h4>수집실행</h4>
+						</div>
+
+						<div class="guide_box">
+							<p>
+								<b>&#183;</b> 데이터를 즉시 수집한다.<br>
+							</p>
+						</div>
+
+						<div class="tb_bottom_area">
+							<div class="btn_left">
+
+							</div>
+							<div class="btn_right">
+								<button type="button" class="btn">실행</button>
+							</div>
+						</div>
+					</div>
+
+
+		</div> <!-- //contents_area -->
+	</div> <!-- //#SUB -->
+
+</div>
+
+</body>
+</html>

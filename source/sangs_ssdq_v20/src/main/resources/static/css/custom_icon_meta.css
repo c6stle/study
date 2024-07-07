@@ -1,0 +1,17 @@
+/*project*/
+#lnb .menu > li:nth-child(1) .depth01 > li:nth-child(1) > a::before {content:"\e66b"}
+#lnb .menu > li:nth-child(1) .depth01 > li:nth-child(2) > a::before {content:"\e76f"}
+#lnb .menu > li:nth-child(1) .depth01 > li:nth-child(3) > a::before {content:"\e627"}
+#lnb .menu > li:nth-child(1) .depth01 > li:nth-child(4) > a::before {content:"\e5d2"}
+#lnb .menu > li:nth-child(1) .depth01 > li:nth-child(5) > a::before {content:"\e5d2"}
+#lnb .menu > li:nth-child(1) .depth01 > li:nth-child(6) > a::before {content:"\e5d2"}
+ 
+
+/*META*/
+#lnb .menu > li:nth-child(2) .depth01 > li:nth-child(1) > a::before {content:"\e3c7"}
+#lnb .menu > li:nth-child(2) .depth01 > li:nth-child(2) > a::before {content:"\eb66"}
+#lnb .menu > li:nth-child(2) .depth01 > li:nth-child(3) > a::before {content:"\f02f"}
+
+/*SETTING*/
+#lnb .menu > li:nth-child(3) .depth01 > li:nth-child(1) > a::before {content:"\e8b8"}
+#lnb .menu > li:nth-child(3) .depth01 > li:nth-child(2) > a::before {content:"\e801"}

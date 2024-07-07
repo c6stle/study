@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         name="sangs_common_pmd_rule_spring"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+   <description>sangs common pmd spring rule set</description>
+   <rule ref="category/java/design.xml/AvoidThrowingNullPointerException"/>
+   <rule ref="category/java/design.xml/AvoidThrowingRawExceptionTypes"/>
+   <rule ref="category/java/errorprone.xml/EqualsNull"/>
+   <rule ref="category/apex/codestyle.xml/LocalVariableNamingConventions"/>
+   <rule ref="category/java/bestpractices.xml/AvoidReassigningParameters"/>
+   <rule ref="category/vm/bestpractices.xml/AvoidReassigningParameters"/>
+   <rule ref="category/java/performance.xml/StringInstantiation"/>
+   <rule ref="category/java/bestpractices.xml/AbstractClassWithoutAbstractMethod"/>
+   <!-- <rule ref="category/ecmascript/codestyle.xml/AssignmentInOperand"/> -->
+   <rule ref="category/java/performance.xml/AvoidArrayLoops"/>
+   <rule ref="category/java/multithreading.xml/AvoidSynchronizedAtMethodLevel"/>
+   <rule ref="category/apex/errorprone.xml/EmptyCatchBlock"/>
+   <rule ref="category/java/errorprone.xml/EmptyFinallyBlock"/>
+   <rule ref="category/apex/errorprone.xml/EmptyIfStmt"/>
+   <rule ref="category/java/errorprone.xml/EmptyStatementNotInLoop"/>
+   <rule ref="category/java/errorprone.xml/EmptyTryBlock"/>
+   <rule ref="category/apex/errorprone.xml/EmptyWhileStmt"/>
+   <rule ref="category/java/design.xml/FinalFieldCouldBeStatic"/>
+   <rule ref="category/java/design.xml/ImmutableField"/>
+   <rule ref="category/java/errorprone.xml/ImportFromSamePackage"/>
+   <rule ref="category/java/performance.xml/InefficientEmptyStringCheck"/>
+   <rule ref="category/java/performance.xml/InefficientStringBuffering"/>
+   <rule ref="category/java/codestyle.xml/MIsLeadingVariableName"/>
+   <rule ref="category/java/errorprone.xml/SimpleDateFormatNeedsLocale"/>
+   <rule ref="category/java/design.xml/SimplifyBooleanExpressions"/>
+   <rule ref="category/java/performance.xml/StringToString"/>
+   <rule ref="category/java/bestpractices.xml/SwitchStmtsShouldHaveDefault"/>
+   <rule ref="category/java/documentation.xml/UncommentedEmptyMethodBody"/>
+   <rule ref="category/java/errorprone.xml/UnnecessaryConversionTemporary"/>
+   <!-- <rule ref="category/ecmascript/codestyle.xml/UnnecessaryParentheses"/>-->
+   <rule ref="category/java/performance.xml/UnnecessaryWrapperObjectCreation"/>
+   <rule ref="category/java/bestpractices.xml/UnusedFormalParameter"/>
+   <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+   <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+   <rule ref="category/java/performance.xml/UselessStringValueOf"/>
+   <rule ref="category/apex/codestyle.xml/WhileLoopsMustUseBraces"/>
+   <rule ref="category/java/codestyle.xml/DuplicateImports"/>
+   <rule ref="category/java/bestpractices.xml/SystemPrintln"/>
+</ruleset>

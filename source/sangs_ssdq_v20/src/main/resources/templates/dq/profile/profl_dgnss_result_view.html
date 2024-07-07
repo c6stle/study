@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<!-- head inclue -->
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+		
+</head>
+<body>
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+				<div class="page_info_area">
+					<div class="left">
+						<div class="title_area">
+							<p></p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area">
+							<button class="btn" title="상세" onclick="fnOpenDisMtchDtlInfoSearchPop(); return false;">불일치 상세</button>
+						</div>
+					</div>
+				</div><!-- page_info_area -->
+				
+				<div class="content_area">
+					<div class="division20">
+						<input type="hidden" id="excSn" name="excSn" th:value="${resultInfo.excSn}" />
+						<div class="card">
+							<table class="view margint10">
+								<colgroup>
+									<col width="12%"/>
+									<col width="auto"/>
+									<col width="12%"/>
+									<col width="auto"/>
+									<col width="12%"/>
+									<col width="auto"/>
+								</colgroup>
+								<tbody>
+									<tr>
+										<th>프로파일명</th>
+										<td col="5"th:text="${resultInfo.proflNm}"></td>
+									</tr>
+									<tr>
+										<th>진단 DBMS 종류(DB)</th>
+										<td th:text="${resultInfo.dbmsNm}+' ('+${resultInfo.dbmsDatabaseNm}+')'"></td>
+										<th>진단 접속 IP(접속계정)</th>
+										<td th:text="${resultInfo.dbmsIpAddr}+':'+${resultInfo.dbmsPortNo}+' ('+${resultInfo.dbmsId}+')'"></td>
+										<th>총 진단 오류 건수</th>
+										<td th:text="${#numbers.formatInteger(resultInfo.dgnssTotErrCnt, 0, 'COMMA')}"></td>
+									</tr>									
+									
+									<tr>
+										<th>총 진단 테이블 수</th>
+										<td th:text="${#numbers.formatInteger(resultInfo.totTblCnt, 0, 'COMMA')}"></td>
+										<th>총 진단 컬럼 수</th>
+										<td th:text="${#numbers.formatInteger(resultInfo.totColCnt, 0, 'COMMA')}"></td>
+										<th>총 진단 데이터 수</th>
+										<td th:text="${#numbers.formatInteger(resultInfo.dgnssTotDataCnt, 0, 'COMMA')}"></td>
+									</tr>
+									<tr>
+										<th>수행 시작 일시</th>
+										<td th:text="${resultInfo.excBgngDt}"></td>
+										<th>수행 종료 일시</th>
+										<td th:text="${resultInfo.excEndDt}"></td>
+										<th>수행 시간</th>
+										<td id="diffSecond"></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div class="row">
+						<div class="left" data-width="700">
+							<div class="card">
+	                			<div class="tbl_top" style="flex: 0 0 0;">
+									<p class="tit v2">
+										<span>테이블 진단 목록 (총 <span id="span_tableListCnt">0</span>건)
+										</span>
+									</p>
+									<div>
+									<button class="btn sm" title="초기화" onclick="fnInitTbl(); return false;">전체보기</button>
+									<input type="text" name="tabNmSearchText " id="tabNmSearchText" style="width: 300px;" title="검색어" placeholder="테이블명 입력후 엔터" >
+									</div>
+								</div>
+								<table class="list margin0" id="tb_tblanlslist_table">
+									<colgroup>
+										<col width="10%"/>
+										<col width="30%"/>
+										<col width="auto"/>
+									</colgroup>
+									<thead>
+										<tr>
+											<th>No</th>
+											<th>테이블명</th>
+											<th>row 수</th>
+											<th>진단 컬럼 수</th>
+											<th>진단 지표 수</th>
+											<th>일치 율(%)</th>
+											<th>오류 건 수</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="fwk_templete_row">
+											<td>#{FWK_TR_NO}
+												<input type="hidden" name="excSn" value="#{excSn}"/>
+												<input type="hidden" name="tblNm" value="#{tblNm}"/>
+												<input type="hidden" name="tblSn" value="#{tblSn}"/>	
+												<input type="hidden" name="tblNm_tblSn" value="#{tblNm}_#{tblSn}"/>	
+											</td>
+											<td class="alingl">#{tblNm}</td>
+											<td class="alignr">#fn{fnFormatNumber(#{totDataCnt})}</td>
+											<td class="alignr">#fn{fnFormatNumber(#{colCnt})}</td>
+											<td class="alignr">#fn{fnFormatNumber(#{ruleCnt})}</td>
+											<td class="alignr" name="mtchRate">#{mtchRate}%</td>
+											<td class="alignr">#fn{fnFormatNumber(#{errCnt})}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						
+						
+						<div class="right" data-width="0">
+							<div class="tab_wrap view_wrap" style="padding-top: 10px;">
+							<ul class="tab_btn_wrap" id="ul_tabWap">
+								<li class="tab_btn on" data-callbackfn="fnAfterTabChange(1);"><a href="#" onclick="return false;" data-tab="1">패턴 분석</a></li>
+								<li class="tab_btn" data-callbackfn="fnAfterTabChange(2);"><a href="#" onclick="return false;" data-tab="2">Value Frequency</a></li>
+								<li class="tab_btn" data-callbackfn="fnAfterTabChange(3);"><a href="#" onclick="return false;" data-tab="3">기본 분석</a></li>
+							</ul>
+								<div class="tab_cont_wrap">
+									<div class="tab_content" data-tab="1" style="padding-top: 5px;">
+										<table class="list" id="tb_pttrnanlslist_table">
+											<colgroup>
+												<col width="20%"/>
+												<col width="20%"/>
+												<col width="25%"/>
+												<col width="13%"/>
+												<col width="12%"/>
+												<col width="10%"/>
+											</colgroup>
+											<thead>
+												<tr>
+													<th>테이블명</th>
+													<th>컬럼명</th>
+													<th>지표 항목</th>
+													<th>Null 데이터 <br/>진단 여부</th>
+													<th>일치 / 진단 수</th>
+													<th>일치율(%)</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr class="fwk_templete_row">
+													<td>#{tblNm}</td>
+													<td>#{colNm}
+														<input type="hidden" name="colSn" value="#{colNm}_#{colSn}_#{tblNm}"/>
+														<input type="hidden" name="excSn" value="#{excSn}"/>
+														<input type="hidden" name="tblNm" value="#{tblNm}"/>
+														<input type="hidden" name="tblSn" value="#{tblSn}"/>
+														<input type="hidden" name="ruleExcResultCd" value="#{ruleExcResultCd}"/>
+														<input type="hidden" name="tblNm_tblSn" value="#{tblNm}_#{tblSn}"/>	
+													</td>
+													<td class="alingl">#{ruleNm}</td>
+													<td class="alingl">#{nullDataDgnssYn}</td>
+													<td class="alignr">#fn{fnFormatNumber(#{mtchCnt})} / #fn{fnFormatNumber(#{totDataCnt})}</td>
+													<td class="alignr">#fn{fnRuleExcResultCd('#{ruleExcResultCd}', #{mtchRate})}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									<div class="tab_content" data-tab="2" style="padding-top: 5px;">
+										<table class="list" id="tb_fqanlslist_table">
+											<colgroup>
+												<col width="25%"/>
+												<col width="25%"/>
+												<col width="25%"/>
+												<col width="15%"/>
+												<col width="15%"/>
+											</colgroup>
+											<thead>
+												<tr>
+													<th>테이블명</th>
+													<th>컬럼명</th>
+													<th>값</th>
+													<th>Match <br/>/ Total Count</th>
+													<th>중복률(%)</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr class="fwk_templete_row">
+													<td>#{tblNm}</td>
+													<td>#{colNm}
+														<input type="hidden" name="colSn" value="#{colNm}_#{colSn}_#{tblNm}"/>
+														<input type="hidden" name="excSn" value="#{excSn}"/>
+														<input type="hidden" name="tblNm" value="#{tblNm}"/>
+														<input type="hidden" name="tblSn" value="#{tblSn}"/>
+														<input type="hidden" name="tblNm_tblSn" value="#{tblNm}_#{tblSn}"/>		
+													</td>
+													<td class="alingl">#{dataValue}</td>
+													<td class="alignr">#fn{fnFormatNumber(#{dataCnt})}/ #fn{fnFormatNumber(#{totDataCnt})}</td>
+													<td class="alignr">#{mtchRate}%</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									<div class="tab_content" data-tab="3" style="padding-top: 5px;">
+											<table class="list" id="tb_basicanlslist_table">
+											<colgroup>
+												<col width="27%"/>
+												<col width="27%"/>
+												<col width="27%"/>
+												<col width="19%"/>
+											</colgroup>
+											<thead>
+												<tr>
+													<th>테이블명</th>
+													<th>컬럼명</th>
+													<th>지표 항목</th>
+													<th>Match Count</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr class="fwk_templete_row">
+													<td>#{tblNm}</td>
+													<td>#{colNm}
+														<input type="hidden" name="colSn" value="#{colNm}_#{colSn}_#{tblNm}"/>
+														<input type="hidden" name="excSn" value="#{excSn}"/>
+														<input type="hidden" name="tblNm" value="#{tblNm}"/>
+														<input type="hidden" name="tblSn" value="#{tblSn}"/>	
+														<input type="hidden" name="tblNm_tblSn" value="#{tblNm}_#{tblSn}"/>	
+													</td>
+													<td class="alingl">#{ruleNm}</td>
+													<td class="alignr">#fn{fnFormatNumber(#{mtchCnt})}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div><!-- content_area -->
+			</div>
+		</div>
+	</div>
+</body>
+
+
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	fnSearchTblList();
+	
+	/*<![CDATA[*/
+    var val = "[[${resultInfo.diffSecond}]]";
+    /*]]>*/
+	
+    var diffSecond = fnDateTextBySec(val);
+    $("#diffSecond").text(diffSecond);
+    
+    
+	$("#tabNmSearchText").on("keyup", function(event) {
+		if(event.keyCode == 13)
+			fnTblNmFilter($(this).val());
+	});
+    
+    
+});
+
+function fnRuleExcResultCd(ruleExcResultCd, mtchRate) {
+	
+	if(ruleExcResultCd == "S"){
+		if(mtchRate == undefined)
+			return "";
+		else 
+			return mtchRate + "%";
+	} else if(ruleExcResultCd == "L") {
+		return "불일치 등록수 초과";
+	} else {
+		return "데이터 분석 오류";
+	}
+}
+
+
+// 테이블 조회
+function fnSearchTblList() {
+	
+	$.ajax({
+		url: '/json/profileMng/getDgnssResultDetailTblList'
+		, method: 'POST' 
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			excSn: $("#excSn").val()
+		})
+		, success: function(data) {
+			// 테이블 진단 목록
+			fnBindTableValue("tb_tblanlslist_table", data.tblAnlsList);
+			// 기본 분석
+			fnBindTableValue("tb_basicanlslist_table", data.tblBasicAnlsList);
+			// 패턴 분석
+			fnBindTableValue("tb_pttrnanlslist_table", data.tblPttrnAnlsList);
+			// Value Frequency
+			fnBindTableValue("tb_fqanlslist_table", data.tblFqAnlsList);
+			
+			$("#span_tableListCnt").text(data.tblAnlsListCnt)
+			
+			// 2022.11.15 주석처리(앞에 테이블 컬럼이 하나 추가 되서)
+			//fnColNmRowSpan("tb_basicanlslist_table");
+			//fnColNmRowSpan("tb_fqanlslist_table");
+			
+			fnSelectTrEvent("#tb_tblanlslist_table tbody tr", function(rtnObj){
+				fnViewDtl($(rtnObj).find("input[name=tblNm_tblSn]").val(), "tb_basicanlslist_table");
+				fnViewDtl($(rtnObj).find("input[name=tblNm_tblSn]").val(), "tb_pttrnanlslist_table");
+				fnViewDtl($(rtnObj).find("input[name=tblNm_tblSn]").val(), "tb_fqanlslist_table");
+			});
+
+			fnMtchRateNull("tb_tblanlslist_table");
+			
+			$("#tb_pttrnanlslist_table tbody tr").each(function(){
+				var ruleExcResultCd = $(this).find("input[name=ruleExcResultCd]").val();
+				if (ruleExcResultCd == "L" || ruleExcResultCd == "E") {
+					$(this).find("td").css("background-color", "#FFD2D2");
+				}
+				
+			});	
+		}
+	});
+}
+
+function fnColNmRowSpan(tableId){
+	var temp = 0;
+
+	$("#"+tableId+" tbody tr.fwk_data_row").each(function(index){
+		var colSnThisValue = $(this).find("input[name=colSn]").val();
+		var colSnTrgtValue = $("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("input[name=colSn]").val();
+		
+		var isOtherValue = false;
+
+		if(colSnThisValue != colSnTrgtValue){
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").attr("rowspan", index-temp);
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").show();
+			temp = index;
+			isOtherValue =true;
+		} else {
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").attr("rowspan", "0");
+			$(this).find("td:eq(0)").hide();
+		}
+		
+		if(!isOtherValue){
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").attr("rowspan", index+1);
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").show();
+		}
+		
+	});
+}
+
+// 일치율 null인 경우
+function fnMtchRateNull(tableId){
+	$("#"+tableId+" tbody tr.fwk_data_row").each(function(index){
+		var textVal = $(this).find("td[name=mtchRate]").text();
+		if(textVal=="%"){
+			$(this).find("td[name=mtchRate]").text("-");
+		}
+	});
+}
+
+function fnAfterTabChange() {
+	setFrameHeight();
+}
+
+function fnViewDtl(tblNm, tableId){
+	
+	$("#"+tableId+" tbody tr.fwk_data_row").each(function(index){
+		var thisTblNm = $(this).find("input[name=tblNm_tblSn]").val();
+		
+		if(tblNm == thisTblNm){
+			$(this).show();
+		} else {
+			$(this).hide();
+		}
+	});
+	setFrameHeight();
+}
+
+function fnTblNmFilter(searchText){
+	
+	var tblNm = searchText.toUpperCase() 
+	if(tblNm ==""){
+		$("#tb_tblanlslist_table tbody tr.fwk_data_row").show();
+		fnClearSelectTrEvent("#tb_tblanlslist_table tbody tr");
+		$(".tab_cont_wrap").find("tr.fwk_data_row").show();
+	} else {
+		$("#tb_tblanlslist_table tbody tr.fwk_data_row").each(function(index){
+			var thisTblNm = $(this).find("input[name=tblNm]").val().toUpperCase();
+			if(thisTblNm.indexOf(tblNm) > -1){
+				$(this).show();
+			} else {
+				$(this).hide();
+			}
+		});
+	}
+	setFrameHeight();
+}
+
+// 초기화
+function fnInitTbl(){
+	fnClearSelectTrEvent("#tb_tblanlslist_table tbody tr");
+	$("#tabNmSearchText").val("");
+	fnTblNmFilter("");
+	$(".tab_cont_wrap").find("tr.fwk_data_row").show();
+	setFrameHeight();
+}
+
+
+function fnOpenDisMtchDtlInfoSearchPop() {
+	var excSn = $("#excSn").val();
+	window.open('/open/dq/profile/profl_dgnss_dis_mtch_dtl_result_view?excSn=' + excSn, '_dgnssDisMtchDtlResultView', 'width=1700, height=950, resize=yes');
+}
+
+</script>
+</html>

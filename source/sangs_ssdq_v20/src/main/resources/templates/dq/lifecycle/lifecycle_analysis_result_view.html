@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/mainLayout">
+<head>
+<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+<body>
+
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+				<div class="page_info_area">
+					<div class="left">
+						<div class="location_area">
+							<a href="#" class="bookmark active" title="즐겨찾기"></a>
+						</div>
+						<div class="title_area">
+							<p>Lifecycle 분석 상세 결과</p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+							<a href="#" class="help_btn" title="도움말">도움말</a>
+						</div>
+					</div>
+					<!--  <input type='text' class='' th:value="${info.dbmsCnncSn}" style='border:none; background-color: #fff' disabled/> -->
+				</div>
+				<div class="content_area">
+					<div class="division20">
+						<div class="row">
+							<input type="hidden" id="dbmsCnncSn" name="dbmsCnncSn" th:value="${info.dbmsCnncSn}" /> 
+							<input type="hidden" id="dgnssInfoId" name="dgnssInfoId" th:value="${info.dgnssInfoId}" />
+							<input type="hidden" id="mtchgPer" name="mtchgPer" th:value="${info.mtchgPer}" /> 
+							<input type="hidden" id="excessPer" name="excessPer" th:value="${info.excessPer}" /> 
+							<input type="hidden" id="errPer" name="errPer" th:value="${info.errPer}" />
+							<div class="left" data-width="0">
+								<div class="card">
+									<table class="view margint10">
+										<colgroup>
+											<col width="20%" />
+											<col width="auto" />
+											<col width="20%" />
+											<col width="auto" />
+										</colgroup>
+										<tbody>
+											<tr>
+												<th>작업 명</th>
+												<td colspan='2' th:text="${info.dgnssNm}"></td>
+											</tr>
+											<tr>
+												<th>작업 시작 시간</th>
+												<td th:text="${info.excBgngDt}"></td>
+												<th>작업 수행 시간</th>
+												<td th:text="${info.workTime}"></td>
+											</tr>
+											<tr>
+												<th>데이터베이스</th>
+												<td th:text="${info.dbmsDatabaseNm}"></td>
+												<th>테이블 수</th>
+												<td th:text="${#numbers.formatInteger(info.tableCnt, 0, 'COMMA')}"></td>
+											</tr>
+											<tr>
+												<th>총 데이터 수</th>
+												<td th:text="${#numbers.formatInteger(info.totCnt, 0, 'COMMA')}"></td>
+												<th>총 정상 데이터 수</th>
+												<td th:text="${#numbers.formatInteger(info.totMtchgCnt, 0, 'COMMA')}"></td>
+											</tr>
+											<tr>
+												<th>총 초과 데이터 수</th>
+												<td th:text="${#numbers.formatInteger(info.totExcessCnt, 0, 'COMMA')}"></td>
+												<th>총 오류 데이터 수</th>
+												<td th:text="${#numbers.formatInteger(info.totErrCnt, 0, 'COMMA')}"></td>
+											</tr>
+										</tbody>
+									</table>
+								</div> <!-- card -->
+							</div> <!-- left -->
+							<div class="right" data-width="450">
+								<div class="card" style="padding-bottom: 0;">
+									<div class="bx-wrap">
+										<div class="bx-content">
+											<div class="chart-wrap" id="dataChar" style="width: 100%; height: 240px;">
+											</div>
+										</div>
+									</div>
+								</div><!-- card -->
+							</div><!-- right -->
+						</div><!-- row -->
+					</div><!-- division20 -->
+					<div class="division20">
+						<div class="card">
+							<div class="row">
+								<div class="left" data-width="0" id="dv_lefttable_div">
+								</div>
+								<div class="right" data-width="425" id="dv_barchar_div" >
+								</div>
+							</div>
+						</div><!-- card -->
+					</div><!-- division20 -->
+				</div><!-- content_area -->
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+
+
+	<script type="text/javascript">
+$(document).ready(function() {
+	isMongoDbFileCheck();
+	
+	
+	var chk = isSessionConChk();
+	
+	if(chk){
+		var dbmsNm = fnGetMyDbmsNm();
+		var dbmsDatabaseNm = "";
+		if(dbmsNm != "VoltDB"){
+			dbmsDatabaseNm = fnGetMyDbmsDatabaseNm();
+		}
+		
+		isCsvFileCheck(dbmsNm);
+		
+		$("#dbmsNm").val(dbmsNm);
+		$("#dbmsDatabaseNm").val(dbmsDatabaseNm);
+		
+		var mtchgPer = $("#mtchgPer").val();
+		var excessPer = $("#excessPer").val();
+		var errPer = $("#errPer").val();
+	
+		var dataChartArr = new Array();
+		fnSetPieChartDataObj(dataChartArr, "정상", mtchgPer);
+		fnSetPieChartDataObj(dataChartArr, "초과", excessPer);
+		fnSetPieChartDataObj(dataChartArr, "오류", errPer);
+		fnDrawPieChart("dataChar", dataChartArr, "데이터" , "Y",  "vertical");
+		
+		
+		fnGetTableDtlList();
+	}
+	
+});
+
+function fnSetPieChartDataObj(arrObj, name, value) {
+	var obj = new Object();
+	obj.name = name;
+	obj.value = value;
+	arrObj[arrObj.length] = obj;
+}
+
+function fnDrawPieChart(id, dataList, seriesName, labelYn, legendLoc) {
+	var option;
+	option = {
+		title: {
+			text: '',
+			subtext: '',
+			left: 'center'
+		},
+		tooltip: {
+			trigger: 'item'
+		},
+		legend: {
+			orient: legendLoc,
+			left: 'left'
+		}
+		, series: [ {
+			name: seriesName,
+			type: 'pie',
+			radius: '50%',
+			data: dataList,
+			emphasis: {
+				itemStyle: {
+					shadowBlur: 10,
+					shadowOffsetX: 0,
+					shadowColor: 'rgba(0, 0, 0, 0.5)'
+				}
+			}
+		}]
+	};
+
+	if(labelYn == "Y") { 
+		var label = {
+			formatter: '{b} ({@2012})'
+		};
+		option.label = label;
+	}
+	
+	var chartDom = document.getElementById(id);
+	option && echarts.init(chartDom).setOption(option);	
+	
+}
+
+function fnDrawBarChart(id, dataList, nameList ,seriesName, max){
+	var option;
+	option = {
+		tooltip : {
+			trigger : 'axis',
+			axisPointer : {
+				type : 'shadow'
+			}
+		},
+		grid : {
+			left : '3%',
+			right : '4%',
+			bottom : '8%',
+			top : '17%',
+			containLabel : true
+		},
+		xAxis : [ {
+			type : 'category',
+			data : nameList,
+			axisTick : {
+				alignWithLabel : true
+			}
+		} ],
+		yAxis : [ {
+			type : 'value',
+			max : max
+		} ],
+		series : [ {
+			name : seriesName,
+			type : 'bar',
+			barWidth : '60%',
+			/* label: {
+		        show: true,
+		        position: 'inside'
+		      }, */
+			data : dataList
+		} ]
+	};
+	var chartDom = document.getElementById(id);
+	option && echarts.init(chartDom).setOption(option);
+}
+
+// 각 테이블 분석 결과
+function fnGetTableDtlList(){
+	var dbmsCnncSn = $("#dbmsCnncSn").val();
+	var dgnssInfoId = $("#dgnssInfoId").val();
+	
+	$.ajax({
+		url: '/dq/lifecycle/getLifecycleDiagnosisResultTableList'
+		, method : "POST"
+		, contentType : 'application/json'
+		, data: JSON.stringify({
+			dbmsCnncSn : dbmsCnncSn
+			, dgnssInfoId : dgnssInfoId
+		})
+		, success: function(data){
+			var list = data.list;
+			var tableHtml = '';
+			var barCharHtml = '';
+			$.each(list, function(idx){
+				
+				var totCnt = this.totCnt;
+				var mtchgCnt = this.mtchgCnt;
+				var excessCnt = this.excessCnt;
+				var errCnt = this.errCnt;
+				
+				var pdClCd = this.pdClCd;
+				if(pdClCd == "Y"){
+					pdClCd = "년"
+				} else if(pdClCd == "M"){
+					pdClCd = "월"
+				}
+				tableHtml = '<p>'+this.dbmsTableNm+'</p>'
+				tableHtml += '<table class="list fixed">';
+				tableHtml += '	<colgroup>';
+				tableHtml += '		<col width="25%" />';
+				tableHtml += '      <col width="25%" />';
+				tableHtml += '      <col width="25%" />';
+				tableHtml += '      <col width="25%" />';
+				tableHtml += '	</colgroup>';
+				tableHtml += '	<thead>';
+				tableHtml += '		<tr>';
+				tableHtml += '			<th>테이블명</th>';
+				tableHtml += '			<th>기준컬럼</th>';
+				tableHtml += '			<th>적용항목</th>';
+				tableHtml += '			<th>적용기간</th>';
+				tableHtml += '		</tr>';
+				tableHtml += '	</thead>';
+				tableHtml += '	<tbody>';
+				tableHtml += '		<tr>';
+				tableHtml += '			<td>'+this.dbmsTableNm+'</td>';
+				tableHtml += '			<td>'+this.colNm+'</td>';
+				tableHtml += '			<td>'+this.fieldNm+'</td>';
+				tableHtml += '			<td>'+this.pdValue + pdClCd +'</td>';
+				tableHtml += '		</tr>';
+				tableHtml += '	</tbody>';
+				tableHtml += '	<thead>';
+				tableHtml += '		<tr>';
+				tableHtml += '			<th>데이터수</th>';
+				tableHtml += '			<th>정상데이터</th>';
+				tableHtml += '			<th>초과데이터</th>';
+				tableHtml += '			<th>오류데이터</th>';
+				tableHtml += '		</tr>';
+				tableHtml += '	</thead>';
+				tableHtml += '	<tbody>';
+				tableHtml += '		<tr>';
+				tableHtml += '			<td>'+fnFormatNumber(totCnt)+'</td>';
+				tableHtml += '			<td>'+fnFormatNumber(mtchgCnt)+'</td>';
+				tableHtml += '			<td>'+fnFormatNumber(excessCnt)+'</td>';
+				tableHtml += '			<td>'+fnFormatNumber(errCnt)+'</td>';
+				tableHtml += '		</tr>';
+				tableHtml += '	</tbody>';
+				tableHtml += '</table>';
+				
+				barCharHtml = ' <div id="div_drawbarchart'+idx+'"> </div> ';
+				
+				$("#dv_lefttable_div").append(tableHtml);
+				$("#dv_barchar_div").append(barCharHtml);
+				
+				var dataChartArr = new Array();
+				fnSetBarChartDataAndColorObj(dataChartArr, {color : '#5470c6'}, mtchgCnt);
+				fnSetBarChartDataAndColorObj(dataChartArr, {color : '#91cc75'}, excessCnt);
+				fnSetBarChartDataAndColorObj(dataChartArr, {color : '#fac858'}, errCnt);
+				
+				var dataNmChartArr = new Array('정상 ('+fnFormatNumber(mtchgCnt)+')', '초과 ('+fnFormatNumber(excessCnt)+')','오류 ('+fnFormatNumber(errCnt)+')');
+				
+				fnDrawBarChart("div_drawbarchart"+idx+"", dataChartArr , dataNmChartArr , "데이터", totCnt);
+			});
+		}
+	});
+		
+}
+
+function fnSetBarChartDataAndColorObj(arrObj, color, value) {
+	var obj = new Object();
+	obj.value = value;
+	obj.itemStyle = color;
+	arrObj[arrObj.length] = obj;
+}
+
+</script>
+</body>
+</html>

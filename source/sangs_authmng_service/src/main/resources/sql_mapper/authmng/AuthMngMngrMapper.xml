@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="authMngMngr">
+
+	<sql id="where_selectMngrList">
+		<!-- AND T3.USE_YN = 'Y' -->
+		<if test="authrtCd != '' and authrtCd != null ">
+		AND T2.AUTHRT_CD = #{authrtCd}
+		</if>
+		<if test="useYn != '' and useYn != null ">
+		AND T3.USE_YN = #{useYn}
+		</if>
+		<choose>
+			<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				<if test="selectSearch != '' and selectSearch != null ">
+					<if test="selectSearch == 'userId'">
+					AND T1.USER_ID LIKE CONCAT('%', #{searchText}, '%')
+					</if>
+					<if test="selectSearch == 'userNm'">
+					AND T1.USER_NM LIKE CONCAT('%', #{searchText}, '%')
+					</if>  
+					<if test="selectSearch == 'selectSearch'">
+					AND T1.REG_USER_ID like CONCAT('%', #{searchText}, '%')
+					</if>
+				</if>
+			</when>
+			<otherwise>
+				<if test="selectSearch != '' and selectSearch != null ">
+					<if test="selectSearch == 'userId'">
+					AND T1.USER_ID LIKE '%'|| #{searchText} || '%'
+					</if>
+					<if test="selectSearch == 'userNm'">
+					AND T1.USER_NM LIKE '%'|| #{searchText} || '%'
+					</if>  
+					<if test="selectSearch == 'selectSearch'">
+					AND T1.REG_USER_ID LIKE '%'|| #{searchText} || '%'
+					</if>
+				</if>
+			</otherwise>
+		</choose>
+	</sql>
+ 	
+	<!-- dbms별 공통 insert query -->
+	<sql id="common_insert_query">
+		<if test="APP_DBMS_TYPE != '' and APP_DBMS_TYPE != null ">
+			<choose>
+				<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+					, #{regUserId}
+					, NOW()
+					, #{regUserId}
+					, NOW()
+				</when>
+				<otherwise>
+					, #{regUserId}
+					, SYSDATE
+					, #{regUserId}
+					, SYSDATE
+				</otherwise>
+			</choose>	
+		</if>
+	</sql>
+	
+	<!-- dbms별 공통 update query -->
+	<sql id="common_update_query">
+		<if test="APP_DBMS_TYPE != '' and APP_DBMS_TYPE != null ">
+			<choose>
+				<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+					, CHG_USER_ID = #{regUserId}
+					, CHG_DT = NOW()
+				</when>
+				<otherwise>
+					, CHG_USER_ID = #{regUserId}
+					, CHG_DT = SYSDATE
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+ 
+	<select id="selectMngrListCnt" resultType="Integer" parameterType="map">
+		SELECT 
+			COUNT(1) AS CNT
+		FROM 
+			CMMN_MNGR T1 
+			LEFT OUTER JOIN CMMN_MNGR_AUTHOR_DTL T2 ON T1.USER_ID = T2.USER_ID 
+			LEFT OUTER JOIN CMMN_MNGR_AUTHOR T3 ON T2.AUTHRT_CD = T3.AUTHRT_CD 
+		WHERE 1=1
+		<include refid="where_selectMngrList" />
+	</select>
+	
+	<select id="selectMngrList" resultType="sangsMap" parameterType="map">
+		SELECT 
+			T.*
+		FROM (
+			SELECT 
+				T1.USER_ID
+				, T1.USER_NM
+				, T2.AUTHRT_CD
+				, T3.AUTHRT_NM
+				, T3.USE_YN 
+				, T1.REG_USER_ID
+				<choose>
+					<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+						, DATE_FORMAT(T1.REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT
+						, DATE_FORMAT(T1.CHG_DT, '%Y-%m-%d %H:%i:%s') AS CHG_DT
+						, ROW_NUMBER() OVER(ORDER BY DATE_FORMAT(T1.REG_DT, '%Y-%m-%d %H:%i:%s') DESC) AS RN
+					</when>
+					<otherwise>
+						, TO_CHAR(T1.REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS REG_DT
+						, TO_CHAR(T1.CHG_DT, 'YYYY-MM-DD HH24:MI:SS') AS CHG_DT
+						, ROW_NUMBER() OVER(ORDER BY TO_CHAR(T1.REG_DT, 'YYYY-MM-DD HH24:MI:SS') DESC) AS RN
+					</otherwise>
+				</choose>
+			FROM 
+				CMMN_MNGR T1 
+				LEFT OUTER JOIN CMMN_MNGR_AUTHOR_DTL T2 ON T1.USER_ID = T2.USER_ID 
+				LEFT OUTER JOIN CMMN_MNGR_AUTHOR T3 ON T2.AUTHRT_CD = T3.AUTHRT_CD
+			WHERE 1=1
+			<include refid="where_selectMngrList" />
+			ORDER BY RN DESC
+		) T
+		WHERE 1=1
+			AND RN BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectMngrInfo" resultType="sangsMap" parameterType="map">
+		SELECT 
+			T.*
+		FROM (
+			SELECT 
+				ROW_NUMBER() OVER(ORDER BY T1.REG_USER_ID DESC) AS SORT_NO
+				, T1.USER_ID
+				, T4.USER_PASSWORD 
+				, T1.USER_NM
+				, T2.AUTHRT_CD
+				, T3.AUTHRT_NM
+				, T3.USE_YN 
+				, T1.REG_USER_ID
+				<choose>
+					<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+						, IFNULL(T4.LGN_FAILR_CNT, 0) AS LGN_FAILR_CNT
+						, DATE_FORMAT(T4.PASSWORD_EXPRY_DT, '%Y-%m-%d %H:%i:%s') AS PASSWORD_EXPRY_DT
+						, DATE_FORMAT(T4.LAST_LGN_DT, '%Y-%m-%d %H:%i:%s') AS LAST_LGN_DT
+						, DATE_FORMAT(T1.REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT
+						, DATE_FORMAT(T1.CHG_DT, '%Y-%m-%d %H:%i:%s') AS CHG_DT
+					</when>
+					<otherwise>
+						, NVL(T4.LGN_FAILR_CNT, 0) AS LGN_FAILR_CNT
+						, TO_CHAR(T4.PASSWORD_EXPRY_DT, 'YYYY-MM-DD HH24:MI:SS') AS PASSWORD_EXPRY_DT
+						, TO_CHAR(T4.LAST_LGN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_LGN_DT
+						, TO_CHAR(T1.REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS REG_DT
+						, TO_CHAR(T1.CHG_DT, 'YYYY-MM-DD HH24:MI:SS') AS CHG_DT
+					</otherwise>
+				</choose>
+			FROM 
+				CMMN_MNGR T1 
+				LEFT OUTER JOIN CMMN_MNGR_AUTHOR_DTL T2 ON T1.USER_ID = T2.USER_ID 
+				LEFT OUTER JOIN CMMN_MNGR_AUTHOR T3 ON T2.AUTHRT_CD = T3.AUTHRT_CD 
+				LEFT OUTER JOIN CMMN_MNGR_LOGIN T4 ON T1.USER_ID = T4.USER_ID
+			WHERE 1=1
+				AND T1.USER_ID = #{userId}
+		) T
+	</select>
+	
+	<insert id="insertMngr" parameterType="map">
+		INSERT INTO CMMN_MNGR (
+			USER_ID, USER_NM, USE_YN, REG_USER_ID, REG_DT, CHG_USER_ID, CHG_DT
+		) VALUES (
+			#{userId}
+			, #{userNm}
+			, #{useYn}
+			<include refid="common_insert_query" />
+		)
+	</insert>
+	
+	<update id="updateMngr" parameterType="map">
+		UPDATE CMMN_MNGR SET 
+			USER_NM = #{userNm}
+			, USE_YN = #{useYn}
+			<include refid="common_update_query" />
+		WHERE 1=1
+			AND USER_ID = #{userId}
+	</update>
+	
+	<insert id="insertMngrLoginInfo" parameterType="map">
+		INSERT INTO CMMN_MNGR_LOGIN (
+			USER_ID, USER_PASSWORD, PASSWORD_EXPRY_DT, LGN_FAILR_CNT
+		) VALUES (
+			#{userId}
+			, #{encryptPass}
+			<choose>
+				<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				, DATE_ADD(NOW(),INTERVAL 1 YEAR)
+				</when>
+				<otherwise>
+				, SYSDATE + (INTERVAL '1' YEAR)
+				</otherwise>
+			</choose>
+			, 0
+		)
+	</insert>
+	
+	<insert id="insertMngrPrjctInfo" parameterType="map">
+		INSERT INTO CMMN_PRJCT_USER (
+			PRJCT_SN, USER_ID
+		) VALUES (
+			#{prjctSn}
+			, #{userId}
+		)
+	</insert>
+	
+	<select id="selectMngrIdCnt" resultType="Integer" parameterType="map">
+		SELECT 
+			COUNT(1) AS CNT
+		FROM CMMN_MNGR
+		WHERE 1=1
+			AND USER_ID = #{userId}
+	</select>
+	
+	<update id="updateLoginFailedReSetCnt" parameterType="map">
+		UPDATE CMMN_MNGR_LOGIN SET 
+			LGN_FAILR_CNT = 0
+		WHERE 1=1
+			AND USER_ID = #{userId}
+	</update>
+	
+	<update id="updateMngrLoginInfo" parameterType="map">
+		UPDATE CMMN_MNGR_LOGIN SET 
+			USER_PASSWORD = #{encryptPass}
+			<choose>
+				<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				, PASSWORD_EXPRY_DT = DATE_ADD(NOW(),INTERVAL 1 YEAR)
+				</when>
+				<otherwise>
+				, PASSWORD_EXPRY_DT = SYSDATE + (INTERVAL '1' YEAR)
+				</otherwise>
+			</choose>  
+			, LGN_FAILR_CNT = 0
+		WHERE 1=1
+			AND USER_ID = #{userId}
+	</update>
+	
+</mapper>  

@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="authMngMenu">
+
+	<!-- dbms별 공통 insert query -->
+	<sql id="common_insert_query">
+		<choose>
+			<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				, #{regUserId}
+				, NOW()
+				, #{regUserId}
+				, NOW()
+			</when>
+			<otherwise>
+				, #{regUserId}
+				, SYSDATE
+				, #{regUserId}
+				, SYSDATE
+			</otherwise>
+		</choose>	
+		
+	</sql>
+	
+	<!-- dbms별 공통 update query -->
+	<sql id="common_update_query">
+		<choose>
+			<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				, CHG_USER_ID = #{regUserId}
+				, CHG_DT = NOW()
+			</when>
+			<otherwise>
+				, CHG_USER_ID = #{regUserId}
+				, CHG_DT = SYSDATE
+			</otherwise>
+		</choose>
+		
+	</sql>
+
+	<select id="selectSysSeCdList" resultType="SangsMap" parameterType="map">
+		SELECT 
+			SYS_SE_CD AS CODE
+			, SYS_SE_CD AS CODE_NM
+		FROM CMMN_MENU
+		WHERE 1=1
+			AND DSPY_YN = 'Y'
+			AND DEL_YN = 'N'
+		GROUP BY SYS_SE_CD
+	</select>
+	
+	<select id="selectMenuSeCdList" resultType="SangsMap" parameterType="map">
+		SELECT 
+			MENU_SE_CD AS CODE
+			, MENU_SE_CD AS CODE_NM
+		FROM CMMN_MENU
+		WHERE 1=1
+			AND DSPY_YN = 'Y'
+			AND DEL_YN = 'N'
+			AND SYS_SE_CD = #{APP_MNGR_SYS_SE_CD}
+		GROUP BY MENU_SE_CD
+		ORDER BY MENU_SE_CD
+	</select>
+
+	<!-- 관리자 로그인 메뉴 목록 조회-->
+	<select id="selectMngrLoginMenuList" resultType="SangsMap" parameterType="map">
+		SELECT 
+			T1.MENU_SN
+			, T1.SYS_SE_CD
+			, T1.MENU_SE_CD
+			, T1.UP_MENU_SN
+			, T1.MENU_DP_SN
+			, T1.MENU_SORT_SN
+			, T1.MENU_NM
+			, T1.URL_ADDR
+			, T1.DTL_PAGE_YN
+			, T1.SINGL_PAGE_YN
+			, T1.DSPY_YN
+			, T1.DEL_YN
+			, (SELECT COUNT(*) FROM CMMN_MENU T0 WHERE T0.SYS_SE_CD = T1.SYS_SE_CD AND T0.DSPY_YN = 'Y' AND T0.DEL_YN = 'N' AND T0.UP_MENU_SN = T1.MENU_SN) AS CHILD_CNT
+			/*, ROW_NUMBER() OVER (PARTITION BY T1.MENU_DP_SN ORDER BY T1.MENU_DP_SN, T1.MENU_SORT_SN, T1.MENU_SN) AS SORT */
+		FROM CMMN_MENU T1
+		WHERE 1=1
+			AND T1.SYS_SE_CD = #{APP_MNGR_SYS_SE_CD}
+			AND T1.DSPY_YN = 'Y'
+			AND T1.DEL_YN = 'N'
+			AND (
+				T1.DTL_PAGE_YN = 'N'
+				OR (
+					MENU_SN IN (
+						SELECT MENU_SN 
+						FROM CMMN_MENU_AUTHOR_DTL 
+						WHERE AUTHRT_CD 
+							IN (SELECT AUTHRT_CD FROM CMMN_MNGR_AUTHOR_DTL	WHERE USER_ID = #{userId})
+							AND MENU_AUTHRT_CD = #{accessAuthorCode}
+						UNION
+						SELECT MENU_SN 
+						FROM CMMN_MENU_AUTHOR_DTL_USER
+						WHERE USER_ID = #{userId}
+							AND MENU_AUTHRT_CD = #{accessAuthorCode}
+					)
+				)
+			)
+		ORDER BY T1.MENU_DP_SN, T1.MENU_SORT_SN, T1.MENU_SN
+	</select>
+	
+	
+	<!-- 공통모듈 메뉴 목록 조회 -->
+	<select id="selectMenuList" resultType="sangsMap" parameterType="map">
+		SELECT 
+			T1.MENU_SN
+			, T1.SYS_SE_CD
+			, T1.MENU_SE_CD
+			, T1.UP_MENU_SN
+			<choose>
+				<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				, CASE WHEN T1.UP_MENU_SN = '0' THEN '#' ELSE T1.UP_MENU_SN END TREE_UP_MENU_SN
+				</when>
+				<otherwise>
+				, CASE WHEN T1.UP_MENU_SN = '0' THEN '#' ELSE TO_CHAR(T1.UP_MENU_SN) END TREE_UP_MENU_SN
+				</otherwise>
+			</choose>	
+			, T1.MENU_DP_SN
+			, T1.MENU_SORT_SN
+			, T1.MENU_NM
+			, T1.URL_ADDR
+			, T1.DTL_PAGE_YN
+			, T1.SINGL_PAGE_YN
+			, T1.DSPY_YN
+			, T1.DEL_YN
+			, T1.REG_USER_ID
+			<choose>
+				<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+					, DATE_FORMAT(T1.REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT
+				</when>
+				<otherwise>
+					, TO_CHAR(T1.REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS REG_DT
+				</otherwise>
+			</choose>
+			/*, ROW_NUMBER() OVER (PARTITION BY T1.MENU_DP_SN ORDER BY T1.MENU_DP_SN, T1.MENU_SORT_SN, T1.MENU_SN) AS SORT*/
+		FROM 
+			CMMN_MENU T1
+		WHERE 1=1
+			AND T1.DEL_YN = 'N'
+			AND T1.SYS_SE_CD = #{APP_MNGR_SYS_SE_CD}
+			<if test="menuSeCd != '' and menuSeCd != null ">
+				AND T1.MENU_SE_CD = #{menuSeCd}
+			</if>
+		ORDER BY T1.MENU_DP_SN, T1.MENU_SORT_SN, T1.MENU_SN
+	</select>
+ 
+	<!-- 공통모듈 메뉴 권한 상세 목록 조회-->
+	<select id="selectMenuAuthDtlList" resultType="sangsMap" parameterType="map">
+		SELECT 
+			'AUTH' AS GUBUN, AUTHRT_CD, MENU_SN, MENU_AUTHRT_CD, NULL AS USER_ID
+		FROM CMMN_MENU_AUTHOR_DTL T0 
+		WHERE 1=1
+			AND AUTHRT_CD = #{authrtCd}
+
+		UNION ALL 
+		
+		SELECT 
+			'USER_AUTH' AS GUBUN, AUTHRT_CD, MENU_SN, MENU_AUTHRT_CD, USER_ID
+		FROM CMMN_MENU_AUTHOR_DTL_USER T1
+		WHERE 1=1
+		<if test="userId != '' and userId != null ">
+			AND T1.USER_ID = #{userId}
+		</if>
+	</select>
+	
+	<select id="selectMenuMaxDepthCnt" resultType="Integer" parameterType="map">
+		SELECT 
+		<choose>
+			<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				IFNULL(MAX(MENU_DP_SN), 0) AS MENU_MAX_DP_CNT
+			</when>
+			<otherwise>
+				NVL(MAX(MENU_DP_SN), 0) AS MENU_MAX_DP_CNT
+			</otherwise>
+		</choose>
+		FROM 
+			CMMN_MENU T1
+		WHERE 1=1
+			AND T1.DEL_YN = 'N'
+			AND T1.DSPY_YN = 'Y'
+			AND T1.SYS_SE_CD = #{APP_MNGR_SYS_SE_CD}
+	</select>
+	
+	<select id="selectNextMenuSn" resultType="Integer">
+		SELECT 
+		<choose>
+			<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+				IFNULL(MAX(MENU_SN), 10000) + 1
+			</when>
+			<otherwise>
+				NVL(MAX(MENU_SN), 10000) + 1
+			</otherwise>
+		</choose>
+		FROM CMMN_MENU
+		WHERE 1=1
+			AND MENU_SN >= 10000
+	</select>
+	
+	<!-- 공통모듈 메뉴 정보 등록 -->
+	<insert id="insertMenuInfo" parameterType="map">
+		INSERT INTO CMMN_MENU (
+			MENU_SN
+			, SYS_SE_CD
+			, MENU_SE_CD
+			, UP_MENU_SN
+			, MENU_DP_SN
+			, MENU_SORT_SN
+			, MENU_NM
+			, URL_ADDR
+			, DTL_PAGE_YN
+			, SINGL_PAGE_YN
+			, DSPY_YN
+			, DEL_YN
+			, REG_USER_ID
+			, REG_DT
+			, CHG_USER_ID
+			, CHG_DT
+		) VALUES (
+			#{menuSn}
+			, #{APP_MNGR_SYS_SE_CD}
+			, #{menuSeCd}
+			, #{upMenuSn}
+			, #{menuDpSn}
+			, #{menuSortSn}
+			, #{menuNm}
+			, #{urlAddr}
+			, #{dtlPageYn}
+			, #{singlPageYn}
+			, #{dspyYn}
+			, #{delYn}
+			<include refid="common_insert_query" />
+		)
+	</insert>
+	
+	<!-- 공통모듈 메뉴코드 정보 갱신 -->
+	<update id="updateMenuCdInfo" parameterType="map">
+		UPDATE CMMN_MENU SET 
+			SYS_SE_CD = #{sysSeCd}
+			, MENU_SE_CD = #{menuSeCd}
+			<include refid="common_update_query" />
+		WHERE 1=1
+			AND MENU_SN = #{menuSn}
+	</update>
+	
+	<!-- 공통모듈 메뉴 정보 갱신 -->
+	<update id="updateMenuInfo" parameterType="map">
+		UPDATE CMMN_MENU SET 
+			SYS_SE_CD = #{APP_MNGR_SYS_SE_CD}
+			, MENU_SE_CD = #{menuSeCd}
+			, UP_MENU_SN = #{upMenuSn}
+			, MENU_DP_SN = #{menuDpSn}
+			, MENU_SORT_SN = #{menuSortSn}
+			, MENU_NM = #{menuNm}
+			, URL_ADDR = #{urlAddr}
+			, DTL_PAGE_YN = #{dtlPageYn}
+			, SINGL_PAGE_YN = #{singlPageYn}
+			, DSPY_YN = #{dspyYn}
+			, DEL_YN = #{delYn}
+			<include refid="common_update_query" />
+		WHERE 1=1
+			AND MENU_SN = #{menuSn}
+	</update>
+ 
+ 	<select id="selectMenuAuthorList" resultType="sangsMap" parameterType="map">
+		SELECT 
+			#{authrtCd} AS AUTHRT_CD
+			, MENU_SN
+			, 'Y' AS USE_YN
+		FROM CMMN_MENU 
+		WHERE 1=1
+		AND DSPY_YN = 'Y'
+		AND DEL_YN = 'N'
+	</select>
+	
+	<!-- 사용자에 메뉴 권한항목 코드 목록 조회 -->
+	<select id="selectUserMenuAuthrtCdList" resultType="sangsMap" parameterType="map">
+		SELECT MENU_SN, MENU_AUTHRT_CD 
+		FROM CMMN_MENU_AUTHOR_DTL 
+		WHERE AUTHRT_CD 
+			IN (SELECT AUTHRT_CD FROM CMMN_MNGR_AUTHOR_DTL	WHERE USER_ID = #{userId})
+		UNION
+		SELECT MENU_SN, MENU_AUTHRT_CD 
+		FROM CMMN_MENU_AUTHOR_DTL_USER
+		WHERE user_id = #{userId}
+		ORDER BY MENU_SN, MENU_AUTHRT_CD
+	</select>
+	
+	
+	
+	
+</mapper>  

@@ -1,0 +1,17 @@
+15-May-2024 12:49:35.638 INFO [main] org.apache.catalina.core.ApplicationContext.log 1 Spring WebApplicationInitializers detected on classpath
+15-May-2024 12:49:35.664 INFO [main] org.apache.catalina.core.ApplicationContext.log Initializing Spring DispatcherServlet 'dispatcher'
+15-May-2024 12:49:36.043 INFO [main] org.apache.catalina.core.ApplicationContext.log ContextListener: contextInitialized()
+15-May-2024 12:49:36.043 INFO [main] org.apache.catalina.core.ApplicationContext.log SessionListener: contextInitialized()
+15-May-2024 12:49:36.043 INFO [main] org.apache.catalina.core.ApplicationContext.log ContextListener: attributeAdded('StockTicker', 'async.Stockticker@632dc41')
+15-May-2024 13:21:04.551 INFO [main] org.apache.catalina.core.ApplicationContext.log Destroying Spring FrameworkServlet 'dispatcher'
+15-May-2024 13:21:04.566 INFO [main] org.apache.catalina.core.ApplicationContext.log SessionListener: contextDestroyed()
+15-May-2024 13:21:04.566 INFO [main] org.apache.catalina.core.ApplicationContext.log ContextListener: contextDestroyed()
+15-May-2024 13:23:07.707 INFO [main] org.apache.catalina.core.ApplicationContext.log 1 Spring WebApplicationInitializers detected on classpath
+15-May-2024 13:23:07.728 INFO [main] org.apache.catalina.core.ApplicationContext.log Initializing Spring DispatcherServlet 'dispatcher'
+15-May-2024 13:29:49.240 INFO [main] org.apache.catalina.core.ApplicationContext.log Destroying Spring FrameworkServlet 'dispatcher'
+15-May-2024 13:29:57.676 INFO [main] org.apache.catalina.core.ApplicationContext.log 1 Spring WebApplicationInitializers detected on classpath
+15-May-2024 13:29:57.693 INFO [main] org.apache.catalina.core.ApplicationContext.log Initializing Spring DispatcherServlet 'dispatcher'
+15-May-2024 13:33:27.990 INFO [main] org.apache.catalina.core.ApplicationContext.log Destroying Spring FrameworkServlet 'dispatcher'
+15-May-2024 13:33:33.742 INFO [main] org.apache.catalina.core.ApplicationContext.log 1 Spring WebApplicationInitializers detected on classpath
+15-May-2024 13:33:33.761 INFO [main] org.apache.catalina.core.ApplicationContext.log Initializing Spring DispatcherServlet 'dispatcher'
+15-May-2024 13:37:13.968 INFO [main] org.apache.catalina.core.ApplicationContext.log Destroying Spring FrameworkServlet 'dispatcher'

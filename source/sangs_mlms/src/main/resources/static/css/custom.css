@@ -1,0 +1,278 @@
+html, body {
+	font-family: '';
+	/*font-size:14px;*/
+}
+
+/** table binder **/
+.fwk_templete_row {display: none;}
+
+
+/** loadin spinner start **/
+#overlay, #sub_overlay {	
+  position: fixed;
+  top: 0;
+  z-index: 10000;
+  width: 100%;
+  height:100%;
+  display: none;
+  background: rgba(0,0,0,0.6);
+}
+.cv-spinner {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;  
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px #ddd solid;
+  border-top: 4px #2e93e6 solid;
+  border-radius: 50%;
+  animation: sp-anime 0.8s infinite linear;
+}
+@keyframes sp-anime {
+  100% { 
+    transform: rotate(360deg); 
+  }
+}
+body {min-width: 1350px; overflow: hidden}
+
+table.list tbody td {
+	border-left : 1px solid #e6e8ea;
+	border-right : 1px solid #e6e8ea;
+	height:22px;
+	/*font-size:14px;*/
+}
+table.list tbody td a, table.view tr td a {
+	color:#215eae;
+	/*font-size:14px;*/
+}
+table.list thead th {
+	font-weight: bold;
+	/*font-size:14px;*/
+}
+
+
+
+/* 로그인(login.html) */
+#content .full_page .full_cont > .cont { max-width:800px }
+.login .bx_wrap{ margin-top: 33px; padding: 50px 150px 30px 150px; }
+.login .bx_wrap input[type='text']{ width: 100%; height: 54px !important; margin: 0 auto;font-size: 24px; padding: 0 ; border-radius: 10px; display: block; }
+.login .bx_wrap input[type='password']{ width: 100%; height: 54px !important; margin: 0 auto;font-size: 24px; padding: 0 ; border-radius: 10px; display: block; }
+
+.calendar_box input[type='text'] {
+	width : 80px;
+	text-align: center
+}
+
+
+.content_area {
+	min-height:100px !important;
+}
+
+#content .content_area {
+	padding: 20px 20px 0;
+}
+.search_wrap {
+	margin-bottom: 0;
+}
+.popup.layer .pop_footer {
+    padding: 30px 0;
+}
+
+.left_area { width:270px; }
+.left_area > .lnb_menu > ul.one_depth > li > ul.two_depth > li > a:hover {background-color: #e0e8f4;}
+.left_area > .lnb_menu > ul.one_depth > li > ul.two_depth > li.on > a {font-weight: bold}
+
+.left_menu_2depth_icon {
+ 	background:url('../img/icon/icon_arrow_move_right.png') no-repeat center right 30px
+}
+ 
+
+.btn_fold {
+	left:270px;
+	background:url(/img/common/lnb_menu_btn.png) no-repeat center center;
+	top: -8px;
+	
+}
+.btn_fold.fold { background:url('/img/common/lnb_menu_btn_fold.png') no-repeat center center; }
+
+.page_info_area {padding: 0 20px; height: 80px; }
+.page_info_area > div.right {right:20px; top:22px}
+
+
+.left_area > h1.logo2 {display: none; margin: 16px 0 60px 30px;}
+.left_area > h1.logo2 img {text-align: center;}
+.left_area.fold > h1.logo2 {display: inline-block;}
+.left_area.fold > div.btn_search_area {display: block; margin: 0 14px 40px}
+.left_area.fold > div.btn_search_area .cl_leftSystem {display: none;}
+.left_area.fold > div.btn_search_area div.lnb_search_area{visibility: hidden;}
+
+.left_area.fold > .lnb_menu > ul {margin-top: 0}
+
+.popup.layer {
+	top:200px;
+	transform: translate(0,0)
+}
+
+
+table.view th {
+	padding-bottom: 10px;
+	vertical-align: middle;
+	padding : 6px 16px;
+	/*font-size:14px;*/
+}
+table.view td {
+	padding : 3px 10px;
+	/*font-size:14px;*/
+}
+
+
+/* input selectbox 스타일 수정  */
+input[type=text] {
+	height: 28px;
+	background-color:#ffffff;
+	border:1px solid #d9d9d9;
+}
+
+
+
+table.search tbody td {	padding:4px 0px;}
+table.search tbody td select {padding:0 30px 0 10px}
+
+table.view.sm th, table.view.sm td {
+	padding:8px 10px;
+	height: 35px;
+}
+.selectbox {
+	height: 28px;
+	background-color:#ffffff;
+	border:1px solid #d9d9d9;
+}
+.selectbox select {height: 28px}
+.selectbox label {left:0px; width: calc(100% - 40px); }
+.calendar_box {
+	height: 30px;
+	background-color: #ffffff;
+	border:1px solid #d9d9d9;
+	padding: 0 8px;
+}
+.calendar_box input[type='text'] {
+	border : 0px;
+}
+/*
+table.view input[type='text'] {
+	border:1px solid #d9d9d9;
+}*/
+
+.btn.sm {
+	font-size:12px;
+	height:30px;
+	white-space: nowrap;
+} 
+
+ 
+.pagination_area ul li a { font-size:13px; }
+	
+table.view td select,
+table.view td input[type='text'],
+table.view td input[type='password'],
+table.view td textarea,
+table.view td .calendar_box:first-child{
+	width: calc(100% + 14px);
+	margin-left: -7px;
+	background-color: #ffffff;
+	border:1px solid #d9d9d9; 
+	border-radius: 5px;
+	height:30px;
+	padding : 0 7px;
+}
+
+input[readonly='readonly']{ background-color: #efeff1 }
+input[readonly]{ background-color: #efeff1 }
+table.view td input[type='password'] {
+	background-color: #efeff1
+}
+
+
+.tbl_top {margin-bottom: 15px}
+.tbl_top .tit.v2{ color: #324266; font-weight: 700; font-size: 16px; padding-bottom: 0; line-height: 2em; border-bottom: 0; }
+
+.jstree_view_wrap {
+    border: 1px solid #e7e7e7;
+    background: #ffffff;
+    border-radius: 3px;
+    -webkit-box-shadow: 5px 5px 18px 0px rgb(0 0 0 / 4%);
+    box-shadow: 5px 5px 18px 0px rgb(0 0 0 / 4%);
+    /* padding: 27px 28px 36px; */
+    padding: 5px 5px 5px;
+    min-height: 484px;
+    box-sizing: border-box;
+}
+
+.jstreetable_view_wrap {
+    border: 1px solid #e7e7e7;
+    background: #ffffff;
+    border-radius: 3px;
+    -webkit-box-shadow: 5px 5px 18px 0px rgb(0 0 0 / 4%);
+    box-shadow: 5px 5px 18px 0px rgb(0 0 0 / 4%);
+    padding: 0px 0px 0px;
+    min-height: 0px;
+    box-sizing: border-box;
+}
+
+.list_change .right .tbl_top{ margin-bottom: 15px; margin-top: inherit;}
+.in_hp300 {height : 300px !important;}
+.overflow-y{overflow-y : auto; }
+
+.th_double_row_padding {padding : 6px 0px}
+.view_wrap { padding : 20px 24px 24px }
+.margint8{ margin-top: 8px}
+input[type=radio] {margin-bottom:2px; margin-left:3px ; margin-right:3px}
+input[type=checkbox] {margin-left:3px ; margin-right:3px; margin-bottom:2px; }
+.left_area > div.btn_search_area .lnb_search_area input[type='text'] {width:180px}
+
+div.location_area {margin: 10px 0 7px 0}
+div.title_area p {font-size:26px;}
+
+.tbl_wrap td {
+	padding-left : 8px;
+	padding-right : 8px;
+}
+.flexiableRightArea_wide {
+	display: flex !important;
+	position : relative;
+	right: auto;
+}
+.flexiableRightArea_layer {
+	display: none !important;
+	position : absolute;
+	right: 10px;
+}
+
+.btn_ctype1 {
+	background-color:#d1e4f3;
+}
+
+.label_reference_span {
+    font-size: 11px;
+    color: #95bbc8;
+}
+/*
+@media screen and (max-width: 1500px) {
+	.flexiableRightArear {display: none !important}
+	body{min-width:1150px}
+	#main_body_tage {min-width:1450px !important}
+}
+ 
+
+.fiewflexiableRightArear {
+	
+}
+*/
+/*
+.row{
+	// 스크롤 생김 
+	height:100vh
+}*/

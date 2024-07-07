@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+	
+	<style type="text/css">
+	
+		#tb_data_table th { padding : 6px 0; }
+		
+	</style>
+	
+</head>
+
+<body id="body">
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+				<div class="page_info_area">
+                    <div class="left">
+                        <div class="location_area">
+                            <a href="#" class="bookmark active" title="즐겨찾기"></a>
+                            <ul>
+                                <li>홈</li>
+                                <li>학습관리</li>
+								<li>학습모델테스트이력</li>
+                            </ul>
+                        </div>
+                        <div class="title_area">
+                            <p>학습모델훈련이력</p>
+                            <a href="#" class="reload_btn" title="새로고침">새로고침</a>
+                            <a href="#" class="help_btn" title="도움말">도움말</a>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="button_area">
+                            <button class="btn" title="조회" onclick="fnSearch(); return false;">조회</button>
+                        </div>
+                    </div>
+                </div>
+				
+				
+				
+                <div class="content_area">
+                	<div class="division20">
+                		<div class="search_wrap">
+                			<form name="frm" id="frm">
+                			<table class="search fixed">
+                				<colgroup>
+                                    <col style="width: 100px;" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 60px;" />
+                                    <col style="width: 100px" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 60px;" />
+                                    <col style="width: 100px" />
+                                    <col style="width: auto;" />
+                                </colgroup>
+                                <tbody>
+                                	<tr>
+                                		<th scope="row"><label for="beginDtFrom">학습일자</label></th>
+                                		<td>
+                                            <div class="calendar_box">
+                                                <input type="text" id="beginDtFrom" name="beginDtFrom">
+                                            </div>
+                                            ~
+                                            <div class="calendar_box">
+                                                <input type="text" id="beginDtTo" name="beginDtTo">
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                        
+                                        <th scope="row"><label for="beginDtFrom">학습그룹</label></th>
+                                        <td>
+                                        	<div class="selectbox">
+                                        		<select id="lrnGroupSn" name="lrnGroupSn">
+                                        			<option value="">선택</option>
+                                        		</select>
+                                        	</div>
+                                        </td>
+                                        <td></td>
+                                        
+                                        <th scope="row"><label for="lrnNm">학습명</label></th>
+                                        <td><input type="text" class="in_w100" id="lrnNm" name="lrnNm" /></td>
+                                	</tr>
+                                </tbody>
+                			</table>
+                			</form>
+                		</div>
+                	</div>
+                	
+                	<div class="division">
+		                <div class="table_area marginb25">
+		                	<table class="list fixed" id="tb_data_table">
+		                		<colgroup>
+                                    <col style="width: 60px;" />
+                                    <col style="width: 60px;" />
+                                    <col style="width: auto;" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 160px;" />
+                                    <col style="width: 70px;" />
+                                    <col style="width: 70px" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 80px;" />
+                                    <col style="width: 100px;" />
+                                    <col style="width: 100px;" />
+                                </colgroup>
+		                		<thead>
+									<tr>
+										<th>실행<br/>순번</th>
+										<th>테스트<br/>차수</th>
+										<th>학습그룹</th>
+										<th>학습명</th>
+										<th>수행일시</th>
+										<th>소요시간</th>
+										<th>상태</th>
+										<th>테스트 데이터</th>
+										<th>정확도</th>
+										<th>수행아이디</th>
+										<th>결과조회</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="fwk_templete_row">
+										<td>#{lrnExcnSn}</td>
+										<td>#{testHistSn}</td>
+										<td class="alignl">#{lrnGroupNm}</td>
+										<td class="alignl">#{lrnNm}</td>
+										<td>#{testBeginDt}</td>
+										<td class="alignr">#fn{fnDateTextBySec(#{diffSecond})}</td>
+										<td>#{statusNm}</td>
+										<td class="alignl">#{lrnDatasetNm}</td>
+										<td class="alignr">#{accrcyRate}%</td>  
+										<td>#{regUserId}</td>
+										<td>
+											<button class="btn sm" onclick="fnOpenResultPop('#{lrnExcnSn}','#{testHistSn}'); return false;">결과조회</button>
+										</td>
+									</tr>
+								</tbody>
+		               		</table>
+		              	</div>
+		              	<div class="pagination_area marginb25" id="dv_paging"></div>
+	                </div>
+	            </div>
+			</div>
+		</div>
+	</div>
+
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	$("#lrnNm").on("keyup", function(event) {
+		if(event.keyCode == 13) 
+			fnSearch();
+	});
+	
+	$("#beginDtFrom, #beginDtTo").datepicker();
+
+
+	try {
+		// 왼쪽 메뉴 선택 처리 (링크로 해당 페이지 들어온경우 오른쪽 메뉴를 선택 처리 한다. )
+		parent.fnSelectLeftMenu(location.pathname);
+	} catch(e) {}
+	
+	// 공통코드 load
+	fnInit();
+	
+});
+
+
+
+function fnInit() {
+	
+	new CodeBinder()
+	.setSqlCode("LEARNING_GROUP_CODE","lrnGroupSn", "select")
+	.load();
+	
+	fnSearch(1);
+}
+
+
+function fnSearch(pageNum) {
+	if(!pageNum) 
+		pageNum = 1;
+	
+	$.ajax({
+		url: "/json/learning/getModelTestHistList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum: pageNum
+			, lrnGroupSn : $("#lrnGroupSn").val()
+			, lrnNm : $("#lrnNm").val()
+			, beginDtFrom : fnRemoveDateDelim($("#beginDtFrom").val())
+			, beginDtTo : fnRemoveDateDelim($("#beginDtTo").val())
+		})
+		, success: function(data){
+			
+			fnBindTableValue("tb_data_table", data.list, data.pagingInfo);
+			
+			fnSetPaging("dv_paging", data.pagingInfo); 
+			
+		}
+	});
+	 
+}
+ 
+ 
+
+// 학습결과 팝업
+function fnOpenResultPop(lrnExcnSn, testHistSn) {
+	fnOpenCmmnResultPop(lrnExcnSn, testHistSn);
+}
+
+</script>
+</body>
+</html>

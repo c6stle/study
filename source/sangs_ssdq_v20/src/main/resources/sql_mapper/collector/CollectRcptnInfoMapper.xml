@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="ct_collect_rcptn">
+
+   <!-- 전문정보 정보 조회 -->
+	<select id="selectMetaMngOutputInfo" parameterType="map" resultType="SangsMap">
+		SELECT
+			API_CD
+			, API_RCPTN_SN
+			, RCPTN_NM
+			, RCPTN_ENG_NM
+			, RCPTN_DATA_TY_CD
+			, (SELECT CD_NM FROM EGOV_CMNCDDTLCODE WHERE CD_ID ='APIRCPTNDATATY' AND CD = T1.RCPTN_DATA_TY_CD) AS RCPTN_DATA_TY_NM
+			, (SELECT CD_DC FROM EGOV_CMNCDDTLCODE WHERE CD_ID ='APIRCPTNDATATY' AND CD = T1.RCPTN_DATA_TY_CD) AS RCPTN_DATA_TY_DC
+			<!--
+			, (SELECT CMMN_CODE_NM FROM SFT_CMMN_CODE_DETAIL WHERE CODE_GROUP_CODE ='CC_OUTPT_DATA_TY_CODE' AND CMMN_CODE = CC_OUTPT_DATA_TY_CODE) AS CC_OUTPT_DATA_TY_NM
+			, (SELECT CMMN_CODE_NM2 FROM SFT_CMMN_CODE_DETAIL WHERE CODE_GROUP_CODE = 'CC_OUTPT_DATA_TY_CODE' AND CMMN_CODE = CC_OUTPT_DATA_TY_CODE) CC_OUTPT_DATA_TY_NM2
+			 -->
+			, RCPTN_CN
+			, RCPTN_DATA_LT_VALUE
+			, RCPTN_DATA_NULL_YN
+			, RCPTN_DATA_SUMRY_CN
+			, USE_YN
+		FROM
+		    CT_API_META_RCPTN T1
+		WHERE
+		    API_CD = #{apiCd} AND API_RCPTN_SN = #{apiRcptnSn}
+	</select>
+
+	<!-- 전문정보 목록 조회 -->
+	<select id="selectMetaMngOutputList" parameterType="map" resultType="SangsMap">
+		SELECT
+			API_CD
+			, API_RCPTN_SN
+			, RCPTN_NM
+			, RCPTN_ENG_NM
+			, RCPTN_DATA_TY_CD
+			, (SELECT CD_NM FROM EGOV_CMNCDDTLCODE WHERE CD_ID ='APIRCPTNDATATY' AND CD = T1.RCPTN_DATA_TY_CD) AS RCPTN_DATA_TY_NM
+			<!--
+			, (SELECT CMMN_CODE_NM FROM SFT_CMMN_CODE_DETAIL WHERE CODE_GROUP_CODE ='CC_OUTPT_DATA_TY_CODE' AND CMMN_CODE = CC_OUTPT_DATA_TY_CODE) AS CC_OUTPT_DATA_TY_NM
+			 -->
+			, RCPTN_CN
+			, RCPTN_DATA_LT_VALUE
+			, RCPTN_DATA_NULL_YN
+			, RCPTN_DATA_SUMRY_CN
+			, USE_YN
+		FROM
+		    CT_API_META_RCPTN T1
+		WHERE
+		    API_CD = #{apiCd}
+		ORDER BY
+			API_RCPTN_SN
+	</select>
+
+	<!-- 전문정보엑셀양식 다운로드  -->
+	<select id="selectMetaMngOutputExcelList" parameterType="map" resultType="SangsMap">
+		SELECT RCPTN_NM
+		FROM CT_API_META_RCPTN
+		WHERE USE_YN='Y'
+		AND API_CD = #{apiCd}
+	</select>
+
+	<!-- 전문순번 조회(MAX) -->
+	<select id="selectMetaMngOutputNextSn" parameterType="map" resultType="Integer">
+		SELECT NVL(MAX(API_RCPTN_SN), 0) + 1 AS API_RCPTN_SN
+		FROM CT_API_META_RCPTN WHERE API_CD = #{apiCd}
+	</select>
+
+	<!-- 전문정보 신규 등록 -->
+	<insert id="insertMetaMngOutputInfo" parameterType="map" >
+		INSERT INTO CT_API_META_RCPTN (
+			API_CD
+			, API_RCPTN_SN
+			, RCPTN_NM
+			, RCPTN_ENG_NM
+			, RCPTN_DATA_TY_CD
+			<if test= "rcptnDataLtValue != null and rcptnDataLtValue != '' ">
+			, RCPTN_DATA_LT_VALUE
+			</if>
+			<if test= "rcptnDataNullYn != null and rcptnDataNullYn != '' ">
+			, RCPTN_DATA_NULL_YN
+			</if>
+			<if test= "rcptnDataSumryCn != null and rcptnDataSumryCn != '' ">
+			, RCPTN_DATA_SUMRY_CN
+			</if>
+			<if test= "useYn != null and useYn != '' ">
+			, USE_YN
+			</if>
+		) VALUES (
+			  #{apiCd}
+			, #{apiRcptnSn}
+			, #{rcptnNm}
+			, #{rcptnEngNm}
+			, #{rcptnDataTyCd}
+			<if test= "rcptnDataLtValue != null and rcptnDataLtValue != '' ">
+			, #{rcptnDataLtValue}
+			</if>
+			<if test= "rcptnDataNullYn != null and rcptnDataNullYn != '' ">
+			, #{rcptnDataNullYn}
+			</if>
+			<if test= "rcptnDataSumryCn != null and rcptnDataSumryCn != '' ">
+			, #{rcptnDataSumryCn}
+			</if>
+			<if test= "useYn != null and useYn != '' ">
+			, #{useYn}
+			</if>
+		)
+	</insert>
+
+	<!-- 전문정보 수정 -->
+	<update id="updateMetaMngOutputInfo" parameterType="map" >
+		UPDATE CT_API_META_RCPTN SET
+			  API_RCPTN_SN = #{apiRcptnSn}
+			, RCPTN_NM = #{rcptnNm}
+			, RCPTN_ENG_NM = #{rcptnEngNm}
+			, RCPTN_DATA_TY_CD = #{rcptnDataTyCd}
+			<if test="rcptnDataLtValue != null and rcptnDataLtValue !='' ">
+			, RCPTN_DATA_LT_VALUE = #{rcptnDataLtValue}
+			</if>
+			<if test="rcptnDataNullYn != null and rcptnDataNullYn !='' ">
+            , RCPTN_DATA_NULL_YN = #{rcptnDataNullYn}
+            </if>
+            <if test="rcptnDataSumryCn != null and rcptnDataSumryCn !='' ">
+            , RCPTN_DATA_SUMRY_CN = #{rcptnDataSumryCn}
+            </if>
+            <if test= "useYn != null and useYn != '' ">
+			, USE_YN = #{useYn}
+			</if>
+		WHERE API_CD = #{apiCd} AND API_RCPTN_SN = #{apiRcptnSn}
+	</update>
+
+	<!-- 전문정보 삭제 -->
+	<delete id="deleteMetaMngOutputInfo" parameterType="map" >
+		DELETE FROM CT_API_META_RCPTN
+		WHERE API_CD = #{apiCd} AND API_RCPTN_SN = #{apiRcptnSn}
+	</delete>
+
+	<!-- 전문정보 삭제 전 해당 테이블의 칼럼이 삭제 가능한지 조사.  0보더 크면 삭제불가로 차리해야 함 (20191116 mt1716, 칼럼을 차후 삭제 방식으로 변경) -->
+	<select id="selectMetaMngDataColCnt" parameterType="map" >
+		SELECT COUNT( ${apiRcptnSnCol} ) AS CNT FROM ${apiStrgTblNm}
+	</select>
+
+	<!-- 전문정보 신규 등록 전 해당 칼럼 추가 (20191116 mt1716, 칼럼을 차후 추가 방식으로 변경)-->
+	<update id="alterAddMetaMngDataTable" parameterType="map" >
+	    ALTER TABLE ${apiStrgTblNm}  ADD ( ${apiRcptnSnCol} VARCHAR(4000) )
+	</update>
+
+	<!-- 전문정보 삭제 전 해당 테이블의 칼럼을 먼저 삭제(20191116 mt1716, 칼럼을 차후 삭제 방식으로 변경)-->
+	<update id="alterDropMetaMngDataTable" parameterType="map" >
+	    ALTER TABLE ${apiStrgTblNm}  DROP ( ${apiRcptnSnCol} )
+	</update>
+
+
+</mapper>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cmmn_web_log">
+	
+	<!-- dbms별 공통 insert query -->
+	<sql id="common_insert_register_query">
+		<choose>
+			<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL' or APP_DBMS_TYPE == 'CUBRID'">
+				, #{regUserId}
+				, NOW()
+			</when>
+			<otherwise>
+				, #{regUserId}
+				, SYSDATE
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- dbms별 공통 insert query -->
+	<sql id="common_insert_registerDt_query">
+		<choose>
+			<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL' or APP_DBMS_TYPE == 'CUBRID'">
+				, NOW()
+			</when>
+			<otherwise>
+				, SYSDATE
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 웹 로그 등록 -->
+	<insert id="logInsertWebLog" parameterType="map">
+	INSERT INTO EGOV_COMTNWEBLOG (
+		RQST_ID
+		, SYS_SE_CD
+		, CNTN_URL
+		, REL_MENU_NM
+		, RQESTER_ID
+		, RQESTER_IP
+		, NRMLT_YN
+		, OCRN_DT
+	) VALUES (
+		CONCAT('WEBLOG', LPAD(NEXTVAL(SEQ_EGOV_COMTNWEBLOG),'14','0'))
+		, #{sysSeCd}
+		, #{URL}
+		, #{relMenuNm}
+		, #{rqesterId}
+		, #{rqesterIp}
+		, #{nrmltYn}
+		<include refid="common_insert_registerDt_query"/>
+	);
+	</insert>
+	
+	<sql id="where_WebLog_selectWebLogList">
+		<if test="searchSysSeCd != '' and searchSysSeCd != null ">
+			AND a.SYS_SE_CD = #{searchSysSeCd}
+		</if>
+		<if test="url != null and url != ''">
+			AND a.CNTN_URL LIKE CONCAT('%',#{url},'%')
+		</if>
+		<if test="rqesterId != null and rqesterId != ''">
+			and a.RQESTER_ID LIKE CONCAT('%',#{rqesterId},'%')
+		</if>
+
+		<if test="searchBgnDe != null and searchBgnDe != ''">
+			<choose>
+				<when test = "APP_DBMS_TYPE == 'MARIADB' or APP_DBMS_TYPE == 'MYSQL'">
+					AND DATE(a.OCRN_DT) BETWEEN STR_TO_DATE(#{searchBgnDe}, '%Y-%m-%d') AND STR_TO_DATE(#{searchEndDe}, '%Y-%m-%d')
+				</when>
+				<otherwise>
+					AND a.OCRN_DT BETWEEN TO_DATE(#{searchBgnDe}, 'YYYY-MM-DD') AND (TO_DATE(#{searchEndDe}, 'YYYY-MM-DD') + 0.99999)
+				</otherwise>
+			</choose>
+		</if>
+
+		<if test='onlyMenuYn != null and onlyMenuYn == "Y" '>
+			<if test="searchSysSeCd != '' and searchSysSeCd != null ">
+				<if test='searchSysSeCd == "MNGR" '>
+					AND CNTN_URL in (SELECT url_addr FROM cmmn_menu)
+				</if>
+				<if test='searchSysSeCd == "FRONT" '>
+					AND CNTN_URL in (SELECT url_addr FROM cmmn_front_menu)
+				</if>
+			</if>
+		</if>
+		<if test='nrmltYn != null and nrmltYn == "N" '>
+			AND NRMLT_YN = #{nrmltYn}
+		</if>
+	</sql>
+	
+	<!-- 웹 로그 리스트 조회 -->
+	<select id="selectWebLogList" parameterType="map" resultType="sangsMap">
+		SELECT
+			a.RQST_ID AS REQUST_ID
+			, DATE_FORMAT(a.OCRN_DT,'%Y-%m-%d %T') AS OCCRRNC_DE
+			, a.CNTN_URL AS URL
+			, a.RQESTER_IP
+			, a.RQESTER_ID
+			, a.RQESTER_ID AS RQESTER_NM
+			, a.SYS_SE_CD
+			, a.NRMLT_YN
+			, REL_MENU_NM AS MENU_NM
+		FROM
+			EGOV_COMTNWEBLOG a
+		WHERE 1 = 1
+			<include refid="where_WebLog_selectWebLogList" />
+		ORDER BY a.RQST_ID DESC
+		LIMIT #{pageSize} OFFSET #{offset}
+	</select>
+	
+	<!-- 웹 로그 카운트 조회 -->
+	<select id="selectWebLogListCnt" parameterType="map" resultType="Integer">
+		SELECT 
+			COUNT(a.RQST_ID) AS CNT
+		FROM
+			EGOV_COMTNWEBLOG a
+		WHERE 1 = 1
+			<include refid="where_WebLog_selectWebLogList" />
+	</select>
+	
+</mapper>

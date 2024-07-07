@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+<style tyle="text/css">
+
+#tb_selectCol_table {
+	min-height:120px;
+	display:block;
+	overflow-y:scroll;
+}
+#tb_selectRule_table {
+	min-height:120px;
+	display:block;
+	overflow-y:scroll;
+	border-spacing:0px;
+	border-collapse:separate;
+}
+#tb_selectRule_table th:first-child,
+#tb_selectRule_table td:first-child {
+	position:sticky;
+	left:0px;
+}
+#tb_selectRule_table th:nth-child(2),
+#tb_selectRule_table td:nth-child(2) {
+	position:sticky;
+	left:182px;
+}
+#tb_selectRule_table th:nth-child(3),
+#tb_selectRule_table td:nth-child(3) {
+	position:sticky;
+	left:364px;
+	border-right:2px solid black;
+}
+#tb_selectRule_table thead {
+    cursor:pointer;
+    position:sticky;
+	top:0px;
+    z-index:1;
+}
+#tb_selectCol_table th,
+#tb_selectCol_table td,
+#tb_selectRule_table th,
+#tb_selectRule_table td {
+	width:160px;
+	min-width:160px;
+	max-width:160px;
+}
+
+</style>
+
+<body id="body">
+	<div id="wrap">
+		<div class="container">
+			<input type="hidden" name="proflSn" id="proflSn" th:value="${paramMap.proflSn}"/>
+			<input type="hidden" name="pmode" id="pmode" th:value="${paramMap.pmode}"/>
+			<input type="hidden" name="tblSn" id="tblSn" th:value="${paramMap.tblSn}">
+			<div id="content">
+			
+				<div class="page_info_area">
+					<div class="left">
+						<div class="title_area">
+							<p></p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area">
+							<button class="btn" title="목록" id="listBtn" onclick="location.href='/open/dq/profile/profl_list'">목록</button>
+							<button class="btn" title="목록" id="sampleBtn" onclick="fnShowSampleData(); return false;">샘플데이터 보기</button>
+							<button class="btn" title="이전" id="beforeBtn" onclick="fnDrawTable(); return false;">이전</button>
+							<button class="btn" title="다음" id="nextBtn" onclick="fnNextPage(); return false;">다음</button>
+							<button class="btn" title="저장" id="saveBtn" onclick="fnNullPermYnModal(); return false;">저장</button>
+						</div>
+					</div>
+				</div>
+				
+				<div class="content_area">
+				
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width="100px;" />
+									<col width="auto;" />
+									<col width="40px;" />
+									<col width="100px;" />
+									<col width="auto;" />
+									<col width="40px;" />
+									<col width="100px;" />
+									<col width="auto;" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th>스키마 명</th>
+										<td>
+											<input type="text" name="dbmsDatabaseNm" id="dbmsDatabaseNm" style="width:100%;" th:value="${paramMap.SESS_USER_INFO.dbmsDatabaseNm}" readonly/>
+										</td>
+										<td></td>
+										<th>테이블 명</th>
+										<td>
+											<div class="selectbox">
+												<select name="dbmsTableNm" id="dbmsTableNm">
+													<option value=''>선택</option>
+												</select>
+											</div>
+										</td>
+										<td></td>
+										<th><!--기준일자 컬럼--></th>
+										<td><!--
+											<div class="selectbox">
+												<select name="crtrYmdColNm" id="crtrYmdColNm">
+													<option value=''>선택</option>
+												</select>
+											</div>
+											-->
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+					
+					
+					<div class="card" id="table_area">
+						<div id="refer_div" style="font-size:13px; margin-top:10px">※ 데이터는 최대 30건까지 조회됩니다.</div>
+						<table class="list" id="tb_selectCol_table">
+							<thead>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+						<table class="list" id="tb_selectRule_table">
+							<thead>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+					</div>
+				
+				</div>
+			
+			</div>
+		</div>
+	</div>
+	
+<!-- null 허용 여부 체크 모달  -->
+<div class="popup layer" id="nulldatadgnss_modal">
+	<div class="pop_header">
+		<p class="title">프로파일 NULL 진단 여부 관리</p>
+        <button class="btn_ic btn_pop_close" onclick="fnCloseModal('nulldatadgnss_modal'); return false;">닫기</button>
+    </div>
+    <div class="pop_content">
+	    <div class="card">
+	    	<div class="tbl_top right">
+	    		<div style="width:100%;">※ NULL 데이터 진단 여부를 체크할 경우 NULL 데이터를 포함하여 진단합니다.</div> 
+	    		<div class="btn_wrap">
+	    			<input type="hidden" name="chkOptionValues" id="chkOptionValues"/>
+	    			<button class="btn sm" onclick="fnSave(); return false;">저장</button>
+	    		</div>
+	   		</div>
+	   		<div class="tbl_wrap" data-height="600">
+				<table class="list" id="tb_nulldatadgnsslist_table">
+					<colgroup>
+						<col width="40%"/>
+						<col width="40%"/>
+						<col width="20%"/>
+					</colgroup>
+					<thead>
+						<tr>
+							<th>패턴/지표명</th>
+							<th>컬럼명</th>
+							<th>NULL 데이터 진단 여부</th>
+						</tr>
+					</thead>	
+		 			<tbody>
+		 				<tr class="fwk_templete_row">
+							<td>#{ruleNm}
+								<input type="hidden" name="colNm" value="#{colNm}" />
+								<input type="hidden" name="ruleSn" value="#{ruleSn}" />
+								<input type="hidden" name="ruleTyCd" value="#{ruleTyCd}" />
+							</td>
+							<td>#{colNm}</td>
+							<td name="chknulldatadgnssyn_td"><input type="checkbox" name="chkNullDataDgnssYn" value="#{colNm}_#{ruleSn}"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>	    
+	    </div>
+	</div>
+	<div class="pop_footer">
+	</div>
+</div>
+	
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	$("#table_area").hide();
+	$("#sampleBtn").hide();
+	$("#beforeBtn").hide();
+	$("#saveBtn").hide();
+	
+	fnSearchTable();
+
+	fnClickRowChk();
+	fnClickColChk();
+	
+	setTableHeight();
+	$(parent.window).on("resize", function() {
+		setTableHeight();
+	});
+	
+	
+	//fnApplySelectLabelDisp("dbmsTableNm");
+	//fnApplySelectLabelDisp("crtrYmdColNm");
+});
+
+
+
+
+// 등록모드 테이블 셀렉트박스 바인딩
+function fnSearchTable() {
+	$.ajax({
+		url: '/json/profileMng/getDatabaseTable'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pmode: $("#pmode").val()
+			, proflSn: $("#proflSn").val()
+			, tblSn: $("#tblSn").val()
+		})
+		, success: function(result) {
+			var tableOption = "";
+			for (i=0; i<result.tableList.length; i++){
+				var obj = result.tableList[i];
+				tableOption += "<option value='" + obj.dbmsTableNm + "'>" + obj.dbmsTableNm + "</option>";
+			}
+			$("#dbmsTableNm").append(tableOption);
+			
+			// tableName selectbox event
+			if ($("#pmode").val() == "R") {
+				$("#dbmsTableNm").change(function(){
+					fnDrawTable();
+				});
+			} else {
+				//$("#dbmsTableNm").append("<option value='"+result.selectTableNm+"' selected>"+result.selectTableNm+"</option>")
+				$("#dbmsTableNm").find("option[value="+result.selectTableNm+"]").prop("selected", true);
+				fnDrawTable();
+			}
+			
+		}
+	});
+}
+
+
+
+
+// 테이블 선택시 컬럼 정보 조회
+function fnDrawTable(tableName) {
+	$("#refer_div").show();
+	
+	if ($("#dbmsTableNm").val()=="" || $("#dbmsTableNm").val()==null) {
+		return;
+	}
+	
+	$("#dbmsTableNm").prop("disabled", false);
+	$("#crtrYmdColNm").prop("disabled", false);
+	$("#tb_selectCol_table thead").empty();
+	$("#tb_selectCol_table tbody").empty();
+	$("#crtrYmdColNm").empty();
+	$("#tb_selectCol_table").show();
+	$("#tb_selectRule_table").hide();
+	$("#sampleBtn").hide();
+	$("#beforeBtn").hide();
+	$("#saveBtn").hide();
+	$("#nextBtn").show();
+	
+	$.ajax({
+		url: '/json/profileMng/getDgnssColInfo'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pmode: $("#pmode").val()
+			, proflSn: $("#proflSn").val()
+			, tblSn: $("#tblSn").val()
+			, dbmsTableNm: $("#dbmsTableNm").val()
+		})
+		, success: function(data) {
+			
+			var colInfoObj = data.colInfoList;
+			
+			var colNm_html = "<tr><th>컬럼명</th>";
+			var dataTy_html = "<tr><th>컬럼타입</th>";
+			var chkbox_html = "<tr><td><button class='btn sm' title='전체선택' onclick='fnAllCheck();return false;'>전체선택</button></td>";
+			
+			// 기준일자 컬럼 select
+			var crtrYmdColNm_html = "<option value=''>선택</option>";
+			
+			for (i=0; i<colInfoObj.length; i++) {
+				var obj = colInfoObj[i];
+				colNm_html += "<th>" + obj.columnName + "</th>";
+				if (obj.dataLength == null) {
+					dataTy_html += "<th>" + obj.dataType.toUpperCase() + "</th>";
+					chkbox_html += "<td><input type='hidden' name='dataType' value='"+obj.dataType.toUpperCase()+"'/>";
+					chkbox_html += "<input type='hidden' name='dataLength'/>";
+				} else {
+					dataTy_html += "<th>" + obj.dataType.toUpperCase() + "(" + obj.dataLength + ")</th>";
+					chkbox_html += "<td><input type='hidden' name='dataType' value='"+obj.dataType.toUpperCase()+"'/>";
+					chkbox_html += "<input type='hidden' name='dataLength' value='"+obj.dataLength+"'/>";
+				}
+				
+				chkbox_html += "<input type='checkbox' name='dgnssColumnChkbox' value='" + obj.columnName + "'/></td>"
+				
+				crtrYmdColNm_html += "<option value='"+obj.columnName+"'>"+obj.columnName+"</option>";
+			}
+			colNm_html += "</tr>";
+			dataTy_html += "</tr>";
+			chkbox_html += "<tr>";
+			
+			$("#tb_selectCol_table thead").append(colNm_html);
+			$("#tb_selectCol_table thead").append(dataTy_html);
+			$("#tb_selectCol_table thead").append(chkbox_html);
+			$("#crtrYmdColNm").append(crtrYmdColNm_html);
+			// fnChangeSelectVal("crtrYmdColNm", "");
+			// 샘플데이터 30건
+			var sampleObj = data.sampleDataList;
+			var sampleData_html = "";
+			for (i=0; i<sampleObj.length; i++) {
+				var sobj = sampleObj[i]
+				sampleData_html += "<tr><td></td>";
+				for (j=0; j<colInfoObj.length; j++) {
+					var obj = colInfoObj[j];
+					var colNm = fnToCamelCase(obj.columnName);
+					sampleData_html += "<td>" + sobj[colNm] + "</td>";
+				}
+				sampleData_html += "</tr>";
+			}
+			$("#tb_selectCol_table tbody").append(sampleData_html);
+			
+			// pmode = 'M' 일 때 setting
+			if (data.bfeColInfoList.length > 0 && $("#pmode").val() == "M") {
+				var bfeColInfoList = data.bfeColInfoList;
+				// checkbox setting 
+				for (i=0; i<bfeColInfoList.length; i++) {
+					var map = bfeColInfoList[i]
+					$("input[name='dgnssColumnChkbox']").each(function() {
+						if ($(this).val() == map.colNm) {
+							$(this).prop("checked", true);
+						}
+					});
+					
+				}
+				
+				// 기준일자 컬럼 selectbox setting
+				var crtrYmdColNm = data.bfeColInfoList[0].crtrYmdColNm;
+				$("#crtrYmdColNm option").each(function(){
+					if (crtrYmdColNm == $(this).val()) {
+						$(this).prop("selected", true);
+					}
+				});
+				// fnChangeSelectVal("crtrYmdColNm", crtrYmdColNm);
+				$("#dbmsTableNm").prop("disabled", true);
+			}
+			
+			$("#table_area").show();
+		}
+	});
+}
+
+// 카멜케이스 변경
+function fnToCamelCase(str) {
+	return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+}
+
+// 전체선택 버튼
+function fnAllCheck() {
+	$("input[name='dgnssColumnChkbox']").prop("checked", !$("input[name='dgnssColumnChkbox']").prop('checked'));
+}
+
+// 체크된 컬럼명만 뽑아내기
+function fnGetChkColNm() { 
+	var chkColNm = new Array();
+	$("input[name='dgnssColumnChkbox']").each(function() {
+		if ($(this).prop("checked")) {
+			chkColNm.push($(this).val());
+		}
+	});
+	return chkColNm;
+}
+
+// 체크된 컬럼정보(컬럼명, 타입, 길이) 뽑아내기
+function fnGetChkColInfo() {
+	var chkColTy = new Array();
+	$("input[name='dgnssColumnChkbox']").each(function() {
+		if ($(this).prop("checked")) {
+			var obj = Object();
+			obj.colNm = $(this).val();
+			obj.dataTyCd = $(this).parent().find("input[name='dataType']").val();
+			obj.dataLtValue = $(this).parent().find("input[name='dataLength']").val();
+			chkColTy.push(obj);
+		}
+	});
+	return chkColTy;
+}
+
+
+
+// 다음 페이지 이동(테이블만 변경)
+function fnNextPage() {
+	$("#refer_div").hide();
+	
+	var chkColNm = fnGetChkColNm();
+	if (chkColNm.length == 0) {
+		alert("선택된 컬럼이 없습니다.");
+		$("#refer_div").show();
+		return;
+	}
+	/*
+	if ($("#crtrYmdColNm").val() == "") {
+		alert("기준일자 컬럼은 필수 선택 값입니다.");
+		return;
+	}*/
+	
+	$("#tb_selectCol_table").hide();
+	$("#tb_selectRule_table").show();
+	$("#tb_selectRule_table thead").empty();
+	$("#tb_selectRule_table tbody").empty();
+	$("#nextBtn").hide();
+	$("#sampleBtn").show();
+	$("#beforeBtn").show();
+	$("#saveBtn").show();
+	
+	$.ajax({
+		url: '/json/profileMng/getDgnssColRule'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pmode: $("#pmode").val()
+			, proflSn: $("#proflSn").val()
+			, tblSn: $("#tblSn").val()
+			, chkColNm: chkColNm
+		})
+		, success: function(data) {
+			// header 영역
+			var colInfo = data.chkColNm;
+			var table_html = "<tr><th>구분</th><th>그룹</th><th>패턴/지표명</th>";
+			for (i=0; i<colInfo.length; i++) {
+				table_html += "<th>" + colInfo[i] + "</th>";
+			}
+			table_html += "</tr>"; 
+			$("#tb_selectRule_table thead").append(table_html);
+			
+			
+			// body 영역
+			var ruleInfoObj = data.ruleInfoList;
+			
+			var basic_anal_html = "";
+			var freq_anal_html = "";
+			var pttrn_anal_html = "";
+			
+			for (i=0; i<ruleInfoObj.length; i++) {
+				var obj = ruleInfoObj[i];
+				table_html = "<tr>";
+				
+				var basic_anal_tr = "<tr>";
+				var freq_anal_tr = "<tr>";
+				var pttrn_anal_tr = "<tr>";
+				var objRuleSn = obj.ruleSn;
+				var objRuleTyCd = obj.ruleTyCd;
+				
+				basic_anal_tr += "<td style='cursor:pointer;'>"+obj.ruleSeCdNm+"</td>";
+				basic_anal_tr += "<td style='cursor:pointer;'>"+obj.pttrnSeCdNm+"</td>";
+				basic_anal_tr += "<td style='cursor:pointer;' name='"+objRuleSn+"'>"+obj.ruleNm+"</td>";
+				for (j=0; j<colInfo.length; j++) {
+					
+					var dataRuleSn = "data-rulesn='"+objRuleSn+"'";
+					var dataRuleTyCd = "data-ruletycd='"+objRuleTyCd+"'";
+					
+					
+					basic_anal_tr += "<td><input type='checkbox' name='"+colInfo[j]+"_"+objRuleSn+"' value='"+colInfo[j]+"' "+dataRuleSn+" "+dataRuleTyCd+"/></td>";
+					
+				}
+				basic_anal_tr += "</tr>";
+				basic_anal_html += basic_anal_tr;
+			}
+			$("#tb_selectRule_table tbody").append(basic_anal_html);
+			
+			$("#tb_selectRule_table").rowspan(0);
+			$("#tb_selectRule_table").rowspan(1);
+			
+			// pmode = 'M' 일 때 setting
+			if (data.dgnssColRuleInfo != null && $("#pmode").val() == "M") {
+				
+				var optionValues = "";
+				
+				for (i=0; i<data.dgnssColRuleInfo.length; i++){
+					
+					var map = data.dgnssColRuleInfo[i];
+					var optionValue = map.colNm + "_" + map.ruleSn;
+					var nullDataDgnssYn = map.nullDataDgnssYn;
+					$("input[name='"+optionValue+"']").prop("checked", true);
+					$("input[name='"+optionValue+"']").prop("checked", true);
+					
+					if(nullDataDgnssYn == "Y"){
+						optionValues+=optionValue+",";
+					}
+				}
+				$("#chkOptionValues").val(optionValues.slice(0, -1));
+			}
+			
+			$("#dbmsTableNm").prop("disabled", true);
+			$("#crtrYmdColNm").prop("disabled", true);
+		}
+	});
+}
+
+
+
+// 행 클릭시 해당 row 전체 선택
+function fnClickRowChk() {
+	$('#tb_selectRule_table tbody').on('click', 'td', function() {
+		var sn = $(this).index();
+		if (sn <= 2) {
+			var selectTr = $(this).parent().index();
+			var thisTdSpan;
+			if ($(this).attr('rowspan') !== undefined) {
+				thisTdSpan = Number($(this).attr('rowspan'));
+			} else {
+				thisTdSpan = 1;
+			}
+			
+			var targetTr = $('#tb_selectRule_table').children('tbody').find('tr');
+			$(targetTr).each(function(index, value) {
+				var trRowSn = $(this).index();
+				var endTrSn = selectTr + thisTdSpan
+				if (thisTdSpan == 1) {
+					if ($(this).index() == selectTr) {
+						var trChk = $(this).find('input:checkbox');
+						if (!$(trChk).is(":checked")) {
+							$(trChk).prop("checked", true);
+						} else {
+							$(trChk).prop("checked", false);
+						}
+					}
+				} else {
+					if (trRowSn >= selectTr && trRowSn < endTrSn) {
+						var trChk = $(this).find('td input:checkbox');
+						
+						if (!$(trChk).is(":checked")) {
+							$(trChk).prop("checked", true);
+						} else {
+							$(trChk).prop("checked", false);
+						}
+					}
+				}
+			});
+		} 
+	});
+}
+
+
+
+// 열 클릭시 해당 column 전체선택
+function fnClickColChk() {
+	$('#tb_selectRule_table thead').on('click', 'th', function () {
+		var sn = $(this).index();
+		var tableTr = $('#tb_selectRule_table').children('tbody').find('tr');
+		
+		$.each(tableTr, function(index, value) {
+			var td = $(value).children('td')[sn];
+			var chk = $(td).find('input:checkbox');
+			
+			if(!$(chk).is(":checked")){
+				$(chk).prop("checked", true);
+			}else{
+				$(chk).prop("checked", false);
+			}
+		})
+	});
+}
+
+
+
+// index=0,1 구분이 같은 경우 rowspan 항당  
+$.fn.rowspan = function(colIdx, isStats) {       
+    return this.each(function(){      
+        var that;     
+        $('tr', this).each(function(row) {      
+            $('td:eq('+colIdx+')', this).filter(':visible').each(function(col) {
+                if ($(this).html() == $(that).html()
+                    && (!isStats 
+                            || isStats && $(this).prev().html() == $(that).prev().html()
+                            )
+                    ) {            
+                    rowspan = $(that).attr("rowspan") || 1;
+                    rowspan = Number(rowspan)+1;
+ 
+                    $(that).attr("rowspan",rowspan);
+                    $(this).hide();
+                } else {            
+                    that = this;         
+                }          
+                that = (that == null) ? this : that;      
+            });     
+        });    
+    });  
+}; 
+
+
+// 프로파일 NULL 진단 여부 관리
+function fnNullPermYnModal(){
+	
+	var chkColRule = new Array();
+	
+	$("#tb_selectRule_table tr td").each(function() {
+		var obj = new Object();
+		var trChk = $(this).find("input:checkbox");
+		if (trChk.prop("checked")) {
+			var ruleSn = trChk.data("rulesn");
+			
+			obj.colNm = trChk.val();
+			obj.ruleSn = ruleSn;
+			obj.ruleTyCd = trChk.data("ruletycd");
+			obj.ruleNm = $(this).parent('tr').find("td[name="+ruleSn+"]").text();
+			
+			chkColRule.push(obj);
+			
+		}
+	});
+	
+	fnBindTableValue("tb_nulldatadgnsslist_table", chkColRule);
+	
+	$("#tb_nulldatadgnsslist_table tbody tr.fwk_data_row").each(function(){
+		
+		if($(this).find("input[name=ruleTyCd]").val() == "AT000100" || $(this).find("input[name=ruleTyCd]").val() == "AT000300"){
+			$(this).attr("name", "hide_tr_on");
+			$(this).hide();
+			
+		} else {
+			$(this).attr("name", "show_tr_on");
+		}
+	});
+	
+	var chkOptionValues = $("#chkOptionValues").val();
+	if(chkOptionValues.length > 0){
+		var chkOptionValue = new Array(); 
+		var chkOptionValue = chkOptionValues.split(",");
+		for(i = 0; i < chkOptionValue.length; i++){
+			$("#tb_nulldatadgnsslist_table tbody tr.fwk_data_row").find("input[value="+chkOptionValue[i]+"]").prop("checked", true);
+		}
+		
+		
+	}
+	
+	fnColNmRowSpan("tb_nulldatadgnsslist_table");
+	
+	if($("#tb_nulldatadgnsslist_table tbody").find("tr[name=show_tr_on]").length > 0) {
+		fnShowModal("nulldatadgnss_modal");
+	} else {
+		fnSave();
+	}
+	
+	
+}
+
+// 저장
+function fnSave() {
+	
+	var chkColInfo = fnGetChkColInfo(); // Array(obj)
+	
+	var chkColRule = new Array();
+	$("#tb_nulldatadgnsslist_table tbody tr.fwk_data_row").each(function() {
+		var obj = new Object();
+		obj.colNm = $(this).find("input[name=colNm]").val();
+		obj.ruleSn = $(this).find("input[name=ruleSn]").val();
+		var checkedValue = "N";
+		if($(this).find("input[name=chkNullDataDgnssYn]").is(":checked")){
+			checkedValue = "Y";
+		}
+		
+		obj.nullDataDgnssYn = checkedValue;
+		chkColRule.push(obj);
+	});
+
+	console.log(chkColRule.length);
+	if (chkColRule.length == 0) {
+		alert("선택된 값이 한개 이상 필요합니다.");
+		return;
+	}
+	
+	if(!confirm("저장 하시겠습니까?")){
+		return;
+	}
+	
+	$.ajax({
+		url: '/json/profileMng/saveProflTblInfo'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pmode: $("#pmode").val()
+			, proflSn: $("#proflSn").val()
+			, tblSn: $("#tblSn").val()
+			, tblNm: $("#dbmsTableNm").val()
+			, crtrYmdColNm: $("#crtrYmdColNm").val()
+			, chkColInfo: chkColInfo
+			, chkColRule: chkColRule
+		})
+		, success: function(data){
+			if (data.resultCd == "OK") {
+				alert("저장되었습니다.");
+				location.href = "/open/dq/profile/profl_list";
+			}
+		}
+	});
+		
+}
+
+
+
+
+// 테이블 page에 맞춤 
+function setTableHeight() {
+	var frame = parent.getMainClientHeight();
+	var pageInfo = $(".page_info_area").height();
+	$("#table_area").css("max-height", frame-pageInfo-260 + "px");
+}
+
+
+
+// 샘플데이터보기(팝업)
+function fnShowSampleData(){
+	var dbmsTableNm = $("#dbmsTableNm").val();
+	window.open('/open/dq/profile/dgnss_tbl_sample_pop?dbmsTableNm=' + dbmsTableNm, '_blank', 'width=1700, height=1000, resize=yes');
+} 
+
+
+
+function fnColNmRowSpan(tableId){
+	var temp = 0;
+
+	$("#"+tableId+" tbody tr.fwk_data_row").each(function(index){
+		var colSnThisValue = $(this).find("input[name=ruleSn]").val();
+		var colSnTrgtValue = $("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("input[name=ruleSn]").val();
+		
+		var isOtherValue = false;
+
+		if(colSnThisValue != colSnTrgtValue){
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").attr("rowspan", index-temp);
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").show();
+			temp = index;
+			isOtherValue =true;
+		} else {
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").attr("rowspan", "0");
+			$(this).find("td:eq(0)").hide();
+		}
+		
+		if(!isOtherValue){
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").attr("rowspan", index+1);
+			$("#"+tableId+" tbody tr.fwk_data_row").eq(temp).find("td:eq(0)").show();
+		}
+		
+	});
+}
+
+</script>
+</body>
+
+
+</html>

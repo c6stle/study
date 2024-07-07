@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+
+<body id="body">
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+				<div class="page_info_area">
+					<div class="left">
+						<div class="title_area">
+							<p></p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area">
+							<!-- <button class="btn" title="전체정지" onclick="fnStopAllSchedule(); return false;">전체정지</button> -->
+							<button class="btn" title="프로파일등록" onclick="fnRegProfl('R'); return false;">프로파일등록</button>
+							<button class="btn" onclick="fnSearchProfileList(); return false;">조회</button>
+						</div>
+					</div>
+				</div><!-- page_info_area -->
+				
+				
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width="5%" />
+									<col width="auto;" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th>프로파일명</th>
+										<td><input type="text" class="in_w30" id="proflNmSearch" name="proflNmSearch" value=""/></td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+					
+					
+					<div class="row marginb25">
+						<div class="left" data-width="0">
+							<div class="card">
+								<table class="list fixed" id="tb_profl_table">
+									<colgroup>
+										<col style="width:8%;"/>
+										<col style="width:37%;"/>
+										<col style="width:15%;"/>
+										<col style="width:20%;"/>
+										<col style="width:20%;"/>
+									</colgroup>
+									<thead>
+										<tr>
+											<th>No</th>
+											<th>프로파일명</th>
+											<th>진단<br>테이블 수</th>
+											<th>스케쥴</th>
+											<th>다음 수행 예정</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="fwk_templete_row">
+											<input type="hidden" name="proflSn" value="#{proflSn}"/>
+											<input type="hidden" name="nextExcSchdulDt" value="#{nextExcSchdulDt}"/>
+											<input type="hidden" name="cronExprsnSeCd" value="#{cronExprsnSeCd}"/>
+											<input type="hidden" name="useYn" value="#{useYn}"/>
+											
+											<td>#{FWK_TR_NO}</td>
+											<td class="alignl" name="proflNm">#{proflNm}</td>
+											<td class="alignr">#{tblCnt}</td>
+											<td name="cronExprsnValue">#{cronExprsnValue}</td>
+											<td name="nextExcSchdulDtChg">#fn{replaceAll('#{nextExcSchdulDt}',' ', ' <br/>')}</td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="pagination_area marginb25" id="dv_profl_paging"></div>
+							</div>
+						</div>
+						<div class="right">
+							<div class="view_wrap">
+								
+								<div class="tbl_top marginb10">
+									<p class="tit v2"><span>프로파일</span></p>
+									<div class="btn_wrap">
+										<button class="btn sm" onclick="fnExcRqstBtn()">실행 요청</button>
+										<button class="btn sm pad0" onclick="fnSchedulePop(); return false;">스케쥴 관리</button>
+										<button class="btn sm" onclick="fnRegProfl('M'); return false;">수정</button>
+									</div>
+								</div>
+							
+								<table class="view marginb20" id="tb_detail_table">
+									<colgroup>
+										<col style="width:17%"/>
+										<col style="width:33%"/>
+										<col style="width:17%"/>
+										<col style="width:33%"/>
+									</colgroup>
+									<tbody>
+										<tr>
+											<th>프로파일명</th>
+											<td colspan="3">
+												<input type="hidden" id="dtlview_proflsn" name="dtlview_proflsn" value=""/>
+												<input type="hidden" id="dtlview_cronexprsnsecd" name="dtlview_cronexprsnsecd" value=""/>
+												<input type="text" id="dtlview_proflnm" name="dtlview_proflnm" readonly/>
+											</td>
+										</tr>
+										<tr>
+											<th>스케쥴</th>
+											<td id="dtlview_cronexprsnvalue"></td>
+											<th>다음 수행 예정</th>
+											<td id="dtlview_nextexcschduldt"></td>
+										</tr>
+									</tbody>
+								</table>
+								
+								 
+								<div class="tbl_top">
+									<p class="tit v2"><span>진단 테이블</span></p>
+									<div class="btn_wrap">
+										<button class="btn sm" style="width:120px;" onclick="fnMngDgnssTbl('R', ''); return false;">진단테이블 추가 </button>
+									</div>
+								</div>
+								
+								<table class="list fixed" id="tb_dgnss_table" style="margin-top:0px;">
+									<colgroup>
+										<col style="width:34%;"/>
+										<col style="width:12%;"/>
+										<col style="width:12%;"/>
+										<col style="width:20%;"/>
+										<col style="width:11%;"/>
+										<col style="width:11%;"/>
+									</colgroup>
+									<thead>
+										<tr>
+											<th>테이블명</th>
+											<th>진단<br>컬럼 수</th>
+											<th>진단<br>지표 수</th>
+											<th>등록일</th>
+											<th>수정</th>
+											<th>삭제</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="fwk_templete_row">
+											<input type="hidden" name="tblSn" value="#{tblSn}"/>
+											<td>#{tblNm}</td>
+											<td>#{colCnt}</td>
+											<td>#{ruleCnt}</td>
+											<td>#{regDt}</td>
+											<td><button class="btn sm" onclick="fnMngDgnssTbl('M', '#{tblSn}'); return false;">수정</button></td>
+											<td><button class="btn sm" onclick="fnDelDgnssTbl('#{tblSn}'); return false;">삭제</button></td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="pagination_area marginb25" id="dv_dgnss_paging"></div>
+							</div>
+						</div>
+					</div>
+					
+				</div><!-- content_area -->
+
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+</body>
+
+
+ <div class="popup layer" id="schedulemngr_modal" style="width:940px; height:700px;">
+ 	<th:block th:replace="dq/profile/profl_schdul_mngr_inc :: profl_schdul_mngr_inc" />
+ </div>
+
+
+<div class="popup layer" id="proflinfo_modal" style="width:640px;">
+	<th:block th:replace="dq/profile/profl_reg_inc :: profl_reg_inc" />
+</div>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	var chk = isSessionConChk();
+	
+	if(chk){
+		fnSearchProfileList();
+		$("#proflNmSearch").on("keyup", function(event) {
+			if(event.keyCode == 13)
+				fnSearchProfileList();
+		});
+	}
+	
+	
+	
+});
+
+
+// 좌측 프로파일 리스트
+function fnSearchProfileList(pageNum) {
+	
+	if (!pageNum)
+		var pageNum = 1;
+	
+	$.ajax({
+		url: '/json/profileMng/getProfileList'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum: pageNum
+			, proflNm: fnUnderbarChgVar($("#proflNmSearch").val())
+		})
+		, success: function(data) {
+			fnBindTableValue("tb_profl_table", data.profileList, data.pagingInfo);
+			
+			fnSetPaging("dv_profl_paging", data.pagingInfo, "fnSearchProfileList");
+			
+			// 프로파일 테이블
+			fnSelectTrEvent("#tb_profl_table tbody tr", function(rtnObj){
+				
+				fnBindDtlView(rtnObj);
+				
+				fnSearchDgnssTblList();
+			});
+			
+			
+			// 공통함수 common_biz_util(fnSelectedTableValue) 이용하면 루프를 두번돌아야해서 소스가져와서 아래 detailview 항목 채우는 코드만 추가함
+			if($("#dtlview_proflsn").val() !=""){
+				var trId = $("#tb_profl_table tbody tr");
+				
+				var rtnValue = null;
+				var selectObj = $(trId).find("input[name=proflSn]");
+				
+				$.each(selectObj, function(index, obj) {
+					
+					if(obj.value === $("#dtlview_proflsn").val()){
+						var targetTr = $(obj).parent('tr');
+						$(trId).find('td').css("background-color", "#fff");
+						$(targetTr).find('td').css("background-color", "aliceblue");
+						$(trId).attr("data-selectedtr", "N");
+						$(targetTr).attr("data-selectedtr", "Y");
+						
+						$("#dtlview_proflnm").val($(targetTr).find("td[name='proflNm']").text())
+						$("#dtlview_cronexprsnvalue").text($(targetTr).find("td[name='cronExprsnValue']").text())
+						$("#dtlview_nextexcschduldt").text($(targetTr).find("td[name='nextExcSchdulDtChg']").text())
+					}	
+				});
+				
+			}
+		}
+	});
+}
+
+
+
+// 우측 프로파일 상세
+function fnBindDtlView(rtnObj) {
+	// hidden 값
+	$("#dtlview_proflsn").val($(rtnObj).find("input[name='proflSn']").val());
+	$("#dtlview_cronexprsnsecd").val($(rtnObj).find("input[name='cronExprsnSeCd']").val());
+	if ($(rtnObj).find("input[name='useYn']").val() == 'N') {
+		$("#useyn_n").prop("checked", true);
+	} else {
+		$("#useyn_y").prop("checked", true);
+	}
+	
+	// 화면에 노출 되는 값
+	$("#dtlview_proflnm").val($(rtnObj).find("td[name='proflNm']").text());
+	$("#dtlview_cronexprsnvalue").text($(rtnObj).find("td[name='cronExprsnValue']").text());
+	$("#dtlview_nextexcschduldt").text($(rtnObj).find("input[name='nextExcSchdulDt']").val());
+}
+
+
+
+// 우측 진단 테이블 조회
+function fnSearchDgnssTblList(pageNum) {
+	if (!pageNum)
+		var pageNum = 1;
+	
+	$.ajax({
+		url: '/json/profileMng/getDiagnosisTableList'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum : pageNum
+			, proflSn : $("#dtlview_proflsn").val()
+		})
+		, success: function(data) {
+			fnBindTableValue("tb_dgnss_table", data.dgnssTblList, data.pagingInfo);
+			fnSetPaging("dv_dgnss_paging", data.pagingInfo, "fnSearchDgnssTblList");
+		}
+	});
+}
+
+
+
+
+// 스케쥴 관리 레이어팝업
+function fnSchedulePop() {
+	
+	if ($("#dtlview_proflsn").val() == "") {
+		alert("선택된 프로파일이 없습니다.");
+		return;
+	}
+	
+	
+	// 스케쥴 관리 레이어팝업 변수 바인딩
+	$("#proflsn_modal").val($("#dtlview_proflsn").val());
+	$("#cronexprsnsecd_modal").val($("#dtlview_cronexprsnsecd").val());
+	$("#cronexprsnvalue_modal").val($("#dtlview_cronexprsnvalue").text());
+	
+	fnShowModal('schedulemngr_modal');
+	
+	// 메인 스케쥴 입력타입 라디오버튼
+	fnChangeOnOffOption();
+	// 라디오버튼 변경시 disabled 처리 변경
+	fnChangeRadio("month", 3);
+	fnChangeRadio("day", 2);
+	fnChangeRadio("dayWeek", 4);
+	fnChangeRadio("hour", 1);
+	fnChangeRadio("minute", 0);
+	
+	// 체크박스 변경시 표현식 적용 라디오버튼명, 표현식에들어갈순번
+	fnChangeChkBox("month", 3);
+	fnChangeChkBox("day", 2);
+	fnChangeChkBox("dayWeek", 4);
+	fnChangeInputBox("hour", 1);
+	fnChangeInputBox("minute", 0);
+}
+
+
+
+
+// 스케쥴 올스탑 (현재 db update, 화면 일정 비활성변경만 적용)
+function fnStopAllSchedule() {
+	$.ajax({
+		url: '/json/profileMng/stopAllSchedule'
+		, success: function(data) {
+			if (data.resultCd == "OK") {
+				alert("전체 비활성화 완료.");
+				fnSearchProfileList();
+			}
+		}
+	});
+	
+}
+
+
+
+// 진단테이블 추가/수정 버튼
+function fnMngDgnssTbl(pmode, tblSn) {
+	
+	if ($("#dtlview_proflsn").val() == "") {
+		alert("선택된 프로파일이 없습니다.");
+		return;
+	}
+
+	location.href = "/open/dq/profile/dgnss_tbl_mngr_inc?pmode="+pmode+"&proflSn=" + $("#dtlview_proflsn").val() + "&tblSn=" + tblSn;
+}
+
+// 진단테이블 삭제버튼
+function fnDelDgnssTbl(tblSn) {
+	
+	if(!confirm("삭제하시겠습니까?")){
+		return;
+	}
+	
+	$.ajax({
+		url: '/json/profileMng/delProflDgnssTbl'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			proflSn: $("#dtlview_proflsn").val()
+			, tblSn: tblSn
+		})
+		, success:function(data){
+			if (data.resultCd == "OK") {
+				
+				show_loading_bar_flag = false;
+				fnStartMainLoading();
+				
+				fnSearchProfileList();
+				fnSearchDgnssTblList();
+				
+				fnStopMainLoading();
+				show_loading_bar_flag = true;
+				alert("삭제되었습니다.");
+			}
+		}
+	});
+}
+
+
+
+// 프로파일 신규 등록 or 수정
+function fnRegProfl(pmode){
+	
+	$("#pmode_reg_mod").val("");
+	$("#proflsn_mod").val("");
+	$("#proflnm_reg_mod").val("");
+	
+	$("#pmode_reg_mod").val(pmode);
+	
+	if (pmode == "M") {
+		if ($("#dtlview_proflsn").val() == "") {
+			alert("선택된 프로파일이 없습니다.");
+			return;
+		}
+		$("#proflsn_mod").val($("#dtlview_proflsn").val());
+		$("#proflnm_reg_mod").val($("#dtlview_proflnm").val());
+		$("#useynmodal_y").prop("checked", true);
+		$("#useyn_reg_mod").show();
+		$("#delProflbtn").show();
+	} else {
+		$("#delProflbtn").hide();
+		$("#useyn_reg_mod").hide();
+		proflInit();
+	}
+	
+	fnShowModal('proflinfo_modal');
+}
+
+
+
+
+
+// 실행 요청
+function fnExcRqstBtn() {
+	
+	var useYn = fnSelectTrHiddenValue("tb_profl_table", "useYn");
+	if (useYn == "N") {
+		alert("실행 요청 할 수 없습니다.");
+		return;
+	}
+	
+	
+	if ($("#dtlview_proflsn").val() == "") {
+		alert("선택된 프로파일이 없습니다.");
+		return;
+	}
+	
+	// 진단 테이블 여부 체크
+	var isTable = false;
+	$("#tb_dgnss_table tbody .fwk_data_row").each(function(){
+		isTable = true;
+ 		if(isTable){
+			return false; // break
+		}
+	});
+	
+	if(!isTable){
+		alert("조회된 진단 테이블이 없습니다.");
+		return;
+	}
+	
+	if(!confirm("실행하시겠습니까?")){
+		return;
+	}
+	
+	$.ajax({
+		url: '/json/profileExc/excProfileDgnssRqst'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			proflSn : $("#dtlview_proflsn").val()
+		})
+		, success: function(data) {
+			if (data.resultCd == "OK") {
+				alert("실행 요청되었습니다.\n프로파일 진단 결과 화면에서 진행 사항을 확일 할 수 있습니다.");
+			}
+		}
+	});
+	
+}
+
+
+// 초기화
+function proflInit(){
+	$("#dtlview_proflsn").val(""); 			//hidden value
+	$("#dtlview_cronexprsnsecd").val("");	//hidden value
+	
+	$("#dtlview_proflnm").val("");
+	$("#dtlview_cronexprsnvalue").text("");
+	$("#dtlview_nextexcschduldt").text("");
+	
+	// 프로파일 목록
+	fnClearSelectTrEvent("#tb_profl_table tbody tr");
+	
+	// 진단 테이블 목록
+	$('#tb_dgnss_table tbody .fwk_tr_no_row').remove();
+	$('#tb_dgnss_table tbody .fwk_data_row').remove();
+	$("#dv_dgnss_paging ul").remove();
+}
+
+
+</script>
+
+</html>
+
+
+
+
+
+

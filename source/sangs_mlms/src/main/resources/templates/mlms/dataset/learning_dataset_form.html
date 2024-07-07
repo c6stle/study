@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<!-- head inclue -->
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+	
+</head>
+<body>
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+			
+				<div class="page_info_area">
+					<div class="left">
+						<div class="location_area">
+							<a href="#" class="bookmark active" title="즐겨찾기"></a>
+                            <ul>
+                                <li>홈</li>
+                                <li>데이터관리</li>
+								<li>학습데이터셋 관리</li>
+								<li>학습데이터셋 상세(등록/수정)</li>
+                            </ul>
+                        </div>
+                        <div class="title_area">
+                            <p>학습데이터셋 상세</p>
+                            <a href="#" class="reload_btn" title="새로고침">새로고침</a>
+                            <a href="#" class="help_btn" title="도움말">도움말</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area">
+							<button class="btn" title="다운로드" onclick="fnCommFileDown('DATASET', $('#datasetSn').val()); return false;">다운로드</button>
+							<button class="btn" title="라벨관리" onclick="fnLabelManage();return false;">라벨관리</button>
+							<button class="btn" id="dataSplitBtn" title="데이터셋분할" onclick="fnDataSplit();return false;">데이터셋분할</button>
+							<button class="btn" title="저장" onclick="fnSaveLrnDataInfo();return false;">저장</button>
+						</div>
+					</div>
+				</div>
+				
+				<div class="content_area">
+					<form name="masterForm">
+					<input type="hidden" th:value="${datasetInfo.lrnDatasetSn}" name="lrnDatasetSn" id="lrnDatasetSn" />
+					<input type="hidden" th:value="${datasetInfo.datasetSn}" name="datasetSn" id="datasetSn"/>
+					<input type="hidden" th:value="${datasetInfo.pmode}" name="pmode" id="pmode"/>
+					<input type="hidden" th:value="${datasetInfo.datasetTyCd}" name="org_datasetTyCd" id="org_datasetTyCd" />
+					<input type="hidden" th:value="${datasetInfo.dataRowCnt}" id="dataRowCnt" name="dataRowCnt" />
+                    <input type="hidden" th:value="${datasetInfo.dataColCnt}" id="dataColCnt" name="dataColCnt" />
+                    <input type="hidden" th:value="${previewSize}" id="previewSize" name="previewSize" />
+					<div class="division20">
+                        <div class="search_wrap" id="top_menu">
+                            <table class="search fixed">
+                                <colgroup>
+                                    <col style="width: 110px;" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 60px;" />
+                                    <col style="width: 110px" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 60px;" />
+                                    <col style="width: 110px" />
+                                    <col style="width: auto;" />
+                                </colgroup>
+                                <tbody>
+                                	<tr>
+                                		<th scope="row"><label for="datasetNm">원천데이터셋명</label></th>
+                                		<td><input type="text" class="in_w100" id="datasetNm" name="datasetNm" th:value="${datasetInfo.datasetNm}" readonly/></td>
+                                		<td></td>
+                                		<th scope="row"><label for="dataKbSize">데이터크기</label></th>
+                                		<td><input type="text" class="in_w100" id="dataKbSize" name="dataKbSize" th:value="${datasetInfo.dataKbSize} + 'KB'" readonly/></td>
+                                		<td></td>
+                                		<th scope="row"><label for="dataLayout">데이터셋 Layout</label></th>
+                                		<td>
+                                			<input type="text" class="in_w100" id="dataLayout" name="dataLayout" th:value="${datasetInfo.dataRowCnt} + ' rows * ' + ${datasetInfo.dataColCnt} + ' cols'" readonly/>
+                                		</td>
+                                	</tr>
+                                	<tr>
+                                		<th scope="row"><label for="dataOrginlFlpth">파일명</label></th>
+                                		<td>
+                                			<input type="text" class="in_w100" id="dataOrginlFlpth" name="dataOrginlFlpth" th:value="${datasetInfo.dataOrginlFlpth}" readonly/>
+                                		</td>
+                                		<td></td>
+                                		<th scope="row"><label for="dataFlpth">물리파일경로</label></th>
+                                		<td colspan="4"><input type="text" class="in_w100" id="dataFlpth" name="dataFlpth" th:value="${datasetInfo.dataFlpth}" readonly/></td>
+                                	</tr>
+                                	
+                                	<tr>
+                                		<th scope="row"><label for="lrnDatasetNm">*학습데이터셋명</label></th>
+                                		<td><input type="text" class="in_w100" id="lrnDatasetNm" name="lrnDatasetNm" th:value="${datasetInfo.lrnDatasetNm}" /></td>
+                                		<td></td>
+                                		<th scope="row"><label for="datasetTyCd">*데이터구분</label></th>
+                                		<td>
+                                			<div class="selectbox">
+                                				<select id="datasetTyCd" name="datasetTyCd">
+                                					<option value=''>선택</option>
+                                				</select>
+                                			</div>
+                                		</td>
+                                		<td></td>
+                                		<th scope="row"><label for="delYn">삭제여부</label></th>
+                                		<td>
+                                			<div class="selectbox">
+                                				<select id="delYn" name="delYn" >
+													<option th:if="${datasetInfo.delYn} == ''" value="N">N</option>
+													<option th:if="${datasetInfo.delYn} == ''" value="Y">Y</option>
+													<option th:if="${datasetInfo.delYn} != ''" th:selected="${datasetInfo.delYn} == 'N'" value="N">N</option>
+													<option th:if="${datasetInfo.delYn} != ''" th:selected="${datasetInfo.delYn} == 'Y'" value="Y">Y</option>
+												</select>
+												<label th:if="${datasetInfo.delYn} == ''">N</label>
+												<label th:if="${datasetInfo.delYn} != ''" th:text="${datasetInfo.delYn}"></label>
+                                			</div>
+                                		</td>
+                                	</tr>
+                                	
+                                	<tr>
+                                		<th scope="row"><label for="exclRowCnt">*제외 Row 수</label></th>
+                                		<td><input type="text" class="in_w100" id="exclRowCnt" name="exclRowCnt" th:value="${datasetInfo.exclRowCnt}" /></td>
+                                		<td></td>
+                                		<th scope="row"><label for="regDt">등록일시(아이디)</label></th>
+                                		<td><input type="text" class="in_w100" id="regDt" name="regDt" th:value="${datasetInfo.regDt} + ' (' + ${datasetInfo.regUserId} + ')'" readonly /></td>
+                                		<td></td>
+                                		<th scope="row"><label for="trgtValue">Target 컬럼명</label></th>
+                                		<td><input type="text" class="in_w100" id="trgtValue" name="trgtValue" readonly /></td>
+                                	</tr>
+                                	
+                                	<tr>
+                                		<th scope="row"><label for="lrnDatasetDc">학습데이터설명</label></th>
+                                		<td colspan="7"><input type="text" class="in_w100" id="lrnDatasetDc" name="lrnDatasetDc" th:value="${datasetInfo.lrnDatasetDc}" /></td>
+                                	</tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </form>
+                    
+                    
+                    
+                    <div class="tbl_top" style="width:100%;">
+                    	<div class="button_area" id="button_sub">
+                    		<button class="btn sm" style="width:auto;" id="dataPreviewBtn" onclick="fnDataPreview(); return false;">데이터 분포 보기</button>
+                    		<button class="btn sm" style="width:auto;" onclick="fnHderApply(); return false;">첫 번째 데이터 컬럼 헤더 적용</button>
+                    	</div>
+                    </div>
+                    
+                    <!-- 데이터셋 테이블 -->
+                    <div class="division margint8">
+                    	<div style="overflow:auto; width:100%; min-height:200px;" class="table_area" id="tb_data_table_div">
+                    		
+                    		<div class="popup layer" id="modal_preview" style="width:250px; border:2px solid #324266; border-radius:5px">
+
+								<div class="pop_content" id="previewContent" style="text-align:center;">
+									<br><br>
+								</div>
+								<div class="pop_footer">
+									<button class="btn sm bg_navy txt_white" onclick="fnExit('modal_preview'); return false;">확인</button>
+								</div>		
+							</div>
+                    	
+                    	
+	                        <table style="word-break:keep-all; width:calc(100% - 1px);" class="list" id="tb_data_table">
+	                        	<thead>
+	                        	</thead>
+	                        	
+	                        	<tbody id="tb_data_tbody">
+	                        		<tr id="useYn">
+	                        			<td style="min-width:100px;">미사용</td>
+	                        			<td th:if="${lrnDataHderList} != null" th:each="columnInfo : ${lrnDataHderList}">
+	                        				<input type="checkbox" name="useYn" th:checked="${columnInfo.get('useYn')} == 'N'" />
+	                        			</td>
+	                        			<td th:if="${lrnDataHderList} == null" th:each="headerVal : ${headerList}">
+	                        				<input type="checkbox" name="useYn" />
+	                        			</td>
+	                        		</tr>
+	                        		<tr id="trgtValueYn">
+	                        			<td style="min-width:100px;">*Target 컬럼</td>
+	                        			<td th:if="${lrnDataHderList} != null" th:each="columnInfo : ${lrnDataHderList}">
+	                        				<input type="radio" name="trgtValueYn" th:value="${columnInfo.get('hderValue')}" th:checked="${columnInfo.get('trgtValueYn')} == 'Y'" onclick="fnChkChange();" />
+	                        			</td>
+	                        			<td th:if="${lrnDataHderList} == null" th:each="headerVal : ${headerList}">
+	                        				<input type="radio" name="trgtValueYn" th:value="${headerVal}" onclick="fnChkChange();" />
+	                        			</td>
+	                        		</tr>
+	                        		<tr id="hderValue">
+	                        			<td style="min-width:100px;">*컬럼헤더</td>
+	                        			<td th:if="${lrnDataHderList} == null" th:each="headerVal : ${headerList}">
+	                        				<input class="alignc" type="text" name="hderValue" value=""/>
+	                        			</td>
+	                        			<td th:if="${lrnDataHderList} != null" th:each="hderListRow : ${lrnDataHderList}">
+	                        				<input class="alignc" type="text" name="hderValue" th:value="${hderListRow.hderValue}" />
+	                        			</td>
+	                        		</tr>
+	                        		<tr id="hderTr">
+	                        			<td style="min-width:100px;"></td>
+	                        			<td th:each="headerVal : ${headerList}" th:text="${headerVal}" th:name="${headerVal}"></td>
+	                        		</tr>
+	                        		<th:block th:each="bodyRow, index : ${bodyList}">
+	                        			<tr>
+	                        				<td style="width:100px;"></td>
+	                        				<td th:each="headerVal : ${headerList}" th:text="${bodyRow.get(headerVal)}"></td>
+	                        			</tr>
+	                        		</th:block>
+	                        	</tbody>
+	                        </table>
+	                    </div>
+                    </div>
+                    
+                </div>
+                
+			</div>
+		</div>
+	</div>
+
+	<div class="popup layer" id="modal_spl" style="width:1000px;">
+		<div class="pop_header">
+			<p class="title">데이터셋 분할</p>
+			<button class="btn_ic btn_pop_close" onclick="fnExit('modal_spl');">닫기</button>
+		</div>
+		<div class="pop_content">
+			<form method="POST" id="spl_masterForm" name="spl_masterForm">
+				<div class="table_area margint20">
+					<table class="view" id="spl_data_table">
+						<colgroup>
+							<col style="width:150px;">
+							<col style="width:auto;">
+							<col style="width:150px;">
+							<col style="width:100px;">
+							<col style="width:150px;">
+							<col style="width:100px;">
+						</colgroup>
+						<tbody>
+							<tr>
+								<th scope="row"><label for="spl_lrnDatasetNm">대상데이터셋</label></th>
+								<td><input type="text" id="spl_lrnDatasetNm" name="spl_lrnDatasetNm" th:value="${datasetInfo.lrnDatasetNm}" readonly /></td>
+								<th scope="row"><label for="spl_dataRowCnt">데이터 수</label></th>
+								<td><input type="text" id="spl_dataRowCnt" name="spl_dataRowCnt" th:value="${datasetInfo.dataRowCnt}" readonly /></td>
+								<th scope="row"><label for="spl_testDataRate">테스트 데이터 비율</label></th>
+								<td><input type="text" id="spl_testDataRate" name="spl_testDataRate" /></td>
+							</tr>
+							
+							<tr>
+								<th scope="row"><label for="spl_trainNm">훈련 데이터셋명</label></th>
+								<td><input type="text" id="spl_trainNm" name="spl_trainNm" th:value="${datasetInfo.lrnDatasetNm} + '_train'" readonly /></td>
+								<th scope="row"><label for="spl_trainCnt">예상 데이터 수</label></th>
+								<td><input type="text" id="spl_trainCnt" name="spl_trainCnt" readonly /></td>
+								<th></th>
+								<td><input type="text" readonly /></td>
+							</tr>
+							
+							<tr>
+								<th scope="row"><label for="spl_testNm">테스트 데이터셋 명</label></th>
+								<td><input type="text" id="spl_testNm" name="spl_testNm" th:value="${datasetInfo.lrnDatasetNm} + '_test'" readonly /></td>
+								<th scope="row"><label for="spl_testCnt">예상 데이터 수</label></th>
+								<td><input type="text" id=spl_testCnt name="spl_testCnt" readonly /></td>
+								<th></th>
+								<td><input type="text" readonly /></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</form>
+		</div>
+		
+		<div class="pop_footer">
+			<p class="txt2">
+				* 원본 대상 데이터셋은 유지하고 훈련 데이터셋과 테스트 데이터셋으로 분할생성됩니다.
+			</p>
+			<br></br>
+			<br></br>
+			<button class="btn bg_navy txt_white" onclick="fnSplitSave(); return false;">저장</button>
+		</div>		
+	</div>
+
+
+
+	<div class="popup layer" id="modal_lbl" style="width:700px;">
+		<div class="pop_header">
+			<p class="title">라벨관리</p>
+			<button class="btn_ic btn_pop_close" onclick="fnExit('modal_lbl');">닫기</button>
+		</div>
+		
+		<div class="pop_content">
+			<div class="alignr margint20">
+				<div class="button_area">
+					<button class="btn sm" title="추가" onclick="fnLabelAdd(); return false;">추가</button>
+					<button class="btn sm" title="삭제" onclick="fnLabelDelete('lbl_tableChk'); return false;">삭제</button>
+				</div>
+			</div>
+			
+			<div class="tbl_wrap v1 margint10" style="max-height:600px; overflow-x:hidden; overflow-y:scroll;">
+				<table class="view" id="lbl_data_table">
+					<colgroup>
+						<col style="width:60px;">
+						<col style="width:60px;">
+						<col style="width:120px;">
+						<col style="width:200px;">
+					</colgroup>
+					<thead>
+						<tr class="alignc">
+							<th></th>
+							<th>순번</th>
+                            <th>target(라벨값)</th>
+                            <th>라벨명</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="labelMap, index: ${labelList}">
+							<td><input type="checkbox" name="lbl_tableChk" /></td>
+							<td th:text="${index.index} + 1"></td>
+							<td><input class="alignc" type="text" name="lbl_lblValue" th:value="${labelMap.get('lblValue')}" /></td>
+							<td><input type="text" name="lbl_lblNm" th:value="${labelMap.get('lblNm')}" /></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+		<div class="pop_footer">
+			<button class="btn bg_navy txt_white" onclick="fnLabelSave(); return false;">저장</button>
+		</div>
+		
+	</div>
+
+
+	<div class="popup layer" id="modal_view" style="width:1400px;">
+		<div class="pop_header">
+			<p class="title">데이터 분포</p>
+			<button class="btn_ic btn_pop_close" onclick="fnExit('modal_view');">닫기</button>
+		</div>
+		
+		<div class="pop_content">
+			<div style="height:100%; weight:100%; overflow:auto; padding-top:0px;">
+				<div id="dv_uniqCharts" style="float:left; width:400px; height:400px; margin-top:50px;"></div>
+                <div id="dv_targetCharts" style="float:left; width:400px; height:400px; margin-top:50px;"></div>
+                <div id="dv_boxPlot" style="float:left; width:500px; height:500px; margin-top:50px;"></div>
+			</div>
+		</div>
+	</div>
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	fnInit();
+	//$("#datasetTyCd").val($("#org_datasetTyCd").val()).prop("selected", true);
+	
+	fnChkChange();
+	
+	// split modal
+	$("#spl_testDataRate").on("keyup", function(event) {
+		if(event.keyCode == 13) 
+			fnSplitDataCalculator();
+	});
+	
+	$("#spl_testDataRate").on("change", function(event) {
+		fnSplitDataCalculator();
+	});
+		
+	if ($("#pmode").val() == "R") {
+		$("#dataSplitBtn").hide();
+		$("#dataPreviewBtn").hide();
+		//$("#exclRowCnt").val("");
+	}
+	
+	fnUseTableStyle("tb_data_tbody", $("#exclRowCnt").val());
+	
+	$("#exclRowCnt").on("change", function(event) {
+		
+		var exclRow = $(this).val();
+		var regex= /^[0-9]/g;
+		
+		for (i=0; i<exclRow.length; i++) {
+			var num = exclRow[i].search(regex)
+			// 숫자이면 0 아니면 -1
+			if (num < 0) {
+				alert('제외 Row 수는 숫자만 입력 가능합니다.');
+				return;
+			}
+		}
+		
+		if (exclRow >= Number($("#dataRowCnt").val())) {
+			alert("제외 Row 수는 데이터 Row 수와 같거나 클 수 없습니다.");
+			$(this).focus();
+			return;
+		} else {
+			fnUseTableStyle("tb_data_tbody", exclRow);	
+		}
+	});
+	
+	
+	// 엔터키 입력시 아래로 이동
+	$("#lbl_data_table tbody input[name=lbl_lblNm]").on("keyup", function(event) {
+		if(event.keyCode == 13) {
+			var tr = $(this).closest("tr");
+			var lblIndx = $(this).closest("tr").find("td").eq(1).text();
+			for (var i=lblIndx; i<$("#lbl_data_table tbody tr").lenth; i++) {
+				if (i>=$("#lbl_data_table tbody tr").lenth) {
+					break;
+				}
+			}
+			tr.next("tr").find("input[name=lbl_lblNm]").focus();
+		}
+	});
+	
+	
+	setTableHeight();
+	$(parent.window).on("resize", function() {
+		setTableHeight();
+	});
+	
+	
+	if ($("#dataRowCnt").val() > 1000) {
+		$("#modal_preview").addClass('on');
+		$("#modal_preview").css({
+			"position":"absolute",
+			"top":Math.max(0, (($(parent.window).height() - $("#modal_preview").outerHeight()) / 2)) + 100 + "px",
+			"left":Math.max(0, (($(window).width() - $("#modal_preview").outerWidth()) / 2)) + "px"
+		});
+		var text = "미리보기 데이터 " + $("#previewSize").val() + "건 입니다.";
+		$("#previewContent").append(text);
+	}
+	
+});
+	
+
+function fnInit() {	
+	new CodeBinder()
+	.setCommonCode("DATASETTY", "datasetTyCd", "select", $("#org_datasetTyCd").val())
+	.load();
+}
+
+
+
+function setTableHeight() {
+	var frame = parent.getMainClientHeight();
+	var pageInfo = $(".page_info_area").height();
+	var topMenu = $("#top_menu").height();
+	var buttonSub = $("#button_sub").height();
+	//console.log(frame-pageInfo-topMenu-filter-103);
+	$("#tb_data_table_div").css("height", frame-pageInfo-topMenu-buttonSub-177 + "px");
+	parent.setFrameHeight();
+}
+
+
+
+
+// 제외 Row 수에 따른 table Style 변경
+function fnUseTableStyle(tableBodyId, exclRow) {
+	var trs = $("#" + tableBodyId).find("tr");
+	//console.log(trs);
+	$("#" + tableBodyId).find("td").css("border-top", "1px solid rgb(230, 232, 234)");
+	$("#" + tableBodyId).find("td").css("border-right", "1px solid rgb(230, 232, 234)");
+	
+	for (var i=3; i<trs.length; i++) {
+		if (i-3 == exclRow) {
+			var tds = trs[i].children;
+			for (var j=1; j<tds.length; j++) {
+				$(tds[j]).css("border-top", "2px solid #000000");
+			}
+		}
+		if (i-3 >= exclRow) {
+			$(trs[i].children[0]).css("border-right", "2px solid #000000");
+		}
+	}
+}
+
+
+
+function fnHderApply() {
+	
+	var headerList = new Array();
+	$("#hderTr td").each(function(){
+		headerList[headerList.length] = $(this).text();
+	});
+	$("#hderValue td").each(function(index) {
+		$(this).find("input").val(headerList[index]);
+	});
+	
+}
+
+
+function fnChkChange() {
+	$("input:radio[name='trgtValueYn']").each(function() {
+		if ($(this).is(':checked')) {
+			$("#trgtValue").val($(this).val());
+		}
+	});
+}	
+
+
+function fnHeaderInfo() {
+	// 미사용 컬럼 체크, 타겟 체크, 컬럼명 update를 위한 데이터 생성
+	var useYnArr = new Array();
+	var trgtValueYnArr = new Array();
+	var hderValueArr = new Array();
+	$("input:checkbox[name='useYn']").each(function() {
+		if ($(this).is(':checked')) {
+			useYnArr.push("N");
+		} else {
+			useYnArr.push("Y");
+		}
+	});
+	$("input:radio[name='trgtValueYn']").each(function() {
+		if ($(this).is(':checked')) {
+			trgtValueYnArr.push("Y");
+		} else {
+			trgtValueYnArr.push("N");
+		}
+	});
+	$("input:text[name='hderValue']").each(function() {
+		hderValueArr.push($(this).val());
+	});
+	return {useYnArr:useYnArr, trgtValueYnArr:trgtValueYnArr, hderValueArr:hderValueArr}
+}
+
+
+
+
+function fnSaveLrnDataInfo() {
+	
+	if(!fnCheckValid("#lrnDatasetNm", "학습데이터셋 명")) return;
+	
+	if ($("#datasetTyCd").val() == "") {
+		alert("데이터타입(구분)은 필수 선택 항목입니다.");
+		$("#datasetTyCd").focus();
+		return;
+	}
+	
+	if(!fnCheckValid("#exclRowCnt", "제외 로우 수")) return;
+	
+	if (!$("input:radio[name='trgtValueYn']").is(':checked')) {
+		alert("타겟 컬럼은 필수 선택 항목입니다.");
+		return;
+	}
+	
+	
+	var headerInfo = fnHeaderInfo();
+	
+	for (var i=0; i<headerInfo.hderValueArr.length; i++) {
+		if (headerInfo.hderValueArr[i] == "") {
+			alert("컬럼헤더는 필수 입력 항목입니다.");
+			return;
+		}
+	}
+	
+	
+	var flag = confirm("저장하시겠습니까?");
+	if (flag == true) {
+	
+		$.ajax({
+			url: "/json/dataset/saveLearningDatasetInfo"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({
+				lrnDatasetSn: $("#lrnDatasetSn").val()
+				, datasetSn: $("#datasetSn").val()
+				, datasetTyCd: $("#datasetTyCd").val() 
+				, lrnDatasetNm: $("#lrnDatasetNm").val()
+				, lrnDatasetDc: $("#lrnDatasetDc").val()
+				, exclRowCnt: $("#exclRowCnt").val()
+				, delYn: $("#delYn").val()
+				, pmode: $("#pmode").val()
+				, useYnArr: headerInfo.useYnArr
+				, trgtValueYnArr: headerInfo.trgtValueYnArr
+				, hderValueArr: headerInfo.hderValueArr
+			})
+			, success: function(data){
+				if (data.resultCd == "OK") {
+					alert("저장되었습니다.");
+					location.href = '/open/mlms/dataset/learning_dataset_list'
+					
+				}
+			}
+			, error: function(data) {
+				console.log(data);
+			}
+		});
+	}
+}
+
+
+
+
+function fnExit(modalId) {
+	fnCloseModal(modalId);
+}
+
+
+
+// 분할 저장 관련 
+function fnDataSplit() {
+	$("#spl_masterForm")[0].reset();
+	fnShowModal("modal_spl");
+}
+
+
+function fnSplitDataCalculator() {
+	if ($("#spl_testDataRate").val() >= 100) {
+		alert("100 이상의 값을 입력할 수 없습니다.");
+		$("#spl_testDataRate").select();
+		return;
+	} else if ($("#spl_testDataRate").val() <= 0) {
+		alert("0이하의 값을 입력할 수 없습니다.");
+		$("#spl_testDataRate").select();
+		return;
+	}
+	var testCnt = $("#spl_dataRowCnt").val() * ($("#spl_testDataRate").val() / 100)
+	$("#spl_testCnt").val(Math.round(testCnt));
+	$("#spl_trainCnt").val(Math.round($("#spl_dataRowCnt").val() - $("#spl_testCnt").val()));
+}
+
+
+function fnSplitSave() {
+	
+	if(!fnCheckValid("#spl_trainNm", "훈련 데이터셋명")) return;
+	if(!fnCheckValid("#spl_testNm", "테스트 데이터셋명")) return;
+	
+	var flag = confirm("저장하시겠습니까?");
+	if (flag == true) {
+	
+		var headerInfo = fnHeaderInfo();
+	
+		$.ajax({
+			url: "/json/dataset/regLearningDatasetSplit"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({
+				lrnDatasetSn: $("#lrnDatasetSn").val()
+				, trainNm: $("#spl_trainNm").val()
+				, testNm: $("#spl_testNm").val()
+				, trainCnt: $("#spl_trainCnt").val()
+				, testCnt: $("#spl_testCnt").val()
+				, dataFlpth: $("#dataFlpth").val()
+			})
+			, success: function(data){
+				if (data.resultCd == "OK") {
+					alert("저장되었습니다.");
+					location.href = '/open/mlms/dataset/learning_dataset_list'
+					fnExit('modal_spl');
+				}
+			}
+			, error: function(data) {
+				console.log(data);
+			}
+		});
+	}
+}
+
+
+
+
+// 라벨 관리 관련 
+function fnLabelManage() {
+	
+	if ($("#pmode").val() == "R") {
+		alert("저장 후 등록 가능합니다.");
+		return;
+	}
+	fnShowModal("modal_lbl");
+}
+
+
+
+function fnLabelAdd() {
+	var table = '<tr>';
+	table += '<td><input type="checkbox" name="lbl_tableChk"/></td>';
+	table += '<td>' + ($("#lbl_data_table tbody tr").length + 1) + '</td>';
+	table += '<td><input class="alignc" type="text" name="lbl_lblValue" /></td>';
+	table += '<td><input type="text" name="lbl_lblNm" /></td></tr>';
+	$("#lbl_data_table tbody").append(table);
+}
+
+
+
+function fnLabelDelete(chkboxNm) {
+
+	if ($("input[name="+chkboxNm+"]:checked").length >= 1) {
+		var tr = $("input[name="+chkboxNm+"]:checked").parent().parent();
+		tr.remove();
+	} 
+	else {
+		alert("선택된 라벨이 없습니다.");
+		return
+	}
+	
+	var num = 1;
+	$("#lbl_data_table tbody tr").each(function() {
+		$(this).children().eq(1)[0].innerText = num;
+		num += 1;
+	});
+	
+}
+
+
+
+function fnLabelSave() {
+	
+	var returnNow = true;
+	var dataList = new Array();
+	
+	if ($("#lbl_data_table tbody tr").length > 0) {
+		$("#lbl_data_table tbody tr input[name=lbl_tableChk]").each(function() {
+			var dataObj = new Object();
+			var tr = $(this).closest("tr");
+			
+			if (!(tr.find("input[name=lbl_lblValue]").val())) {
+				alert("파라미터명은 필수 입력 항목입니다.");
+				tr.find("input[name=lbl_lblValue]").focus();
+				returnNow = false;
+				return false;
+			}
+			
+			if (!(tr.find("input[name=lbl_lblNm]").val())) {
+				alert("파라미터명은 필수 입력 항목입니다.");
+				tr.find("input[name=lbl_lblNm]").focus();
+				returnNow = false;
+				return false;
+			}
+			
+			dataObj.lblValue = tr.find("input[name=lbl_lblValue]").val();
+			dataObj.lblNm = tr.find("input[name=lbl_lblNm]").val();			
+			dataList[dataList.length] = dataObj;
+		});	
+		
+	} else {
+		alert("적어도 한개 이상의 값이 필요합니다.");
+		returnNow = false;
+		return;
+	}
+	
+	if (returnNow) {
+		
+		var flag = confirm("저장하시겠습니까?");
+		if (flag == true) {
+		
+			//console.log(dataList);
+			$.ajax({
+				url: "/json/dataset/saveLearningDatasetLabelInfo"
+				, method : "POST"
+				, contentType: 'application/json'
+				, data: JSON.stringify({
+					lrnDatasetSn: $("#lrnDatasetSn").val()
+					, dataList: dataList
+				})
+				, success: function(data){
+					if (data.resultCd == "OK") {
+						alert("저장되었습니다.");
+						fnExit('modal_lbl');
+					}
+				}
+				, error: function(data) {
+					console.log(data);
+				}
+				
+			});
+		}
+	}
+	
+}
+
+
+
+
+
+
+// 데이터분포보기 레이어 팝업창 
+function fnDataPreview() {
+	
+	$.ajax({
+		url: "/json/dataset/getLrnDatasetFreqInfo"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			lrnDatasetSn: $("#lrnDatasetSn").val()
+		})
+		, success: function(data){
+			
+			var dataUniqObj = data.BY_FEATURE_UNIQUE;
+			var dataUniqObjList = new Array(); 
+			for(key in dataUniqObj) {
+				var obj = new Object();
+				obj.name = key;
+				obj.value = dataUniqObj[key];
+				
+				dataUniqObjList[dataUniqObjList.length] = obj;
+			}
+			fnDrawUPieChart("dv_uniqCharts", dataUniqObjList);
+			
+			// 훈련데이터 타겟별 카운트
+			var dataTargetObj = data.BY_LABEL;
+			var dataTargetObjList = new Array();
+			for(key in dataTargetObj) {
+				var obj = new Object();
+				obj.name = key;
+				obj.value = dataTargetObj[key];
+				dataTargetObjList[dataTargetObjList.length] = obj;
+			}
+			fnDrawRPieChart("dv_targetCharts", dataTargetObjList);
+			
+			// 훈련데이터 박스플롯
+			fnDrawBoxPlot("dv_boxPlot", data.BY_FEATURE_CONTENTS)
+			
+			fnShowModal("modal_view");
+			
+		}
+		, error: function(data) {
+			console.log(data);
+		}
+		
+	});
+}
+
+
+
+
+function fnDrawUPieChart(id, dataList) {
+	var option;
+	option = {title: {text: 'Feature Unique Count', subtext: '', left: 'center'}
+		, tooltip: {trigger: 'item'}
+		// , legend: {orient: 'vertical', left: 'left'}
+		, series: [{name: 'Feature Unique Count'
+			, type: 'pie'
+			, radius: '50%'
+			, data: dataList
+			, emphasis: {itemStyle: {shadowBlur: 10
+				, shadowOffsetX: 0
+				, shadowColor: 'rgba(0, 0, 0, 0.5)'
+				}
+			}
+		}]
+	};
+
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);	
+	
+}
+
+
+function fnDrawRPieChart(id, dataList) {
+	var option;
+	option = {title: {text: 'Label(target) Rate', subtext: '', left: 'center'}
+		, tooltip: {trigger: 'item'}
+		// , legend: {orient: 'vertical', left: 'left'}
+		, series: [{name: 'Target Count'
+			, type: 'pie'
+			, radius: '50%'
+			, data: dataList
+			, emphasis: {itemStyle: {shadowBlur: 10
+				, shadowOffsetX: 0
+				, shadowColor: 'rgba(0, 0, 0, 0.5)'
+				}
+			}
+		}]
+	};
+
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);	
+	
+}
+
+
+function fnDrawBoxPlot(id, data) {
+	var option;
+	
+	option = {title: [{text: 'Feature Boxplot'
+				,left: 'center'}
+			, {text: 'upper: Q3 + 1.5 * IQR \nlower: Q1 - 1.5 * IQR'
+				, borderColor: '#999'
+				, borderWidth: 1
+				, textStyle: {fontWeight: 'normal'
+					, fontSize: 14
+					, lineHeight: 20}
+				, left: '10%'
+				, top: '10%'
+				}
+			]
+		, dataset: [{source: data}
+			, {transform: {type: 'boxplot', config: {itemNameFormatter: 'exer {value}'}}
+			}
+			, {fromDatasetIndex: 1, fromTransformResult: 1}
+		]
+		, tooltip: {trigger: 'item', axisPointer: {type: 'shadow'}}
+		, grid: {left: '10%', right: '10%', bottom: '15%'}
+		, xAxis: {type: 'category'
+			, axisLabel: {show:true}
+			, boundaryGap: true
+			, nameGap: 10
+			, splitArea: {show: false}
+			, splitLine: {show: false}
+			}
+		, yAxis: {type: 'value'
+			, name: 'Score'
+			, splitArea: {show: true}}
+		, series: [{name: 'boxplot', type: 'boxplot', datasetIndex: 1}
+			, {name: 'outlier', type: 'scatter', datasetIndex: 2}
+		]
+	};
+	
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);
+}
+</script>
+</body>
+</html>
+
+
+
+
+
+				

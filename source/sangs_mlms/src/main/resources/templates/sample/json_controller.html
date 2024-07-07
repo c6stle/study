@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+<style type="text/css">
+#dv_guide ul {margin-top: 50px}
+#dv_guide ul li {text-align: left; margin: 10px}	
+</style>
+
+
+<script type="text/javascript">
+function fnSearch() {
+
+	$.ajax({
+		url: "/json/sample/testList",
+		success: function(data){
+		console.log(data);
+			$("#dv_json_area").text(JSON.stringify(data));
+		}, 
+		error : function(data) {
+			alert(data);
+		}
+	});
+	
+	
+	// jquery datatable 로 table 그리기 
+	$("#tb_data_table").DataTable({
+		"ajax": {
+			"url":"/json/sample/testList"
+			, "type":"GET"
+			, "dataSrc":"list"
+		}
+		, bPaginate :false
+		, columns : [
+	        {data: "tableName"},
+	        {data: "columnName"},
+	        {data: "columnComment"},
+	        {data: "columnType"}
+	    ]
+	});
+			
+} 
+</script>
+
+<div class="content">
+<div id="dv_guide">
+<br/>
+<br/> 
+	<h2 >json controller</h2>
+	<ul>
+		<li>
+			공통 json Controller은  Service Class 처리 후  json 데이터를 반환합니다. 
+			<br/>
+			<br/>
+			형식 : /json/[서비스ID]/[메서드ID]
+			<br/>
+			<br/>
+			서비스ID : Service Class 의 ID 값 -> 서비스클래스의 첫번째 글자를 소문자로 하고 클래스명의 Service부분을 제거한 ID 값 예) SampleService -> sample, UserMngrService -> userMngr <br/>
+			메서드ID : 메서드명 
+		</li>
+		<li>
+			예) /json/sample/testList
+		</li>
+		<li>
+			
+			URL : <a href="#" onclick="fnSearch(); return false;">/json/sample/testList</a>
+		</li>
+		<li>
+			/json/sample/testList -> SangsCommonJsonController ->  SampleService.class의 매서드 testList 호출 ->  SangsCommonJsonController 에서 Json 반환
+		</li>
+		
+	</ul>
+	<div id="dv_json_area" style="text-align: left"></div>
+	
+	<div style="margin-top: 30px">
+		<table id="tb_data_table" border="1" style="width:1024px">
+	    	<colgroup>
+	        	<col style="width:25%">
+	            <col style="width:25%">
+	            <col style="width:25%">
+	            <col style="width:25%">
+			</colgroup>
+			<thead>
+				<tr>
+					<td>테이블명</td>
+					<td>컬럼명</td>
+					<td>커멘트</td>
+					<td>데이터타입</td>
+				</tr>
+			</thead>
+			<tbody>
+				        
+			</tbody>
+		</table>
+	</div>
+		
+		
+		
+</div>
+</div>
+
+
+</html>
+					 

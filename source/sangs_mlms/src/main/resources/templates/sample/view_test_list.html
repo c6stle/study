@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+ 
+<th:block th:replace="fragments/head_inc :: head_inc" />
+<br/>
+<br/>
+<div>
+	<table border="1" style="width:1024px">
+    	<colgroup>
+        	<col style="width:25%">
+            <col style="width:25%">
+            <col style="width:25%">
+            <col style="width:25%">
+		</colgroup>
+		<thead>
+			<tr>
+				<td>테이블명</td>
+				<td>컬럼명</td>
+				<td>커멘트</td>
+				<td>데이터타입</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="list : ${list}">
+				<td th:text="${list.tableName}"></td>
+				<td th:text="${list.columnName}"></td>
+				<td th:text="${list.columnComment}"></td>
+				<td th:text="${list.columnType}"></td>
+			</tr>         
+		</tbody>
+	</table>
+</div>
+
+					
+					
+					
+</html>
+					 

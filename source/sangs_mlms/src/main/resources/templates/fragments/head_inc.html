@@ -1,0 +1,209 @@
+<html th:lang = "ko" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="head_inc">
+
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi" />
+	
+	<title th:text="상상스토리"></title>
+	
+	<link rel="stylesheet" type="text/css" th:href="@{/css/default.css}" />
+	<link rel="stylesheet" type="text/css" th:href="@{/css/layout.css}" />
+	<link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
+	<link rel="stylesheet" type="text/css" th:href="@{/css/NotoSansKR.css}" />
+	<link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+	
+	<link rel="stylesheet" type="text/css" th:href="@{/vender/jquery/jquery-ui.min.css}" />
+	<link rel="stylesheet" type="text/css" th:href="@{/css/custom.css}" />
+
+	<script th:src="@{/vender/jquery/jquery_3.6.js}"></script>
+	<script th:src="@{/vender/jquery/jquery-ui.js}"></script>
+
+	<script th:src="@{/js/design.js}"></script>
+
+	<script th:src="@{/vender/sangs/sangs_table_binder.js}"></script>
+	<script th:src="@{/vender/sangs/sangs_code_loader.js}"></script>
+	
+	<script th:src="@{/vender/echarts/echarts.common.js}"></script>
+	<script th:src="@{/vender/echarts/echarts.min.js}"></script>
+	
+	<script th:src="@{/js/common_util.js}"></script>
+	<script th:src="@{/js/common_biz_util.js}"></script>
+	<script th:src="@{/js/common_file_upload.js}"></script>
+	<script th:src="@{/js/common_jstree_util.js}"></script>
+	<script th:src="@{/js/common_date_util.js}"></script>
+	<!--
+	<script th:src="@{/js/flexiable_right_area_ctl.js}"></script>
+	-->
+	
+	
+	<th:block th:if="${session != null && session.STANDARD_USER_SESSION_KEY != null}">
+		<span th:text="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]}" id="g_isApprover" style="display:none"></span>
+	</th:block>
+	<th:block th:if="${session == null || session.STANDARD_USER_SESSION_KEY == null}">
+		<span id="g_isApprover" style="display:none">N</span>
+	</th:block>
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+		
+		
+			if(!$("#sub_overlay").length) {
+				var spinnerHtml = '<div id="sub_overlay"><div class="cv-spinner"><span class="spinner"></span></div></div>';
+				$("body").append(spinnerHtml);
+			};
+			
+			
+			
+			// 페이지 상단의 내용 처리
+			if($("#content .page_info_area").length > 0) {
+				
+				try {
+					var $locationAreaUl = $("#content .page_info_area .location_area").find("ul");
+					var menuSelectedInfo = parent.fnGetSelectedMenuInfo();
+					if(menuSelectedInfo != null) {
+						$($locationAreaUl.find("li")[1]).text(menuSelectedInfo.d1nm);
+						$($locationAreaUl.find("li")[2]).text(menuSelectedInfo.d2nm);
+					}
+					$("#content .page_info_area .title_area").find("> p").text(menuSelectedInfo.d2nm);
+				} catch(e) {}
+				
+				try {
+					$("#content .page_info_area .title_area").find(".reload_btn").on("click", function() {
+						location.reload();
+						return false;
+					});
+					
+					// 도움말 버튼 삭제 
+					$("#content .page_info_area .title_area").find(".help_btn").hide();
+					
+				} catch(e) {}
+			}
+			
+			
+		});
+	
+		var g_isApprover = $("#g_isApprover").text();
+		
+		var console = window.console || {log:function(){}};
+		var show_loading_bar_flag = true;
+	
+		// ajax 전역함수로 ajax가 성공 호출
+		$(document).ajaxSuccess(function(event, xhr, settings) { 
+			//console.log("ajaxSuccess");
+			setFrameHeight();
+		});
+		// ajax 전역함수로 ajax가 실패하면 호출
+		$(document).ajaxError(function(event, jqxhr, settings, thrownError) {
+			console.log("ajaxError");
+			console.log(jqxhr);
+			try {
+				if(jqxhr.responseJSON.message == 'TO_LOGIN_PAGE') {		// 세션 없을때 에러 메시지를 TO_LOGIN_PAGE 로 반환된다. 
+					alert("로그인이 필요 합니다.");
+					location.href = '/';
+				} else if(jqxhr.responseJSON.message && jqxhr.responseJSON.message != '') {
+					alert(jqxhr.responseJSON.message);
+				}
+			} catch(e) {
+				
+			}
+			
+			fnStopMainLoading();
+			
+		});
+		// ajax의 전역 함수로 ajax가 시작되면 호출
+		$(document).ajaxStart(function() {
+			//console.log("ajaxStart");
+			if(show_loading_bar_flag)
+				fnStartMainLoading();
+		});
+		
+		// ajax 전역함수로 ajax가 종료되면 호출
+		$(document).ajaxStop(function() {
+			//console.log("ajaxStop");
+			if(show_loading_bar_flag)
+				fnStopMainLoading();
+		});
+	
+		function fnStartMainLoading() {
+			var isMainFrame = true;
+			try {
+				isMainFrame = parent.fnIsMainFrame();	// 메인프렝임이 없는 상태에는 exception 으로 빠지고 sub에 있는 spinner를 실행한다.
+			} catch(e) {
+				isMainFrame = false;
+			}
+			
+			if(isMainFrame)
+				parent.fnStartMainLoading();
+			else 
+				fnStartSubLoading();
+		}
+
+		function fnStopMainLoading() {
+			var isMainFrame = true;
+			try {
+				isMainFrame = parent.fnIsMainFrame();
+			} catch(e) {
+				isMainFrame = false;
+			}
+			
+			if(isMainFrame)
+				parent.fnStopMainLoading();
+			else 
+				fnStopSubLoading();
+		 
+		}
+		
+		function fnStartSubLoading() {
+			$("#sub_overlay").fadeIn(300);
+		}
+	
+		function fnStopSubLoading() {
+			$("#sub_overlay").fadeOut(300);
+		}
+	
+	
+		function setFrameHeight() {
+			try {
+				parent.setFrameHeight();
+			} catch(e) {}
+		}
+		function openAlert(msg) {
+			// (**** calllback 함수처리 해야함)
+			$("#modal_commAlertMsg").text(msg);
+			$("#modal_commAlert").modal();	
+		}
+	
+		function openConfirm(msg) {
+			// (**** calllback 함수처리 해야함)
+			$("#modal_commConfirmMsg").text(msg);
+			$("#modal_commConfirm").modal();	
+		}
+		
+		
+		 
+		
+		// script 에러 alert 처리 start 
+		var isDebugging = true;
+		function scriptErrorSetting(msg, file_loc, line_no) {
+			var e_msg=msg;
+			var e_file=file_loc;
+			var e_line=line_no;
+			var error_d = "Error in file: " + file_loc + "\n" + msg;
+		    if(isDebugging)
+		        alert("Script Error\n--------------\n" + error_d);
+		    //return true;
+
+			fnStopMainLoading();
+			fnStopSubLoading();
+		}
+		window.onerror = scriptErrorSetting;
+		// script 에러 alert 처리 end 
+		
+	
+ 　	</script>
+
+	
+</th:block>
+

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html th:lang = "ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+
+<input type="hidden" id="msg" th:value="${msg}" />
+<input type="hidden" id="url" th:value="${url}" />  
+<script type="text/javascript">
+
+
+ 	if(document.getElementById("msg").value != '') {
+ 		alert( ( (document.getElementById("msg").value).replace('<br/>', '\n') ).replace('&lt;br&gt;', '\n')  );
+ 	}
+
+
+	if(document.getElementById("url").value != '') {
+		location.href = document.getElementById("url").value;
+	}
+		
+/*	if('<c:out value="${type}"/>' == 'POP') {
+		if('<c:out value="${url}" escapeXml='false' />' != '') {
+			opener.location.href = '<c:out value="${url}" escapeXml='false' />';
+		}
+		self.close();
+	} else if('<c:out value="${type}"/>' == 'POP_JS') {
+		if('<c:out value="${js}" escapeXml='false' />' != '') {
+			eval('<c:out value="${js}"/>');
+		}
+		self.close();
+	} else if('<c:out value="${type}" escapeXml='false' />' == 'PARENT') {
+		parent.location.href = '<c:out value="${url}" escapeXml='false' />';
+	} else {
+		if('<c:out value="${url}" escapeXml='false' />' != '') {
+			location.href = '<c:out value="${url}" escapeXml='false' />';
+		}
+	}
+*/
+</script>
+</head>

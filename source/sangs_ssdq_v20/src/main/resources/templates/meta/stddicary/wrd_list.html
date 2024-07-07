@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<!-- head inclue -->
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+<body>
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+			
+				<div class="page_info_area">
+					<div class="left">
+						<div class="title_area">
+							<p>단어</p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area" id="wrdBtnList" style="display:none;">
+							<button class="btn" title="엑셀다운로드" onclick="fnWrdDownloadExcel();">엑셀다운로드</button>
+							<button class="btn" title="엑셀업로드" onclick="fnWrdBundleRegBtnModal(); return false;">엑셀업로드</button>
+							<button class="btn" title="신규등록" onclick="fnWrdRegBtnModal('R'); return false;">신규등록</button>
+							<button class="btn" title="조회" onclick="fnWrdSearch(); return false;" id="btn_search">조회</button>
+						</div>
+					</div>
+				</div><!-- page_info_area -->
+
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width = "7%" />
+									<col width = "40%" />
+									<col width = "6%" />
+									<col width = "7%" />
+									<col width = "40%" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th scope="row"><label for="wrdAprvSttusCdChkBox">승인상태</label></th>
+										<td>
+											<div id="wrdAprvSttusCdChkBox" style="display:none;">
+											</div>
+										</td>
+										<td></td>
+										<th scope="row"><label for="wrdStdSetNmChkBox">세트</label></th>
+										<td>
+											<div id="wrdStdSetNmChkBox">
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row"><label for="wrdTyCd">단어구분</label></th>
+										<td>
+											<div class="selectbox">
+												<select id="wrdTyCd" name="wrdTyCd">
+													<option value="">전체</option>
+												</select>
+											</div>
+										</td>
+										<td></td>
+										<th scope="row"><label for="prhibtYn">금칙어구분</label></th>	
+										<td>
+											<div class="selectbox">
+												<select id="prhibtYn" name="prhibtYn">
+													<option value="">전체</option>
+													<option value="Y">Y</option>
+													<option value="N">N</option>
+												</select>
+											</div>
+										</td>	
+									</tr>
+									<tr>
+										<th scope="row"><label for="wrdNm">단어명</label></th>
+										<td>
+											<input type="text" class="in_w100" id="wrdNm" name="wrdNm" placeholder="검색어 기본 EQUAL검색, WILDCARD(*,?) 검색가능"/>
+										</td>
+										<td></td>
+										<th scope="row"><label for="wrdEngAbrvNm">영문약어명</label></th>
+										<td>
+											<input type="text" class="in_w100" id="wrdEngAbrvNm" name="wrdEngAbrvNm" style="text-transform: uppercase;" placeholder="검색어 기본 EQUAL검색, WILDCARD(*,?) 검색가능"/>
+										</td>	
+									</tr>
+									<tr>
+										<th scope="row"><label for="wrdEngNm">영문명</label></th>
+										<td>
+											<input type="text" class="in_w100" id="wrdEngNm" name="wrdEngNm" style="text-transform: uppercase;" placeholder="검색어 기본 EQUAL검색, WILDCARD(*,?) 검색가능"/>
+										</td>
+										<td></td>
+										<th scope="row"><label for="wrdCn">설명</label></th>
+										<td>
+											<input type="text" class="in_w100" id="wrdCn" name="wrdCn" />
+										</td>										
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+
+					<div class="division20">
+						<div class="row marginb25">
+							<div class="left" data-width="0">
+								<div class="card">
+									<table class="list fixed" id="tb_wrdlist_table">
+										<colgroup>
+		                                    <col width="7%" />
+		                                    <col width="8%" />
+											<col width="20%" />
+											<col width="14%" />
+											<col width="20%" />
+											<col width="7%" />
+											<col width="7%" />
+											<!--<col width="7%" />-->
+											<col width="10%" />
+										</colgroup>
+										<thead>
+											<tr>
+												<th>No</th>
+												<th>단어구분</th>
+												<th>단어명</th>
+												<th>영문약어명</th>
+												<th>영문명</th>
+												<th>금칙어</th>
+												<th>승인상태</th>
+												<!--<th>처리</th>-->
+												<th>세트명</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr class="fwk_templete_row">
+												<td>#{FWK_TR_NO}
+													<input type="hidden" name="wrdSn" value="#{wrdSn}" />
+													<input type="hidden" name="stdSetSn" value="#{stdSetSn}" />
+												</td>
+												<td>#fn{fnBindCodeListObj('WRDCDTY', 'text', '#{wrdTyCd}', '')}</td>
+												<td class="alignl">#{wrdNm}</td>
+												<td class="alignl">#{wrdEngAbrvNm}</td>
+												<td class="alignl">#{wrdEngNm}</td>
+												<td>#{prhibtYn}</td>
+												<td name="td_aprvSttusCd_prcsSeCd">#fn{fnBindCodeListObj('CONFMCDTY', 'text', '#{aprvSttusCd}', '')}<br>
+												#fn{fnTdAprvSttusCdChkPrcsSeCd('#{prcsSeCd}')} 
+												</td>
+												<!--<td>#{prcsSeCdNm}</td>-->
+												<td>#{stdSetNm}</td>
+											</tr>
+										</tbody>
+									</table>
+									<div class="pagination_area marginb25" id="dv_paging">
+									</div><!-- pagination_area -->
+								</div><!-- card -->
+							</div><!-- left -->
+							
+							<div class="right" data-width="550">
+								<div class="view_wrap">
+								
+									<div class="tbl_top">
+										<p class="tit v2 margin0"><span>단어정보</span></p>
+										<input type="hidden" name="wrdAprvSttusCdHide" id="wrdAprvSttusCdHide" />
+										<input type="hidden" name="wrdSnHide" id="wrdSnHide" />
+										<div class="btn_wrap" id="wrdReqBtnList" style="display:none !important; ">
+											<div th:if="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">
+												<button class="btn sm" id="acceptWrdBtn" onclick="fnRequestWrdBtn('A'); return false;">승인</button>
+		   										<button class="btn sm" id="returnWrdBtn" onclick="fnRequestWrdBtn('RT'); return false;">반려</button>
+		   										<button class="btn sm" id="deleteWrdBtn" onclick="fnRequestWrdBtn('D'); return false;">삭제</button>
+											</div>
+											<div th:unless="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">
+												<button class="btn sm" id="acceptWrdBtn" onclick="fnRequestWrdBtn('A'); return false;">승인요청</button>
+										    	<button class="btn sm" id="deleteWrdBtn" onclick="fnRequestWrdBtn('D'); return false;">삭제요청</button>
+											</div>
+											<button class="btn sm" id="wrdModifyBtn" onclick="fnWrdRegBtnModal('M'); return false;">수정</button>
+										</div>
+									</div><!-- tbl_top -->
+									
+									<table class="view">
+										<colgroup>
+											<col width="110px" />
+											<col width="auto" />
+											<col width="110px" />
+											<col width="auto" />
+										</colgroup>
+										<tbody>
+											<tr>
+												<th>단어구분</th><td id="dtlview_wrdtycdnm"></td>
+												<th>승인상태</th><td id="dtlview_aprvsttuscdnm"></td>
+											</tr>
+											<tr>
+												<th>단어명</th><td id="dtlview_wrdnm"></td>
+												<th>영문약어명</th><td id="dtlview_wrdengabrvnm"></td>
+											</tr>
+											<tr>
+												<th>영문명</th><td id="dtlview_wrdengnm"></td>													
+												<th>금칙어</th><td id="dtlview_prhibtyn"></td>
+											</tr>
+											<tr>
+												<th>표준어</th><td id="dtlview_stdwrdnm"></td>
+												<th>연관어</th><td id="dtlview_relwrdnm"></td>
+											</tr>
+											<tr>
+												<th>설명</th>	<td colspan="3" id="dtlview_wrdcn"></td>
+											</tr>										
+										</tbody>
+									</table>
+									
+									<div class="tbl_top margint20">
+										<p class="tit v2 margin0"><span>표준변경영향도</span></p>
+										<div class="btn_wrap">
+											<button class="btn sm" onclick="fnChangeWrdEffectBtnModal('wrd');">상세 </button>
+										</div>
+									</div>
+									<div class="tbl_wrap" data-height="300">
+										<table id="tb_wrdeffectlist_table" class="list margin0">
+											<colgroup>
+												<col width="auto" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>사용위치</th>
+													<th>대상명</th>
+													<th>영문약어명</th>
+													<!--
+													<th>모델링적용여부</th>
+													-->
+												</tr>
+											</thead>											
+											<tbody>
+												<tr class="fwk_templete_row">
+													<td>용어</td>
+													<td>#{wordNm}</td>
+													<td>#{wordEngAbrvNm}</td>
+													<!--
+													<td></td>
+													-->
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									
+									<div class="tbl_top margint20">
+										<p class="tit v2 margin0"><span>변경승인이력</span></p>
+										<div class="btn_wrap">
+											<button class="btn sm" onclick="fnChangeWrdHistBtnModal('wrd');">상세</button>
+										</div>
+									</div>
+									<div class="tbl_wrap" data-height="300">
+										<table id="tb_wrdhistlist_table" class="list margin0">
+											<colgroup>
+												<col width="auto" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>변경일</th>
+													<th>처리</th>
+													<th>항목</th>
+													<th>변경전</th>
+													<th>변경후</th>
+												</tr>
+											</thead>											
+											<tbody>
+												<tr class="fwk_templete_row">
+													<td>#{chgDt2}</td>
+													<td>#{prcsSeCdNm}</td>
+													<td>#{chgIemNm}</td>
+													<td>#{bfchgCn}</td>
+													<td>#{aftchCn}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									
+								</div><!-- view_wrap -->
+							</div><!-- right -->
+						</div><!-- row -->
+						
+					</div><!-- division20 -->
+				</div><!-- content_area -->
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+
+<!-- 신규등록 및 수정  -->
+<div class="popup layer" id="wrdreginfo_modal">
+	<th:block th:replace="meta/stddicary/wrd_list_reg_inc :: wrd_list_reg_inc" />
+</div>
+
+<!-- 표준변경영향도 상세 -->
+<div class="popup layer" id="changeeffectlist_modal" style="width:1500px;">
+	<th:block th:replace="meta/stddicary/std_change_effect_list_inc :: std_change_effect_list_inc" />
+</div>
+
+<!-- 변경승인이력 상세 -->
+<div class="popup layer" id="changehistlist_modal" style="width:1500px;">
+	<th:block th:replace="meta/stddicary/std_change_hist_list_inc :: std_change_hist_list_inc" />
+</div>
+
+<!-- 엑셀업로드 -->
+<div class="popup layer" id="wrddatastdbundle_modal" style="height :700px; width:1500px;">
+	<th:block th:replace="meta/stddicary/wrd_datastd_bundle_inc :: wrd_datastd_bundle_inc" />
+</div>
+
+<!--현 페이지를 조회 팝업으로 사용시  SEARCH_POP 값으로 들어옴 -->
+<input type="hidden" id="p_pageMode" name="p_pageMode" th:if="${#maps.containsKey(paramMap, 'pageMode')}"  th:value="${paramMap.pageMode}" /> 
+
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	
+		
+	try {
+		// 왼쪽 메뉴 선택 처리 (링크로 해당 페이지 들어온경우 오른쪽 메뉴를 선택 처리 한다. )
+		parent.fnSelectLeftMenu(location.pathname);
+	} catch(e) {}
+	
+	
+	// 현 페이지를 조회 팝업으로 사용시  SEARCH_POP 값으로 들어옴
+	if($("#p_pageMode").val() != undefined && $("#p_pageMode").val() == "SEARCH_POP") {
+		// 조회 버튼만 보이도록 처리 
+		$(".button_area").find("button").hide();
+		$("#btn_search").show();
+		
+		// 오른쪽 영역 안보이도록 처리 
+		$(".content_area").find(".right").hide();
+	} 
+
+	
+	var stdSetSn = parent.$("#topgv_stdSetSn").val();
+
+	if(!fnChkStdSet(stdSetSn)){
+		return;
+	} else {
+		//$("#wrdReqBtnList").show();
+		$("#wrdBtnList").show();
+	}
+	
+	$("#wrdNm, #wrdEngNm, #wrdEngAbrvNm, #wrdCn").on("keyup", function(event) {
+		if (event.keyCode == 13)
+			fnWrdSearch();
+	});
+	fnWrdInit(stdSetSn);
+	
+	$("#wrdNm").focus();
+	
+});
+
+//표준세트 체크
+function chkStdSetSn(){
+	var myStdSetSn = parent.$("#topgv_stdSetSn").val();
+	if(myStdSetSn ==""){
+		return false;
+	} else {
+		return true;
+	}
+}
+
+function fnWrdInit(stdSetSn) {
+
+	new CodeBinder()
+		.setCommonCode("CONFMCDTY", "wrdAprvSttusCdChkBox", "checkbox")
+		.setCommonCode("WRDCDTY", "wrdTyCd")
+		.setSqlCode("meta_code.selectStdSetList:stdSetSn="+stdSetSn+"","wrdStdSetNmChkBox", "checkbox")
+		.setLoadCallbackFunc("fnWrdSearch()")
+		.load();
+}
+
+// 검색 조건
+var getWrdSearchParamObj = function(){
+	var aprvSttusCdArrList = [];
+	$("#wrdAprvSttusCdChkBox :checked").each(function(){
+		aprvSttusCdArrList.push($(this).val());
+	});
+
+	var stdSetNmArrList = [];
+	$("#wrdStdSetNmChkBox :checked").each(function(){
+		stdSetNmArrList.push($(this).val());
+	});
+	
+	var paramObj = {
+			aprvSttusCdArrList
+			, stdSetNmArrList
+			, wrdTyCd : $("#wrdTyCd").val()
+			, prhibtYn : $("#prhibtYn").val()
+			, wrdNm : $("#wrdNm").val()
+			, wrdEngNm: $("#wrdEngNm").val().toUpperCase()
+			, wrdEngAbrvNm: $("#wrdEngAbrvNm").val().toUpperCase()
+			, wrdCn: fnUnderbarChgVar($("#wrdCn").val())
+	};
+	return paramObj;
+};
+
+// 조회
+function fnWrdSearch(pageNum) {
+	if (!pageNum)
+		pageNum = 1;
+	
+	var searchParamObj = getWrdSearchParamObj();
+	searchParamObj["pageNum"]= pageNum;
+	
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryWrdList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify(searchParamObj)
+		, success : function(data) {
+
+			fnBindTableValue("tb_wrdlist_table", data.list, data.pagingInfo);
+
+			fnSetPaging("dv_paging", data.pagingInfo, "fnWrdSearch");
+			
+			// 요청건과 반려 건 있을때 조회 조건에 노출 처리
+			fnSetSttusCntDisp(data.sttusCntInfoList);
+			
+			fnSelectTrEvent("#tb_wrdlist_table tbody tr", function(rtnObj) {
+				show_loading_bar_flag = false;
+				fnStartMainLoading();
+				
+				fnViewDetail($(rtnObj).find("input[name=stdSetSn]").val(), $(rtnObj).find("input[name=wrdSn]").val());
+				fnChangeEffectByWrdList($(rtnObj).find("input[name=stdSetSn]").val(), $(rtnObj).find("input[name=wrdSn]").val());
+				fnChangeWrdHistList($(rtnObj).find("input[name=stdSetSn]").val(), $(rtnObj).find("input[name=wrdSn]").val());
+				
+				fnStopMainLoading();
+				show_loading_bar_flag = true;
+				});
+			fnWrdInitDtlView();
+			
+			fnAprvSttusCdChkBox();
+		}
+	});
+}
+
+// 승인상태 삭제 체크박스 hide 처리 
+function fnAprvSttusCdChkBox(){
+	
+	$("#wrdAprvSttusCdChkBox").find("#CONFMCDTY_DELETE").hide();
+	$("#wrdAprvSttusCdChkBox").find("label[for=CONFMCDTY_DELETE]").hide();
+	$("#wrdAprvSttusCdChkBox").show();
+	
+}
+
+//승인상태 삭제 체크박스 hide 처리 
+function fnTdAprvSttusCdChkPrcsSeCd(prcsSeCd){
+	if(prcsSeCd=="DEL"){
+		return "(삭제)";
+	} else {
+		return "";
+	}
+}
+
+
+// 요청건과 반려 건 있을때 조회 조건에 노출 처리
+function fnSetSttusCntDisp(sttusCntInfoList) {
+
+	var reqCnt = 0;
+	var rtnCnt = 0;
+	for(var i = 0 ; i < sttusCntInfoList.length ; i++) {
+		var item = sttusCntInfoList[i]
+		if(item.aprvSttusCd == "REQUEST")
+			 reqCnt = item.cnt;
+		if(item.aprvSttusCd == "RETURN")
+			 rtnCnt = item.cnt;
+	}
+	
+	$(".cl_sttus_cnt_s").remove();
+	
+	if(reqCnt > 0) {
+		$("#wrdAprvSttusCdChkBox").find("label").each(function() {
+			if($(this).attr("for") == "CONFMCDTY_REQUEST") {
+				$(this).append(' <font color="red" class="cl_sttus_cnt_s">('+reqCnt+')</font>');
+			}
+		});
+	}
+	if(rtnCnt > 0) {
+		$("#wrdAprvSttusCdChkBox").find("label").each(function() {
+			if($(this).attr("for") == "CONFMCDTY_RETURN") {
+				$(this).append(' <font color="red" class="cl_sttus_cnt_s">('+rtnCnt+')</font>');
+			}
+		});
+	}
+}
+
+// 표준변경영향도 조회
+var wordList;
+function fnChangeEffectByWrdList(stdSetSn, wrdSn) {
+	var effectLocation = "wrd";
+	
+	$.ajax({
+		url : "/json/stdDicary/getChangeEffectByList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			effectLocation : effectLocation
+			, stdSetSn : stdSetSn
+			, wrdSn : wrdSn
+			, cnt : 10
+		})
+		, success : function(data) {
+			wordList = data.wordList
+			fnBindTableValue("tb_wrdeffectlist_table", wordList);
+		}
+	});
+}
+
+// 변경 승인 이력 
+function fnChangeWrdHistList(stdSetSn, wrdSn) {
+	var histLocation = "wrd";
+
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryStdChangeHistList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			histLocation : histLocation
+			, stdSetSn : stdSetSn
+			, wrdSn : wrdSn
+			, cnt : 10
+		})
+		, success : function(data) {
+			fnBindTableValue("tb_wrdhistlist_table", data.list);
+		}
+	});
+}
+
+//표준변경영향도 상세
+function fnChangeWrdEffectBtnModal(location) {
+	
+	var wrdSn = fnSelectTrHiddenValue("tb_wrdlist_table", "wrdSn");
+	var stdSetSn = fnSelectTrHiddenValue("tb_wrdlist_table", "stdSetSn");
+	if (!wrdSn) {
+		alert("선택한 단어정보가 없습니다.");
+		return;
+	}
+	
+ 	$("#effectSn").val(wrdSn);
+	$("#effectLocation").val(location);
+	$("#effectStdSetSn").val(stdSetSn);
+	fnShowModal("changeeffectlist_modal");
+	
+	fnEffectSearch();
+}
+
+// 변경승인이력 상세
+function fnChangeWrdHistBtnModal(location) {
+	var wrdSn = fnSelectTrHiddenValue("tb_wrdlist_table", "wrdSn");
+	var stdSetSn = fnSelectTrHiddenValue("tb_wrdlist_table", "stdSetSn");
+	
+	if (!wrdSn) {
+		alert("선택한 단어정보가 없습니다.");
+		return;
+	}
+	
+	$("#histSn").val(wrdSn);
+	$("#histLocation").val(location);
+	$("#histStdSetSn").val(stdSetSn);
+
+	
+	// fnChangeSelectVal("histSltDt");
+	$("#histSltDt").find("option[value='']").prop("selected", true);
+	$("#histBeginDtFrom").val("");
+	$("#histBeginDtTo").val("");
+
+	// fnChangeSelectVal("histSltText");
+	$("#histSltText").find("option[value='']").prop("selected", true);
+	$("#histSearchText").val("");
+	
+	fnShowModal("changehistlist_modal");
+	fnHistSearch();
+
+}
+
+// 단어정보 상세
+function fnViewDetail(stdSetSn, wrdSn) {
+
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryWrdInfo"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			wrdSn : wrdSn
+			, stdSetSn : stdSetSn
+		})
+		, success : function(data) {
+			// 단어 상세 정보
+			var wrdInfo = data.info;
+			$("#dtlview_wrdtycdnm").text(wrdInfo.wrdTyCdNm);
+			$("#dtlview_aprvsttuscdnm").text(wrdInfo.aprvSttusCdNm);
+			$("#dtlview_wrdnm").text(wrdInfo.wrdNm);
+			$("#dtlview_wrdengnm").text(wrdInfo.wrdEngNm);
+			$("#dtlview_wrdengabrvnm").text(wrdInfo.wrdEngAbrvNm);
+			$("#dtlview_prhibtyn").text(wrdInfo.prhibtYn);
+			$("#dtlview_stdwrdnm").text(wrdInfo.stdWrdNm);
+			$("#dtlview_relwrdnm").text(wrdInfo.relWrdNm);
+			$("#dtlview_wrdcn").text(wrdInfo.wrdCn);
+
+			$("#wrdAprvSttusCdHide").val(wrdInfo.aprvSttusCd);
+			$("#wrdSnHide").val(wrdInfo.wrdSn);
+		
+			var stdSetTyCd = wrdInfo.stdSetTyCd;
+			var prcsSeCd = wrdInfo.prcsSeCd;
+
+			fnMngBtnStng(stdSetTyCd, prcsSeCd);
+		}
+	});
+}
+
+// 수정 및 신규등록 모달
+function fnWrdRegBtnModal(pmode) {
+	
+	fnShowModal("wrdreginfo_modal");
+	
+	var wrdSn = fnSelectTrHiddenValue("tb_wrdlist_table", "wrdSn");
+	
+	if (pmode == "R") {
+		$("#wrdSnHide").val("");
+		fnWrdInitDtlView();
+	}
+	
+	fnRegWrdSearch(wrdSn, pmode);
+}
+
+// 표준사전 단어 엑셀 다운로드
+function fnWrdDownloadExcel() {
+	
+	var searchParamObj = getWrdSearchParamObj();
+	
+	fnCommFileDownByUrl("/exceldown/stdDicary/getStdDicaryWrdExcelDown","단어목록", JSON.stringify(searchParamObj));
+
+}
+
+// 정보 초기화
+function fnWrdInitDtlView() {
+	fnClearSelectTrEvent("#tb_wrdlist_table tbody tr");
+	$("#dtlview_aprvsttuscdnm").empty();// 단어구분
+	$("#dtlview_wrdtycdnm").empty();	// 승인상태
+	$("#dtlview_wrdnm").empty();		// 단어명
+	$("#dtlview_wrdengnm").empty();		// 영문명
+	$("#dtlview_wrdengabrvnm").empty();	// 영문약어명
+	$("#dtlview_prhibtyn").empty();		// 금칙어
+	$("#dtlview_stdwrdnm").empty();		// 표준어
+	$("#dtlview_relwrdnm").empty();		// 연관어
+	$("#dtlview_wrdcn").empty();		// 설명
+	
+	$('#tb_wrdeffectlist_table tbody .fwk_tr_no_row').remove();
+	$('#tb_wrdeffectlist_table tbody .fwk_data_row').remove();
+	$('#tb_wrdhistlist_table tbody .fwk_tr_no_row').remove();
+	$('#tb_wrdhistlist_table tbody .fwk_data_row').remove();
+
+	fnFuncBtnsHide();
+}
+
+// 엑셀업로드
+function fnWrdBundleRegBtnModal() {
+	$("#selFile").val("");
+	$(".txt_filename").text("선택된 파일 없음")
+	$("#subDir").val("");
+	$("#savedFileNm").val("");
+	$("#totalTargetCnt").text("0건");
+	$("#totalClearCnt").text("0건");
+	$("#totalErrorCnt").text("0건");
+	$("input[name=chkBox]").prop('checked',false);
+	$("#tb_filelist_table").width("100%");
+	fnShowModal("wrddatastdbundle_modal");
+	$('#tb_filelist_table tbody .fwk_data_row').remove();
+}
+
+function fnFuncBtnsHide(){
+  	$("#wrdModifyBtn").hide();
+	$("#acceptWrdBtn").hide();
+	$("#returnWrdBtn").hide();
+	$("#deleteWrdBtn").hide();
+}
+
+// 승인,반려,삭제 관리
+function fnMngBtnStng(stdSetTyCd, prcsSeCd){
+	var aprvSttusCd = $("#wrdAprvSttusCdHide").val();
+	fnFuncBtnsHide();
+	
+	if (stdSetTyCd != "COMMON"){
+		$("#wrdModifyBtn").show();
+		if (g_isApprover == "Y") {
+			if (aprvSttusCd == "APPROVAL") {
+				$("#deleteWrdBtn").show();
+			} else if(aprvSttusCd == "RETURN") {
+				$("#acceptWrdBtn").show();
+				$("#deleteWrdBtn").show();
+			} else if(aprvSttusCd == "REQUEST") {
+				$("#acceptWrdBtn").show();
+				$("#returnWrdBtn").show();
+			}
+		} else {
+			if(aprvSttusCd == "RETURN" ) {
+				$("#acceptWrdBtn").show();
+				$("#deleteWrdBtn").show();
+			} else if(aprvSttusCd == "REQUEST") {
+				if(prcsSeCd == "DEL"){
+					$("#deleteWrdBtn").hide();
+				} else {
+					$("#deleteWrdBtn").show();	
+				}
+			}		
+		}
+	}
+	$("#wrdReqBtnList").show();
+}
+
+
+// 승인/요청/삭제 버튼
+function fnRequestWrdBtn(pmode) {
+
+	var wrdSn = $("#wrdSnHide").val();
+	var aprvSttusCd = $("#wrdAprvSttusCdHide").val();
+	
+	if (pmode == "D") {
+		if(wordList.length != 0){
+			alert("삭제할 수 없습니다.");
+			return;
+		}
+	}
+	
+	if (g_isApprover == "Y") {
+		if (pmode == "RT") {
+			if (!confirm("반려 하시겠습니까?")) {
+				return;
+			}
+		} else if (pmode == "D") {
+			if (!confirm("삭제 하시겠습니까?")) {
+				return;
+			}
+		} else if (pmode == "A") {
+			if (!confirm("승인 하시겠습니까?")) {
+				return;
+			}
+		}
+
+	} else if (g_isApprover == "N") {
+		if (pmode == "D") {
+			if (!confirm("삭제요청 하시겠습니까?")) {
+				return;
+			}
+		}else if (pmode == "A") {
+			if (!confirm("승인요청 하시겠습니까?")) {
+				return;
+			}
+		}
+	} else {
+		return;
+	}
+	
+	var pagingNo ="";
+	$("#dv_paging .on a").each(function(){
+		pagingNo = $(this).text();
+	});
+	
+	$.ajax({
+		url : "/json/stdDicary/saveStdDicaryConfmInfo"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			pmode : pmode
+			, wrdSn : wrdSn
+			, location : "wrd"
+			, isApprover : g_isApprover
+			, aprvSttusCd : aprvSttusCd
+		})
+		, success : function(data) {
+			if (data.resultCd == "OK") {
+				alert("저장되었습니다.");
+				fnWrdSearch(pagingNo);
+				//location.reload();
+			} else {
+				alert("실패하셨습니다.");
+				fnWrdSearch(pagingNo);
+				//location.reload();
+			}
+		}
+	});
+}
+</script>
+</body>
+</html>

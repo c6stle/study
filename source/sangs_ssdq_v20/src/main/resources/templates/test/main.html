@@ -1,0 +1,329 @@
+<!DOCTYPE HTML>
+<html th:lang = "ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+
+    
+</head>
+<body style="overflow: auto;">
+
+	<th:block th:replace="fragments/left_inc :: left_inc" />
+
+
+    <!-- wrap -->
+	<div id="wrap">
+		<!-- top -->
+		<th:block th:replace="fragments/top_inc :: top_inc" />
+		<!-- // top -->
+	 
+		
+		<!-- main content frame start -->
+		<iframe src="" style="width: 100%;  border:0; min-height: 500px; height: calc(100vh - 50px)" id="main_content" name="main_content" onload="setFrameHeight()" ></iframe>
+		<!-- main content frame end -->
+				
+				
+        <!-- content  
+        <div id="content">
+            <div class="location">
+                <ul>
+                    <li class="home">home</li>
+                    <li>PROPERTIES</li>
+                    <li>공통정보</li>
+                    <li><label>공통코드관리</label></li>
+                </ul>
+            </div>
+            <div class="container">
+                
+               
+			</div>
+        </div>
+        -->
+
+
+
+
+        <!-- footer 
+		<th:block th:replace="fragments/footer_inc :: footer_inc" />
+		-->
+        <!--// footer -->
+    </div>
+    <!-- // wrap -->
+	
+
+<script type="text/javascript" th:inline="javascript">
+
+	
+	
+	$(document).ready(function() {
+		$(window).on("resize", function() {
+			setFrameHeight();
+		});
+		
+		
+		if(!$("#overlay").length) {
+			var spinnerHtml = '<div id="overlay"><div class="cv-spinner"><span class="spinner"></span></div></div>';
+			$("body").append(spinnerHtml);
+		};
+		
+		
+		fnPageInit();
+	});
+	
+	function fnPageInit() {
+		$.ajax({
+			url: "/json/common/getMainDashboardType"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({})
+			, success: function(data){
+				
+				// 메인페이지 
+				//fnClickMenu('/open/main/dashboard_'+data.mainDashboardType);
+				
+				fnClickMenu('/open/test/layout');
+				
+			}
+			, error: function(data) {
+				console.log(data);
+				alert("메인페이지 로딩중 에러가 발생하였습니다.");
+			}
+		});
+		
+	}
+	
+	
+	function fnStartMainLoading() {
+		$("#overlay").fadeIn(300);
+	}
+
+	function fnStopMainLoading() {
+		$("#overlay").fadeOut(300);
+	}
+	
+	function fnIsMainFrame() {
+		return true;
+	}
+	// 메뉴 open 
+	function fnClickMenu(url) {
+		
+		// 현재 경로 변수 set	
+		$("#refreshPath").val(url);	
+		// 페이지 이동 
+		$("#main_content").attr("src", url);
+		/*
+		$.ajax({
+			url: url
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: {}
+			, success: function(data){
+				
+				$("#main_content").html(data);
+				//$("#dv_json_area").text(JSON.stringify(data));
+			}
+		});
+		*/
+		
+	}
+	function getMainClientHeight(){
+		return document.documentElement.clientHeight;
+	}
+	
+	function setFrameHeight() {
+		try {
+			var $frame = $("#main_content");
+			var curHeight = $frame.contents().find('body').height();
+			//var curHeight = $frame.contents().find('#wrap').height();
+			//var curHeight = $frame.contents().find('#content').height();
+			//console.log("---- > " + curHeight);
+			//console.log(curHeight + "---" + window.outerHeight );
+			
+			
+			
+			console.log($frame.contents().find('body').height() +"|"+$frame.contents().find('#wrap').height() +"|"+$frame.contents().find('#content').height());
+			
+			console.log("curHeight : " + curHeight + "|" + window.outerHeight);
+			
+			//if(Number(curHeight) < Number(window.outerHeight) - 65) {
+			//	console.log("###");
+			//	curHeight = Number(window.outerHeight - 65);
+			//}
+				
+			//curHeight = curHeight + 70;
+			//curHeight = curHeight - 70;
+			//curHeight = curHeight + 25;
+			
+			//console.log(curHeight + "|" + $frame.contents().find('body').height() +"|"+$frame.contents().find('#wrap').height() +"|"+$frame.contents().find('#content').height());
+			//curHeight = curHeight - 7;
+			 
+			//$frame.css('height', (curHeight + 20) + 'px' );	// 스크롤 20 추가
+			$frame.css('height', (curHeight ) + 'px' );	// 스크롤 20 추가
+	 
+			//$("#lnb").css('height', (curHeight + 20) + 'px');
+		} catch(e) {
+			console.log(e);
+		}
+		
+	}
+	
+	function setFrameHeight_old() {
+		
+		
+		var brwHeight = document.body.offsetHeight;
+		//console.log("brwHeight : " + brwHeight);
+		
+		var curHeight = 0;
+		//var $frame = $('iframe:eq(0)');
+		var $frame = $("#main_content");
+		
+		//console.log($frame.contents().find('body').html());
+		//curHeight = $frame.contents().find('body > .content').height() + $(".navbar-collapse").height();
+		curHeight = $frame.contents().find('body .container').height() + 50;
+
+		var layerHeight = 0;		
+		if($frame.contents().find('body .popup.layer') != undefined && $frame.contents().find('body .popup.layer').length && $frame.contents().find('body .popup.layer').length > 0) {
+			layerHeight = $frame.contents().find('body .popup.layer').height() + 50;
+		}
+		if(Number(layerHeight) > Number(curHeight))
+			curHeight = layerHeight;
+		
+		//alert(curHeight);
+		//alert(curHeight + "|" +brwHeight);
+		//brwHeight = brwHeight - 80;
+		
+		//if(curHeight > brwHeight)
+		//	brwHeight = curHeight;
+			//brwHeight = brwHeight + 200;
+			
+		//$frame.css('height',brwHeight + 'px' );
+		//$frame.css('height',curHeight + 'px' );
+	}
+</script>
+
+
+<script>
+
+$(document).ready(function() {
+	fnSearchMenuList();
+});
+
+var leftinc_tempSn = 1;
+var leftinc_delArr = [];
+
+
+function fnSearchMenuList() {
+	 
+	$.ajax({
+		url: "/json/authMngMenu/getMngrLoginMenuTreeList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			
+		})
+		, success: function(data){
+			// 메뉴목록, 메뉴목록 최대 깊이 값
+			console.log("data.list =", data.list);
+			console.log("maxDpCnt =", data.maxDpCnt);
+			
+			fnMenuDraw(data.list, data.maxDpCnt);
+			//fnSetMenuEvent();
+			
+			//fnSetLeftMenu2DepthIcon();
+		}
+	});
+}
+
+
+function fnMenuDraw(obj, maxDpCnt){
+	console.log(obj);
+	if(maxDpCnt < leftinc_tempSn){
+		//console.log("생성 완료");
+	} else {
+		
+		var html = '';
+		
+		$.each(obj, function(index, value) {
+			
+			var html2 = '';
+			var html3 = '';
+			
+			// 1Depth 생성
+			if(value.menuDpSn == 1 && leftinc_tempSn == 1){
+				html += '	<li id="menu'+value.menuSn+'" data-menu-se-code="'+value.menuSeCd+'">';
+				html += '		<strong class="cl_leftmenu_depth1">'+value.menuNm+'</strong>';
+				html += '		<ul class="depth01" id="depth1_'+value.menuSn+'" data-dp='+value.menuDpSn+'></ul>';
+				html += '	</li>';	
+				
+				leftinc_delArr.push(value.menuSn);
+			}
+			/*
+			if(value.menuDpSn == 1 && leftinc_tempSn == 1){
+				html += '	<li id="menu'+value.menuSn+'" data-menu-se-code="'+value.menuSeCd+'">';
+				html += '		<a href="#" class="menu01" title="'+value.menuNm+'" data-dtlPageYn="'+value.dtlPageYn+'"><strong class="cl_leftmenu_depth1">'+value.menuNm+'</strong></a>';
+				html += '		<ul class="depth02" id="depth1_'+value.menuSn+'" data-dp='+value.menuDpSn+'></ul>';
+				html += '	</li>';	
+				
+				leftinc_delArr.push(value.menuSn);
+			}
+			*/
+		 
+			
+			// 2Depth 생성
+			if(value.menuDpSn == 2 && leftinc_tempSn == 2){
+				if(value.urlAddr != "#" && value.urlAddr != ""){
+					html2 += '<li id="menu'+value.menuSn+'">';
+					html2 += '	<a href="#" onclick="fnClickMenu(\'' + value.urlAddr + '\')" title="'+value.menuNm+'" data-dtlPageYn="'+value.dtlPageYn+'"><span class="cl_leftmenu_depth2">'+value.menuNm+'</span></a>';
+					html2 += '</li>';
+				}else{
+					html2 += '<li>';
+					html2 += '	<a href="#" data-dtlPageYn="'+value.dtlPageYn+'">'+value.menuNm+'</a>';
+					html2 += '	<ul class="depth02" id="depth2_'+value.menuSn+'" data-dp='+value.menuDpSn+'></ul>';
+					html2 += '</li>';
+				}
+				
+				leftinc_delArr.push(value.menuSn);
+				$("#depth1_"+value.upMenuSn).append(html2);
+			}
+			
+			// 3Depth 생성
+			if(value.menuDpSn == 3 && leftinc_tempSn == 3){
+				if(value.urlAddr != "#" && value.urlAddr != ""){
+					html3 += '<li>';
+					html3 += '	<a href="#" onclick="fnClickMenu(\'' + value.urlAddr + '\')" data-dtlPageYn="'+value.dtlPageYn+'"><span>'+value.menuNm+'</span></a>';
+					html3 += '</li>';
+				}else{
+					html3 += '<li>';
+					html3 += '	<a href="#" data-dtlPageYn="'+value.dtlPageYn+'"><span>'+value.menuNm+'</span></a>';
+					html3 += '</li>';
+				}	
+				
+				leftinc_delArr.push(value.menuSn);
+				$("#depth2_"+value.upMenuSn).append(html3);
+			}
+			 
+		});
+		
+		// 부모 메뉴 그리기
+		if(leftinc_tempSn == 1){
+			$("#ul_leftMenuArea").append(html);	
+		}
+		
+		var newArr = [];
+		const filteredItems = obj.filter(obj => {
+			if(leftinc_delArr.indexOf(obj.menuSn) > -1) {
+			}else{
+				newArr.push(obj);
+			}
+		});
+		
+		leftinc_tempSn++;
+		return fnMenuDraw(newArr, maxDpCnt);
+	}
+}
+</script>
+
+
+</body>
+</html>

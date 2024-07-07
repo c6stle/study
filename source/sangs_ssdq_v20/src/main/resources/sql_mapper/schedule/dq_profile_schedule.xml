@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dq_profile_schedule">
+
+	<select id="selectTargetProfileList" resultType="sangsMap" parameterType="sangsMap">
+		select 
+			PROFL_SN
+			, PROFL_NM
+			, PRJCT_SN
+			, NEXT_EXC_SCHDUL_DT
+			, CRON_EXPRSN_VALUE
+		from DQ_DGNSS_PROFL t1
+		where USE_YN = 'Y'
+			and DEL_YN = 'N'
+			and CRON_EXPRSN_SE_CD is not null
+			and NEXT_EXC_SCHDUL_DT is not null
+			and now() > NEXT_EXC_SCHDUL_DT
+			and PROFL_SN not in (
+				select PROFL_SN 
+				from DQ_DGNSS_EXC t2
+				where t1.PROFL_SN = t2.PROFL_SN
+				and t2.EXC_STTUS_CD in ('I' , 'R')
+			)
+		order by NEXT_EXC_SCHDUL_DT
+		limit 10
+	</select>
+	
+	
+	<update id="updateNextExcSchdulDt" parameterType="sangsMap">
+		update DQ_DGNSS_PROFL set 
+			NEXT_EXC_SCHDUL_DT = #{nextExcSchdulDt}
+			, CHG_USER_ID = #{regUserId}
+			, CHG_DT = now()
+		where PROFL_SN = #{proflSn}
+	</update>
+	
+	<update id="updateExcSttusCdForServerDown" parameterType="sangsMap">
+		update DQ_DGNSS_EXC set EXC_STTUS_CD = 'F'
+			, EXC_ERR_CN = 'Server is Down'
+		where EXC_STTUS_CD = 'I'
+		and EXC_END_DT is null
+	</update>
+	
+	
+	 
+</mapper>  

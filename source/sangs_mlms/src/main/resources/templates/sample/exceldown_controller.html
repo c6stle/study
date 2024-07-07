@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+<style type="text/css">
+#dv_guide ul {margin-top: 50px}
+#dv_guide ul li {text-align: left; margin: 10px}	
+</style>
+
+
+<script type="text/javascript">
+function fnExcelDwon() {
+	$("#excelDownForm").attr("action", "/exceldown/sample/testExcelDown");
+	$("#excelDownForm").attr("target", "excelDownFrame");
+	$("#excelDownForm").submit();
+	
+	
+}
+</script>
+
+<body>
+<div class="content">
+<div id="dv_guide"> 
+	<h2 >excel down controller</h2>
+	<ul>
+		<li>
+			공통 Exceldown Controller은  Service Class 처리 후  Workbook 타입으로 반환받은 엑셀문서를 다운받도록 합니다.  
+			<br/>
+			<br/>
+			형식 : /exceldown/[서비스ID]/[메서드ID]
+			<br/>
+			<br/>
+			서비스ID : Service Class 의 ID 값 -> 서비스클래스의 첫번째 글자를 소문자로 하고 클래스명의 Service부분을 제거한 ID 값 예) SampleService -> sample, UserMngrService -> userMngr <br/>
+			메서드ID : 메서드명 
+		</li>
+		<li>
+			예) /view/sample/testList
+		</li>
+		<li>
+			
+			URL : <a href="#" onclick="fnExcelDwon(); return false;">/exceldown/sample/testExcelDown</a>
+		</li>
+		<li>
+			/exceldown/sample/testList -> SangsCommonExcelDownController ->  SampleService.class의 매서드 testExcelDown 호출 ->  SangsCommonExcelDownController 에서 byte stream 으로 다운로드 실행 
+		</li>
+		
+	</ul>
+	<div id="dv_data_area"></div>
+</div>
+<form id="excelDownForm" method="POST" ></form>
+<iframe id="excelDownFrame" style="width:0px;height:0px"></iframe>
+</div>
+</body>
+</html>
+					 

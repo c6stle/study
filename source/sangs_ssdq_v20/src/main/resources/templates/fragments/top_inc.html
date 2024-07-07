@@ -1,0 +1,90 @@
+<html th:lang = "ko" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="top_inc" >
+ 
+	
+	<div class="content_top_area">
+		<span>
+			<button class="btn_fold"></button>
+		</span>
+		
+		<!--
+		<p class="title">
+			<span th:text="${session.STANDARD_USER_SESSION_KEY.userAttrMap[prjctNm]}"></span>
+				/ <span th:text="${session.STANDARD_USER_SESSION_KEY.userAttrMap[stdSetNm]}"></span>
+		</p>
+		-->
+		
+		
+		 <div class="util-l">
+            
+            <div class="dbms-wrap">
+                <p class="title" th:text="${session.STANDARD_USER_SESSION_KEY.userAttrMap[prjctNm]}"></p>
+                <div class="link">
+					<p class="link-title" style="display:none" id="top_linktitle"></p>
+                    <p class="link-txt" style="display:none" id="top_linktxt"></p>
+                </div>
+            </div> 
+        </div>
+
+
+		
+		<div class="right">
+			
+			<div class="button_area" style="margin-right: 30px;">
+				<button class="btn skyblue" title="DB스키마조회" onclick="fnOpenDbmsSchemaSearchPop(); return false;">DB 스키마조회</button>
+				
+				<button class="btn skyblue" title="데이터조회팝업" onclick="fnOpenStdDataSearchPop(); return false;" th:if="${session.STANDARD_USER_SESSION_KEY.userAttrMap[systemMode] != 'dq'}">단어/용어/도메인 조회</button>
+			</div>
+
+			<input type="hidden" name="topgv_systemMode" id="topgv_systemMode" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[systemMode]}"/>
+			<input type="hidden" name="topgv_dbmsIpAddr" id="topgv_dbmsIpAddr" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsIpAddr]}"/>
+			<input type="hidden" name="topgv_dbmsPortNo" id="topgv_dbmsPortNo" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsPortNo]}"/>
+			<input type="hidden" name="topgv_dbmsDatabaseNm" id="topgv_dbmsDatabaseNm" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsDatabaseNm]}"/>
+			<input type="hidden" name="topgv_dbmsDatabaseNm" id="topgv_dbmsSchemaNm" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsSchemaNm]}"/>
+			<input type="hidden" name="topgv_stdSetNm" id="topgv_stdSetNm" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[stdSetNm]}"/>
+			
+			<input type="hidden" name="topgv_prjctSn" id="topgv_prjctSn" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[prjctSn]}"/>
+			<input type="hidden" name="topgv_prjctNm" id="topgv_prjctNm" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[prjctNm]}"/>
+			<input type="hidden" name="topgv_stdSetSn" id="topgv_stdSetSn" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[stdSetSn]}"/>
+			
+			<input type="hidden" name="topgv_isConnectedYn" id="topgv_isConnectedYn" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isConnectedYn]}"/>
+			<input type="hidden" name="topgv_dbmsNm" id="topgv_dbmsNm" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsNm]}"/>
+			<input type="hidden" name="topgv_dbmsCnncSn" id="topgv_dbmsCnncSn" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsCnncSn]}"/>
+			<input type="hidden" name="topgv_dbmsSn" id="topgv_dbmsSn" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsSn]}"/>
+			<input type="hidden" name="topgv_dbmsDatabaseCn" id="topgv_dbmsDatabaseCn" th:value="${session.STANDARD_USER_SESSION_KEY.userAttrMap[dbmsDatabaseCn]}"/>
+			
+			<span style="color:#fff;" th:text="${session.STANDARD_USER_SESSION_KEY.userNm}"></span> &nbsp;
+			<a href="#" class="member_info" onclick="fnLogoutProc(); return false;">
+				<img src="/img/common/default_member_img.png" alt="유저아이콘" />
+			</a>
+			<!--
+			<a href="#" class="alarm" title="알람">
+				<span>2</span>
+			</a>
+			-->
+		</div>
+	</div>
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			
+			if(!$("#topgv_dbmsNm").val() == "CSV"){
+				if($("#topgv_dbmsDatabaseNm").val() != "") {
+					$("#top_linktitle").text($("#topgv_dbmsIpAddr").val() + " : " + $("#topgv_dbmsPortNo").val() + " / " + $("#topgv_dbmsDatabaseNm").val());
+					$("#top_linktitle").show();
+				}
+			} else {
+				$("#top_linktitle").text($("#topgv_dbmsDatabaseCn").val());
+				$("#top_linktitle").show();
+			}
+			if($("#topgv_stdSetNm").val() != "") {
+				$("#top_linktxt").text($("#topgv_stdSetNm").val());
+				$("#top_linktxt").show();
+			}
+		});
+	</script>
+
+	
+</th:block>
+

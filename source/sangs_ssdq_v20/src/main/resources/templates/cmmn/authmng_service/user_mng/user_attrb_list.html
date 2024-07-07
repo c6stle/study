@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+
+<div id="wrap">
+	<div class="container">
+		<div id="content">
+			<!-- page_info_area -->
+			<div class="page_info_area">
+				<div class="left">
+					<div class="location_area">
+						<a href="#" class="bookmark active" title="즐겨찾기"></a>
+						<ul>
+							<li>홈</li>
+							<li>환경설정</li>
+						</ul>
+					</div>
+					<div class="title_area">
+						<p>사용자 속성관리</p>
+						<a href="#" class="reload_btn" title="새로고침" onclick="location.reload(true); return false;">새로고침</a> 
+						<a href="#" class="help_btn" title="도움말">도움말</a>
+					</div>
+				</div>
+				<div class="right">
+					<div class="button_area">
+						<button class="btn" onclick="fnSearch(); return false;">조회</button> 
+						<button class="btn" onclick="fnAttrbInfoModal('C');">신규 등록</button>
+					</div>
+				</div>
+			</div>
+			<!--// page_info_area -->
+			
+			<!-- content_area -->
+			<div class="content_area" style="max-height:700px; overflow-y:auto;">
+				<!-- division20 -->
+				<div class="division20">
+					<div class="search_wrap">
+						<table class="search fixed">
+							<colgroup>
+								<col style="width: 100px;" />
+								<col style="width: auto;" />
+								<col style="width: 60px;" />
+								<col style="width: 100px" />
+								<col style="width: auto;" />
+							</colgroup>
+							<tbody>
+								<tr>
+									<th scope="row">조회 조건</th>
+									<td>
+										<div class="selectbox">
+											<select id="selectSearch" name="selectSearch"> 
+												<option value="">선택</option>
+												<option value="attrbId">속성 아이디</option>
+												<option value="attrbNm">속성 명</option>
+												<option value="attrbTyCd">속성 타입</option>
+												<option value="regUserId">등록자</option>
+											</select>
+											<label>선택</label>
+										</div>
+									</td>
+									<td></td>
+									<th scope="row">조회 내용</th>
+									<td><input type="text" class="in_w100" id="searchText" name="searchText" placeholder="검색어를 입력하세요."></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<!--// division20 -->
+				<div class="division20">
+					<div class="row marginb25">
+						<div class="left" data-width="0">
+							<!-- table_area -->
+							<div class="table_area marginb25">
+								<table class="list" id="tb_user_attrb_table">
+									<colgroup>
+										<col style="width: 5%" />
+										<col style="width: 20%" />
+										<col style="width: 15%" />
+										<col style="width: auto" />
+										<col style="width: auto" />
+										<col style="width: 10%" />
+										<col style="width: auto" />
+										<col style="width: 20%" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col">번호</th>
+											<th scope="col">속성 아이디</th>
+											<th scope="col">속성 명</th>
+											<th scope="col">속성 타입</th>
+											<th scope="col">정렬 순번</th>
+											<th scope="col">사용 여부</th>
+											<th scope="col">등록자</th>
+											<th scope="col">등록 일시</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="fwk_templete_row">
+											<input type="hidden" name="userAttrbSn" value="#{userAttrbSn}" />
+											<td data-id="sortNo" >#{sortNo}</td>
+											<td data-id="attrbId" >#{attrbId}</td>
+											<td data-id="attrbNm" >#{attrbNm}</td>
+											<td data-id="attrbTyCd" >#{attrbTyCd}</td>
+											<td data-id="sortSn" >#{sortSn}</td>
+											<td data-id="useYn" >#{useYn}</td>
+											<td data-id="regUserId" >#{regUserId}</td>
+											<td data-id="regDt" >#{regDt}</td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="marginb25"></div>
+								<!-- pagination_area -->
+								<div class="pagination_area marginb25" id="dv_paging"></div>
+								<!--// pagination_area -->
+							</div>
+							<!--// table_area -->
+						
+						</div>
+						<div class="right" data-width="550">
+							<!-- view_wrap -->
+							<div class="view_wrap">
+								<div class="tbl_top">
+									<p class="tit v2">
+										<span>사용자 속성 정보</span>
+									</p>
+									<div class="btn_area">
+										<button id="modifyBtn" class="btn sm" onclick="fnAttrbInfoModal('M');">수정</button>
+									</div>
+								</div>
+								<!-- table_area -->
+								<div class="table_area marginb25">
+									<form id="attrbForm" name="attrbForm">
+									<table class="view sm">
+										<colgroup>
+											<col style="width: 25%" />
+											<col style="width: 25%" />
+											<col style="width: 25%" />
+											<col style="width: 25%" />
+										</colgroup>
+										<tbody>
+											<tr>
+												<th>속성 아이디</th>
+												<td colspan="3" id="attrbId" name="attrbId"></td>
+											</tr>
+											<tr>
+												<th>속성 명</th>
+												<td colspan="3" id="attrbNm" name="attrbNm"></td>
+											</tr>
+											<tr>
+												<th>속성 타입</th>
+												<td colspan="3" id="attrbTyCd" name="attrbTyCd"></td>
+											</tr>
+											<tr>
+												<th>정렬 순번</th>
+												<td id="sortSn" name="sortSn"></td>
+												<th>사용 여부</th>
+												<td id="useYn" name="useYn"></td>
+											</tr>
+										</tbody>
+									</table>
+									</form>
+								</div>
+								<!--// table_area -->
+								<div class="tbl_top margint20">  
+									<p class="tit v2">
+										<span>사용자 속성 상세 목록</span>
+									</p>
+									<div class="btn_area">
+										<button class="btn sm" title="추가" onclick="fnAttrbDtlAdd(); return false;">추가</button>
+										<button class="btn sm" title="삭제" onclick="fnAttrbDtlDel(); return false;">삭제</button>
+										<button class="btn sm" title="저장" onclick="fnAttrbDtlSave(); return false;">저장</button>
+									</div>
+								</div>
+								<!-- table_area -->												
+								<div class="table_area margint20 in_hp300 overflow-y" id="listUserAttrbDtl">
+									<form id="attrbDtl_form" name="attrbDtl_form">
+									
+			                       		<table id="tb_user_attrb_dtl_table" class="view">
+											<colgroup>
+												<col style="width: 12%" />
+												<col style="width: 25%" /> 
+												<col style="width: 25%" /> 
+												<col style="width: auto" />
+												<col style="width: 20%" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th class="ta_c">번호</th>
+													<th class="ta_c">속성 상세코드</th>
+													<th class="ta_c">속성 상세 명</th>
+													<th class="ta_c">정렬 순번</th>
+													<th class="ta_c">사용 여부</th>
+												</tr>
+											</thead> 
+					 						<tbody id="attrbDtlTbody">
+												<tr class="fwk_templete_row">
+													<input type="hidden" name="userAttrbSn" value="#{userAttrbSn}"/>
+													<input type="hidden" name="status" value="Y"/>
+													<td>#{sortNo}</td>
+													<td>
+														<input type="text" name="attrbDtlCd" class="" value="#{attrbDtlCd}"/>
+													</td>
+													<td>
+														<input type="text" name="attrbDtlNm" class="" value="#{attrbDtlNm}" onchange='fnDoubleCheck(`M`, this);'/>
+													</td>
+													<td>
+														<input type="text" name="sortSn" class="in_w100" value="#{sortSn}" onchange='fnDoubleCheck(`M`, this);'/>
+													</td>
+													<td>
+														<select class="" name="useYn" onchange='fnDoubleCheck(`M`, this);'>
+															<option th:selected="#{useYn} =='Y'">Y</option>
+															<option th:selected="#{useYn} =='N'">N</option>
+														</select>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</form>
+								</div>
+								<!--// table_area -->
+							</div>
+							<!--// view_wrap -->
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--// content_area -->
+		</div>
+	</div>
+</div>
+
+
+<!-- 사용자 속성 추가 모달 -->
+<div class="popup layer" id="modalCreateUserAttrb" style="width: 40%;">
+	<div class="pop_header">
+   		<p class="title">사용자 속성 정보</p>
+         <button class="btn_ic btn_pop_close" onclick="popCloseAndDim('modalCreateUserAttrb', true);">닫기</button>
+    </div>
+	<form method="POST" id="modalForm" name="modalForm">
+	<input type="hidden" name="modalUserAttrbSn" value=""/>
+	<input type="hidden" name="modalPmode" value=""/>
+    <div class="pop_content">
+		<div class="tbl_top right padt10">
+       		<div class="btn_wrap">
+           		<button class="btn sm" onclick="fnAttrbSave(); return false;">저장</button>
+            </div>
+       	</div>	
+		<div class="table_area">
+			<table class="view">
+				<colgroup>
+					<col style="width: 170px;">
+	      			<col style="width: auto;">
+	      			<col style="width: 170px;">
+	      			<col style="width: auto;">
+	  			</colgroup>
+	    		<tbody>
+	   				<tr>
+	   					<th>* 속성 아이디</th>
+	           			<td colspan="3">
+	   						<input type="text" id="modalAttrbId" name="modalAttrbId"/> 
+	           			</td>
+	   				</tr>
+	   				<tr>
+	         			<th>* 속성 명</th>
+             			<td colspan="3">
+           					<input type="text" id="modalAttrbNm" name="modalAttrbNm"/>
+               			</td>
+					</tr>
+	   				<tr>
+	         			<th>* 속성 타입</th>
+             			<td  colspan="3">
+            				<select id="modalAttrbTyCd" name="modalAttrbTyCd">            					
+								<option value="text">text</option>
+								<option value="number">number</option>
+								<option value="email">email</option>
+								<option value="selectbox">selectbox</option>
+								<option value="radio">radio</option>
+								<option value="checkbox">checkbox</option>
+            				</select>
+               			</td>
+	   				</tr>
+	   				<tr>
+	         			<th>정렬 순번</th>
+             			<td>
+           					<input type="text" id="modalSortSn" name="modalSortSn"/>
+               			</td>
+	         			<th>사용 여부</th>
+             			<td>
+            				<select id="modalUseYn" name="modalUseYn">
+            					<option value="Y">Y</option>
+								<option value="N">N</option>
+            				</select>
+               			</td>
+	   				</tr>
+	     		</tbody>
+	   		</table>
+		</div>
+		<div class="pop_footer"></div>
+	</div>
+	</form>
+</div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	$("#searchText").on("keyup", function(event) {
+		if(event.keyCode == 13){ 
+			if($("#selectSearch").val() == ""){
+				alert("조회 조건을 선택하세요.");
+			}else{
+				fnSearch();
+			}
+		}
+	});
+	
+	fnInit();
+	
+});
+
+
+function fnInit() {
+	fnSearch();
+}
+
+function fnSearch(pageNum) {
+	if(!pageNum) 
+		pageNum = 1;
+
+	$.ajax({
+		url: "/json/authMngUser/getCmmnUserAttrbList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum: pageNum
+			, selectSearch: $("#selectSearch").val()
+			, searchText: $("#searchText").val() 
+			, searchUseYn: $("#searchUseYn").val()
+			, searchDelYn : $("#searchDelYn").val()
+		})
+		, success: function(data){
+			
+			fnBindTableValue("tb_user_attrb_table", data.list, data.pagingInfo);
+			
+			fnSetPaging("dv_paging", data.pagingInfo); 
+			
+ 			fnSelectTrEvent("#tb_user_attrb_table tbody tr", function(rtnObj) {
+ 				var userAttrbSn = $(rtnObj).find("input[name=userAttrbSn]").val();
+ 				
+ 				// 속성 상세 목록 조회 
+ 				
+ 				fnAttrbDtlList(userAttrbSn);
+
+				$.each($(rtnObj).find("td"), function(key, value) {
+					var inputId = $(value).attr("data-id");
+					var inputVal = $(value).text();
+					if(inputVal != ""){
+						$("#"+inputId).text(inputVal);	
+					}else{
+						$("#"+inputId).text("-");
+					}
+				});
+				
+				var targetTr = $("#attrbDtlTbody").find("tr");
+				
+				$.each(targetTr, function(index, value) {
+					if($(value).find("input[name='status']").val() == 'N'){
+						this.remove();						
+					}
+				});
+				
+			})
+		}
+	});
+}
+
+
+function fnAttrbDtlList(userAttrbSn){
+	
+	$.ajax({
+		url: "/json/authMngUser/getUserAttrbDtlList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			'userAttrbSn' : userAttrbSn
+		})
+		, success: function(data){
+			
+			fnBindTableValue("tb_user_attrb_dtl_table", data.list, data.pagingInfo);
+			
+			// 초기 로드 시 기존 목록은 readonly 처리 
+			$("#tb_user_attrb_dtl_table").find("tr.fwk_data_row").find("input[name=attrbDtlCd]").attr("readonly",true);
+
+ 			fnSelectTrEvent("#tb_user_attrb_dtl_table tbody tr", function(rtnObj) {
+ 				var userAttrbSn = $(rtnObj).find("input[name=userAttrbSn]").val();
+ 				
+			})
+		}
+	});
+}
+
+
+function fnAttrbDtlAdd(){
+	var selectdTable = $("#tb_user_attrb_table").find('tr');
+	var userAttrbSn = '';
+	
+	var isChk = false;
+	$.each(selectdTable, function(index, value) {
+		if($(value).attr("data-selectedtr") == 'Y'){
+			isChk = true;
+			userAttrbSn = $(value).find("input[name='userAttrbSn']").val();
+		}
+	});
+	
+	if(!isChk){
+		alert("선택된 사용자 속성이 없습니다.");
+		return false;
+	}	
+	$("#attrbDtlTbody").find(".fwk_tr_no_row").hide();
+	var targetTbody = $("#attrbDtlTbody");
+	var html = "";
+	
+	html += "<tr class='fwk_data_row' data-pmode='C'>";
+	html += "<input type='hidden' name='status' value='N'/>";
+	html += "<td>ADD</td>";
+	html += "<td><input type='text' name='attrbDtlCd' class='' oninput='fnFilterValue(this);' onchange='fnDoubleCheck(`C`, this);' autocomplete='off' value=''/></td>";
+	html += "<td><input type='text' name='attrbDtlNm' class='' value=''/></td>";
+	html += "<td><input type='text' name='sortSn' class='in_w100' value=''/></td>";
+	
+	html += "<td>";
+	html += "	<select class='' name='useYn'>";
+	html += "		<option value='Y'>Y</option>";
+	html += "		<option value='N'>N</option>";
+	html += "	</select>";
+	html += "</td>";
+	html += "</tr>";
+	
+	$(targetTbody).append(html);
+	
+	fnSelectTrEvent("#tb_user_attrb_dtl_table tbody tr", function(rtnObj) {
+		//var userAttrbSn = $(rtnObj).find("input[name=userAttrbSn]").val();
+	})
+	
+}
+
+
+function fnAttrbDtlDel(){
+	
+	// 테이블 row 선택 여부 / 선택 obj
+	var isChkObj = fnIsSelectTrChk("tb_user_attrb_dtl_table");
+	
+	// 기존 목록 중 삭제 이벤트 
+	if(isChkObj.isChk){
+		$(isChkObj.obj).find("td:first").text("DEL");
+		$(isChkObj.obj).attr('data-pmode', 'D');
+	}else{
+		alert("사용자 속성 상세 목록 중 선택 된 항목이 없습니다.");
+		return false;
+	}
+}
+
+function fnDuplicate(arr)  {
+	var isDup = arr.some(function(value) {
+		return arr.indexOf(value) !== arr.lastIndexOf(value);
+	});
+	
+	return isDup;
+}
+
+function fnDoubleCheck(pmode, obj){
+	var targetRow = $("#attrbDtlTbody").find(".fwk_data_row");
+	var userAttrbSn = fnSelectTrHiddenValue("tb_user_attrb_table", "userAttrbSn");
+	var attrbDtlCd = $(obj).val();
+	
+	var textArr = [];
+	$.each(targetRow, function(index, value) {
+		textArr.push($(value).find("input[name='attrbDtlCd']").val());
+	});
+	
+	var isRowChk = fnDuplicate(textArr);
+	
+	if(!isRowChk){
+		$.ajax({
+			url: "/json/authMngUser/getUserAttrbDtlCodeChkInfo"
+			, method : "POST"
+			, async: false
+			, contentType: 'application/json'
+			, data : JSON.stringify({
+				'userAttrbSn' : userAttrbSn
+				, 'attrbDtlCd' : attrbDtlCd
+			})
+			, success : function(data) {
+				//console.log("중복건수 : ", data.codeCount);
+				if(pmode == 'C' && data.codeCount > 0){
+					alert("속성 상태코드는 중복 사용 할 수 없습니다.");
+					$(obj).val('');
+					$(obj).focus();	
+				}else{
+					if(pmode != 'C'){
+						$(obj).parent().parent().find("td:first").text("MOD")
+						$(obj).parent().parent().attr('data-pmode', 'M');
+					}
+				}
+			}
+		});
+	} else {
+		alert("속성 상태코드는 중복 사용 할 수 없습니다.");
+		$(obj).val('');
+		$(obj).focus();	
+	}
+}
+
+function fnFilterValue(obj) {
+	obj.value = obj.value.replace(/[^A-Z*$]/, '');
+}
+
+//사용자 속성 등록/수정
+function fnAttrbInfoModal(pmode) {
+	var userAttrbSn = fnSelectTrHiddenValue("tb_user_attrb_table", "userAttrbSn");
+	
+	if(pmode == 'C'){
+		console.log("신규");
+		$("#modalForm")[0].reset();
+		$("input[name=modalPmode]").val(pmode);
+		fnShowModal("modalCreateUserAttrb");
+		
+	}else{
+		if(userAttrbSn == null){
+			alert("선택된 항목이 없습니다.");
+			return;
+		}
+		
+		fnShowModal("modalCreateUserAttrb");
+		$("input[name=modalUserAttrbSn]").val(userAttrbSn);
+		$("input[name=modalPmode]").val(pmode);
+		
+		var modalRow = $("#modalForm").find("table tbody td");
+		var fromRow = $("#attrbForm").find("table tbody td");
+		
+		$.each(modalRow, function(index, dValue) {
+			$.each(fromRow, function(index, fValue) {
+				if($(dValue).children().prop("type").indexOf("select") > -1) {
+					var dName = $(dValue).children().prop("name");
+					var fName = $(fValue).attr("name");
+					
+					if(dName.toLowerCase().indexOf(fName.toLowerCase()) > -1){
+						$("#"+dName).val($("#"+fName).text());
+					}
+				}else{
+					var dName = $(dValue).children().prop("name");
+					var fName = $(fValue).attr("name");
+					
+					if(dName.toLowerCase().indexOf(fName.toLowerCase()) > -1){
+						$("#"+dName).val($("#"+fName).text());
+					}
+				}
+			});
+		});
+	}
+}
+
+function fnAttrbSave(){
+	var form = $("#modalForm").find("table tbody td");
+	var pmode = $("input[name=modalPmode]").val();
+	var obj = {};
+	
+	obj.userAttrbSn = $("input[name=modalUserAttrbSn]").val();
+	
+	if(!fnCheckValid("#modalAttrbId", "속성 아이디")) return;
+	if(!fnCheckValid("#modalAttrbNm", "속성 명")) return;
+	if(!fnCheckValid("#modalAttrbTyCd", "속성 타입")) return;
+	
+	$.each(form, function(index, dValue) {
+		if($(dValue).children().prop("type").indexOf("select") > -1) {
+			var dName = $(dValue).children().prop("name");
+			obj[dName] = $(dValue).children().val();
+	
+		}else{
+			var dName = $(dValue).children().prop("name");
+			obj[dName] = $(dValue).children().val();
+		}
+	});
+	
+	if(confirm("저장 하시겠습니까?")){
+		$.ajax({
+			url: "/json/authMngUser/saveUserAttrbExecInfo"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({
+				info : obj
+				, pmode : pmode
+			})
+			, success: function(data){
+				if(data.resultCd == "OK") {
+					alert("저장 되었습니다.");
+					fnSearch(1);
+					fnCloseModal('modalCreateUserAttrb');
+				}
+			}
+			, error : function(data) {
+				console.log(data);
+			}
+		});
+	}
+}
+
+
+function fnAttrbDtlSave(){
+	var targetRow = $("#attrbDtlTbody").find(".fwk_data_row");
+	var cnt = 0;
+	var insArr = [];
+	var updArr = [];
+	var delArr = [];
+	var inPmode = null;
+	var userAttrbSn = fnSelectTrHiddenValue("tb_user_attrb_table", "userAttrbSn");
+	
+	$.each(targetRow, function(index, value) {
+		var insObj = {};
+		var updObj = {};
+		var delObj = {};
+		var trPmode = $(value).attr("data-pmode");
+		
+		$.each($(value).find("td"), function(key, inVlaue) {
+			var name = $(this).children().prop("name");
+			var inValue = $(this).children().val();
+			
+			if(trPmode == 'M' && typeof $(inVlaue).children().prop("type") != 'undefined'){
+				updObj.userAttrbSn = userAttrbSn;
+				updObj[name] = inValue;	
+				
+			}else if(trPmode == 'C' && typeof $(inVlaue).children().prop("type") != 'undefined'){
+				insObj.userAttrbSn = userAttrbSn;
+				insObj[name] = inValue;
+			}else if(trPmode == 'D' && typeof $(inVlaue).children().prop("type") != 'undefined'){
+				delObj.userAttrbSn = userAttrbSn;
+				delObj[name] = inValue;
+			}
+		});
+		
+		if(!$.isEmptyObject(insObj)){ insArr.push(insObj); }
+		if(!$.isEmptyObject(updObj)){ updArr.push(updObj); }
+		if(!$.isEmptyObject(delObj)){ delArr.push(delObj); }
+		cnt ++;
+	});
+	
+	if(cnt > 0){
+		
+		if(confirm("저장 하시겠습니까?")){
+			$.ajax({
+				url: "/json/authMngUser/saveUserAttrbDtlExecInfo"
+				, method : "POST"
+				, contentType: 'application/json'
+				, data: JSON.stringify({
+					insList : insArr
+					, updList : updArr
+					, delList : delArr
+				})
+				, success: function(data){
+					if(data.resultCd == "OK") {
+						alert("저장 되었습니다.");
+						fnAttrbDtlList(userAttrbSn);
+					}
+				}
+				, error : function(data) {
+					console.log(data);
+				}
+			});
+		}
+		
+	}else{
+		alert("변경된 항목이 없습니다.");
+		return false;
+	}
+}
+
+</script>
+</html>
+					 

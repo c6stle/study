@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+
+<body>
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+			
+				<div class="page_info_area">
+					<div class="left">
+						<div class="title_area">
+							<p>로그인 로그 관리</p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a> 
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area">
+							<button class="btn" title="조회" onclick="fnSearch(); return false;">조회</button>
+						</div>
+					</div>
+				</div><!--// page_info_area -->
+				
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap card">
+							<table class="search fixed">
+								<caption>조회 조건</caption>
+								<colgroup>
+									<col style="width: 7%;" />
+									<col style="width: 23%;" />
+									<col style="width: 4%;" />
+									<col style="width: 7%;" />
+									<col style="width: 23%;" />
+									<col style="width: 4%;" />
+									<col style="width: 7%;" />
+									<col style="width: 23%;" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th scope="row">발생일자</th>
+										<td style="white-space: nowrap;">
+											<div class="calendar_box">
+												<input type="text" id="searchBgnDe" name="searchBgnDe" autocomplete="off" title="발생시작일" />
+											</div> ~
+											<div class="calendar_box">
+												<input type="text" id="searchEndDe" name="searchEndDe" autocomplete="off" title="발생종료일" />
+											</div>
+										</td>
+										<td></td>
+										<th scope="row">로그유형</th>
+										<td>
+											<div class="selectbox">
+												<select id="loginMthd" name="loginMthd">
+													<option value="">전체</option>
+													<option value="I">로그인</option>
+													<option value="O">로그아웃</option>
+													<option value="F">로그인실패</option>
+												</select>
+												<label for="loginMthd">전체</label>
+											</div>
+										</td>
+										<td></td>
+										<th scope="row"><label for="loginId">사용자아이디</label></th>
+										<td><input type="text" class="in_w95" name="loginId" id="loginId"/></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div><!--// division20 -->
+					
+				
+					<div class="division20">
+						<div class="card">
+							<div class="left" data-width="0">
+								<div class="table_area marginb25">
+									<table class="list fixed" id="logTable">
+										<caption>로그인 로그</caption>
+										<colgroup>
+											<col style="width: 8%" />
+											<!--
+											<col style="width: 8%" />
+											-->
+											<col style="width: auto" />
+											<col style="width: 15%" />
+											<col style="width: 15%" />
+											<col style="width: 15%" />
+											<col style="width: 15%" />
+										</colgroup>
+										<thead>
+											<tr>
+												<th scope="col">순번</th>
+												<!--
+												<th scope="col">시스템구분</th>
+												-->
+												<th scope="col">로그ID</th>
+												<th scope="col">로그유형</th>
+												<th scope="col">요청자</th>
+												<th scope="col">접속IP</th>
+												<th scope="col">발생일시</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr class="fwk_templete_row">
+												<td>#{FWK_TR_NO}</td>
+												<!--
+												<td>#{sysSeCd}</td>
+												-->
+												<td>#{logId}</td>
+												<td>#fn{fnGetLoginMthdNm('#{cntnMthd}')}</td>
+												<td>#{cntnId}</td>
+												<td>#{cntnIp}</td>
+												<td>#{regDt}</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="pagination_area marginb25" id="dv_paging"></div>
+							</div><!--// table_area -->
+						</div>
+					</div>
+				</div><!-- content_area -->
+				
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+
+<script>
+
+$(document).ready(function(){
+		
+	// datepicker의 조회조건의 from을 1년전 부터 오늘까지로 셋팅해줌
+	fnSet1YearFromTo("#searchBgnDe", "#searchEndDe");
+
+	$("#loginId").on("keyup", function(event) {
+		if(event.keyCode == 13)
+			fnSearch();
+	});
+	
+	fnSearch();
+});
+
+function fnSearch(pageNum){
+	if(!pageNum){
+		pageNum = 1;
+	}
+	
+	// 날짜 조회조건 체크
+	if(!fnSearcDateChk($("#searchBgnDe").val(), $("#searchEndDe").val())) return;
+	
+	$.ajax({
+		url: "/json/loginLog/selectLoginLogList"
+		, method : "POST"
+		, dataType:'json'
+		, contentType:"application/json"
+		, data: JSON.stringify({
+			pageIndex: pageNum
+			, loginMthd: $("#loginMthd").val()
+			, loginId: fnUnderbarChgVar($("#loginId").val())
+			, searchBgnDe : $("#searchBgnDe").val()
+			, searchEndDe : $("#searchEndDe").val()
+			, searchSysSeCd : $("#searchSysSeCd").val()
+		})
+		, success: function(data){
+
+			fnBindTableValue("logTable", data.list, data.pagingInfo);
+
+			fnSetPaging("dv_paging", data.pagingInfo);
+		}
+	});
+
+}
+
+//로그인 상태
+function fnGetLoginMthdNm(str) {
+	if(str.trim() == "I") {
+		return "로그인";
+	} else if(str.trim() == "O")
+		return "로그아웃";
+	else if(str.trim() == "F")
+		return "로그인실패";
+	else
+		return "";
+}
+</script>
+
+<th:block th:replace="fragments/footer_inc :: footer_inc" />
+</body>
+
+</html>

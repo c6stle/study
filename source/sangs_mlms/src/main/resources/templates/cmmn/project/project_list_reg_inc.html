@@ -1,0 +1,634 @@
+<html th:lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+
+<th:block th:fragment="project_list_reg_inc">
+<style>
+.li_usernm {
+	list-style-type: none;
+	float: left;
+	background-color: #E5F3FF;
+	border: 1px solid #CAD8F3;
+	margin: 5px 2px 1px 0px !important;
+    padding: 0 5px 0 5px !important;
+}
+.text_icon {
+	margin: 3px 0px 0px 3px !important;
+}
+
+</style>
+	<div class="pop_header">
+		<p class="title">등록</p>
+		<button class="btn_ic btn_pop_close" onclick="fnCloseModal('prjctreginfo_modal');">닫기</button>
+	</div>
+	<div class="pop_content">
+		<div class="tbl_top padt10">
+		<p class="tit v2 margin0">프로젝트정보</p>
+			<div class="btn_wrap">
+				<input type="hidden" name="regPrjctStdSetSnHide" id="regPrjctStdSetSnHide" />
+				<input type="hidden" name="regPrjctDbmsCnncSnHide" id="regPrjctDbmsCnncSnHide" />
+				<input type="hidden" name="regPrjctSnHide" id="regPrjctSnHide" />
+				<input type="hidden" name="regPrjctPmodeHide" id="regPrjctPmodeHide" />
+				<input type="hidden" name="regPrjctUserIdHide" id="regPrjctUserIdHide" />
+				<button class="btn sm" onclick="fnRegPrjctSaveBtn(); return false;">저장</button>
+			</div>
+		</div>
+		<div class="table_area">
+			<table class="view">
+				<colgroup>
+					<col style="width: 170px;">
+					<col style="width: auto;">
+				</colgroup>
+				<tbody>
+					<tr>
+						<th>*프로젝트명</th>
+						<td>
+							<input type="text" name="regPrjctNm" id="regPrjctNm" />
+						</td>
+					</tr>
+					<tr>
+						<th>프로젝트사용자</th>
+						<td style="padding-right: 3px;">
+							<ul style="margin-left: -6px;" id="regPrjctUserNm">
+							</ul>
+							<div style="display: flex; float: right;">
+								<button class="btn sm" style="width: 69.99px; margin-left:4px;" onclick="fnUserAddBtn();" >추가</button>
+							</div>
+						</td>
+					</tr>
+					<tr id="tr_prjctcn">
+						<th>프로젝트설명</th>
+						<td>
+							<input type="text" name="regPrjctCn" id="regPrjctCn"/>
+						</td>
+					</tr>
+					
+				</tbody>
+			</table>
+		</div>
+		
+		<div id="dbmsInfoTable">
+			<div class="tbl_top padt10">
+				<p class="tit v2 margin0">DBMS정보</p>
+			</div>
+			<div class="table_area">
+				<table class="view">
+					<colgroup>
+						<col style="width: 170px;">
+						<col style="width: auto;">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>DBMS</th>
+							<td>
+								<select name="regPrjctDbmsSn" id="regPrjctDbmsSn" >
+									<option value="">선택</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th>운영DB</th>
+							<td>
+								<div id="regPrjctOperYn">
+									<input type="radio" name="prjctOperYn" id="prjctoperyn_y" value="Y"/>
+									<label for="prjctoperyn_y" class="req">Y</label>
+									<input type="radio" name="prjctOperYn" id="prjctoperyn_n" value="N"/>
+									<label for="prjctoperyn_n" class="req">N</label>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th>DB서버IP</th>
+							<td>
+								<input type="text" name="regPrjctDbmsIpAddr" id="regPrjctDbmsIpAddr" />
+							</td>
+						</tr>
+						<tr>
+							<th>DB서버PORT</th>
+							<td>
+								<input type="text" name="regPrjctDbmsPortNo" id="regPrjctDbmsPortNo" />
+							</td>
+						</tr>
+						<tr>
+							<th>접속계정</th>
+							<td>
+								<input type="text" name="regPrjctDbmsId" id="regPrjctDbmsId" />
+							</td>
+						</tr>
+						<tr>
+							<th>비밀번호</th>
+							<td>
+								<input type="text" name="regPrjctDbmsPassword" id="regPrjctDbmsPassword" />
+							</td>
+						</tr>
+						<tr>
+							<th>DATABASE명</th>
+							<td>
+								<input type="text" name="regPrjctDbmsDatabaseNm" id="regPrjctDbmsDatabaseNm" />
+							</td>
+						</tr>
+						<tr style="display: none;" id="tr_schemanm">
+							<th>SCHEMA명</th>
+							<td>
+								<input type="text" name="regPrjctDbmsSchemaNm" id="regPrjctDbmsSchemaNm" />
+							</td>
+						</tr>
+						<tr style="display: none;" id="tr_sidnm">
+							<th>SID명</th>
+							<td>
+								<input type="text" name="regPrjctDbmsSidNm" id="regPrjctDbmsSidNm" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<br>
+				※ 표준세트 및 DBMS 정보를 입력하지 않으면 메타시스템 기능이 제한될 수 있습니다.
+			</div>
+		</div>
+	</div>
+
+		<div id="dv_userlist_div" style="display: none;">
+			<div class="tbl_top padt10">
+				<p class="tit v2 margin0"><span>사용자조회</span></p>
+				<div class="btn_wrap">
+					<button class="btn sm" onclick="fnRegCloseCheckUserListBtn();" >닫기</button>
+				</div>
+			</div>
+			<div class="search_wrap" >
+				<table  class="search fixed" >
+					<colgroup>
+						<col style="width: 70px;" />
+						<col style="width: 320px;" />
+						<col style="width: 30px;" />
+						<col style="width: 70px;" />
+						<col style="width: auto;" />
+					</colgroup>
+					<tbody>
+						<tr>
+							<th scope="row"><label for="regAuthrtCdSearch">권한그룹</label></th>
+							<td>
+								<div class="selectbox">
+									<select id="regAuthrtCdSearch" name="regAuthrtCdSearch">
+										<option value="">전체</option>
+									</select>
+								</div>
+							</td>
+							<td></td>
+							<th scope="row"><label for="regUserNmSearch">사용자명</label></th>
+							<td>
+								<div style="display: flex; align-items: center;">
+									<input type="text" class="in_w100" id="regUserNmSearch" name="regUserNmSearch" />
+									<button class="btn sm" style="width: 80px; margin-left:4px" onclick="fnRegPrjctUserListFilterBtn();" >조회</button>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="tbl_wrap margint20" data-height="200">
+				<div class="tbl_wrap v1">
+					<table id="tb_userlist_table">
+						<colgroup>
+							<col style="width: 60px;" />
+							<col style="width: auto;" />
+							<col style="width: auto;" />
+							<col style="width: auto;" />
+							<col style="width: 100px;" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>NO</th>
+								<th>권한그룹</th>
+								<th>사용자아이디</th>
+								<th>사용자명</th>
+								<th>선택</th>
+							</tr>
+						</thead>											
+						<tbody>
+							<tr class="fwk_templete_row">
+								<td>#{FWK_TR_NO}</td>
+								<td>#{authrtNm}</td>
+								<td>#{userId}</td>
+								<td>#{userNm}</td>
+								<td>
+									<input type="checkbox" name="chkUserNm" data-authrtCd="#{authrtCd}" data-userid="#{userId}" data-usernm="#{userNm}" onclick="fnChkUserNm();" />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		
+		
+		
+
+	<div class="pop_footer">
+	</div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	fnInitRegPrjctForm();
+
+	// 프로젝트사용자 필터 - 권한그룹
+ 	$("#regAuthrtCdSearch").change(function(){
+ 		prjctUserListFilter();
+	});
+	// 프로젝트사용자 필터 - 사용자명
+	$("#regUserNmSearch").on("keyup", function(event) {
+ 		if (event.keyCode == 13){
+ 			prjctUserListFilter();
+ 		}
+	});
+	
+});
+
+function fnInitRegPrjctForm() {
+	new CodeBinder()
+		.setSqlCode("cmmn_project.selectDbmsList", "regPrjctDbmsSn", "select")
+		.setSqlCode("cmmn_project.selectAuthorList","regAuthrtCdSearch", "select")
+		.setLoadCallbackFunc("fnCodeLoadCallbackRegPrjct()")
+		.load();
+}
+
+function fnCodeLoadCallbackRegPrjct() {
+
+	// 프로젝트사용자 필터 - 권한그룹
+ 	$("#regAuthrtCdSearch").change(function(){
+ 		prjctUserListFilter();
+	});
+
+	$("#regPrjctDbmsSn").change(function(){
+		var dbmsSn = $(this).val();
+		
+		$("#regPrjctDbmsSchemaNm").val("");	// SCHEMA명
+		$("#regPrjctDbmsSidNm").val("");	// SID명
+		
+		fnChangeDbmsInfoTr(dbmsSn);
+	});
+}
+
+
+function fnRegPrjctSearch() {
+	fnRegCloseSelectStdSetListBtn();
+	fnRegCloseCheckUserListBtn();
+	var prjctSn = $("#regPrjctSnHide").val();
+	var stdSetSn = $("#regPrjctStdSetSnHide").val();
+	var pmode = $("#regPrjctPmodeHide").val();
+	
+	$("#regPrjctUserNm").empty();
+	
+	if (pmode == "M") {
+		$.ajax({
+			url : "/json/project/getProjectInfo"
+			, method : "POST"
+			, contentType : 'application/json'
+			, data : JSON.stringify({
+				prjctSn : prjctSn
+				, stdSetSn : stdSetSn
+				, pmode : pmode
+			})
+			, success : function(data) {
+				
+				var prjctInfo = data.prjctInfo;
+				var userList = data.userList;
+				var userIdHideVal ="";
+				
+ 				$.each(userList, function(){
+ 					var userNm = $(this).attr("userNm");
+ 					var userId = $(this).attr("userId");
+ 					
+ 					userIdHideVal += userId+",";
+ 					fnAddUserNmLi(userId, userNm);
+				});
+				userIdHideVal = userIdHideVal.substr(0, userIdHideVal.length-1);
+				
+				$("#regPrjctStdSetSnHide").val(prjctInfo.stdSetSn);		// hidden value 표준세트번호
+				$("#regPrjctDbmsCnncSnHide").val(prjctInfo.dbmsCnncSn);	// hidden value DBMS연결순번
+				$("#regPrjctSnHide").val(prjctInfo.prjctSn);			// hidden value 프로젝트순번
+				$("#regPrjctUserIdHide").val(userIdHideVal); 			// hidden value 프로젝트사용자
+				
+				$("#regPrjctNm").val(prjctInfo.prjctNm); 			// 프로젝트명
+				$("#regPrjctCn").val(prjctInfo.prjctCn); 			// 프로젝트설명
+				$("#regPrjctStdSetNm").val(prjctInfo.stdSetNm); 	// 표준세트명
+			
+				$("#regPrjctDbmsSn").val(prjctInfo.dbmsSn);													// DBMS
+				$("input:radio[name=prjctOperYn]:input[value="+prjctInfo.operYn+"]").prop("checked", true);	// 운영DB
+				$("#regPrjctDbmsIpAddr").val(prjctInfo.dbmsIpAddr);											// DB서버IP
+				$("#regPrjctDbmsPortNo").val(prjctInfo.dbmsPortNo);											// DB서버PORT
+				$("#regPrjctDbmsId").val(prjctInfo.dbmsId);													// 접속계정
+				$("#regPrjctDbmsPassword").val(prjctInfo.dbmsPassword);										// 비밀번호
+				$("#regPrjctDbmsDatabaseNm").val(prjctInfo.dbmsDatabaseNm);									// DATABASE명
+				$("#regPrjctDbmsSchemaNm").val(prjctInfo.dbmsSchemaNm);										// SCHEMA명
+				$("#regPrjctDbmsSidNm").val(prjctInfo.dbmsSidNm);											// SID명
+				fnChangeDbmsInfoTr(prjctInfo.dbmsSn);
+			}
+		});
+	} else {
+		
+		$("#regPrjctStdSetSnHide").val("");							// hidden value 표준세트번호
+		$("#regPrjctDbmsCnncSnHide").val("");						// hidden value DBMS연결순번
+		$("#regPrjctSnHide").val("");								// hidden value 프로젝트순번
+		$("#regPrjctUserIdHide").val(""); 							// hidden value 프로젝트사용자
+		
+		$("#regPrjctNm").val("");									// 프로젝트명
+		$("#regPrjctCn").val("");									// 프로젝트설명
+		$("#regPrjctStdSetNm").val(""); 							// 표준세트명
+
+		$("#regPrjctDbmsSn").val("");								// DBMS
+		$("input:radio[name=prjctOperYn]").prop("checked",false);	// 운영DB
+		$("#regPrjctDbmsIpAddr").val("");							// DB서버IP
+		$("#regPrjctDbmsPortNo").val("");							// DB서버PORT
+		$("#regPrjctDbmsId").val("");								// 접속계정
+		$("#regPrjctDbmsPassword").val("");							// 비밀번호
+		$("#regPrjctDbmsDatabaseNm").val("");						// DATABASE명
+		$("#regPrjctDbmsSchemaNm").val("");							// SCHEMA명
+		$("#regPrjctDbmsSidNm").val("");							// SID명
+	}
+	fnRegPrjctUserListSearchBtn();
+	
+}
+
+// 프로젝트 사용자 추가 html
+function fnAddUserNmLi(userId, userNm){
+	var html = "";
+		html +='<li class="li_usernm" value='+userId+'>'+userNm+'';
+		html +='<button style="margin:1px;" data-userid ='+userId+' onclick="fnRemoveUserNmBtn(this);"><span class="text_icon">X</span></button>';
+		html +='</li>';
+		$("#regPrjctUserNm").append(html); 
+}
+
+// 프로젝트 사용자 조회
+function fnRegPrjctUserListSearchBtn(){
+	var userNm = $("#regUserNmSearch").val();
+	var authrtCd = $("#regAuthrtCdSearch").val();
+	
+	$.ajax({
+		url : "/json/project/getProjectUserList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			userNm : userNm
+			, authrtCd : authrtCd 
+		})
+		, success: function(data){
+			var list = data.list;
+			
+			fnBindTableValue("tb_userlist_table", list);
+			var userIdHide = [];
+			
+			userIdHide = $("#regPrjctUserIdHide").val().split(",");
+			if (userIdHide!="") {
+				$.each(userIdHide, function(){
+					$("#tb_userlist_table tr.fwk_data_row").each(function(){
+						var userId = $(this).find("input:checkbox[name=chkUserNm]").data("userid");
+ 						if (userIdHide.indexOf(userId) != -1) {
+							$(this).find("input:checkbox[name=chkUserNm]").prop("checked", true);
+						}
+					});
+				});
+			}
+		}
+	});
+}
+
+//프로젝트사용자 권한그룹 필터
+function prjctUserListFilter(){
+	
+	var selectBoxVal = $("#regAuthrtCdSearch").val();
+	var textVal = $("#regUserNmSearch").val();
+	
+	$("#tb_userlist_table tr.fwk_data_row").filter(function(){
+		var userNm = $(this).find("input:checkbox[name=chkUserNm]").data("usernm");
+		var authrtCd = $(this).find("input:checkbox[name=chkUserNm]").data("authrtcd");
+		
+		if (selectBoxVal == "") {
+			if(textVal == ""){
+				$(this).show();	
+			} else {
+				if (textVal == userNm) {
+					$(this).show();		
+				} else {
+					$(this).hide();
+				}
+			}
+		} else {
+			if (textVal == "") {
+				if(selectBoxVal == authrtCd){
+					$(this).show();
+				} else{
+					$(this).hide();
+				}
+			} else {
+				if(selectBoxVal == authrtCd && textVal == userNm){
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			}
+		}
+		
+	});
+}
+
+// 프로젝트사용자 필터 조회 버튼
+function fnRegPrjctUserListFilterBtn(){
+	prjctUserListFilter();
+}
+
+// 프로젝트사용자 선택
+function fnChkUserNm(){
+	var chkUserId = [];
+
+	$("#regPrjctUserNm").find("li").remove();
+	
+	$("input:checkbox[name=chkUserNm]:checked").each(function(){
+		var userNm = $(this).data("usernm");
+		var userId = $(this).data("userid");
+		fnAddUserNmLi(userId, userNm);
+		chkUserId += userId+",";
+	});
+	if(chkUserId !=""){
+		chkUserId = chkUserId.substr(0, chkUserId.length-1)
+	}
+	$("#regPrjctUserIdHide").val(chkUserId)
+	
+}
+// 프로젝트사용자 제거
+function fnRemoveUserNmBtn(obj){
+	var userId = $(obj).data("userid");
+	
+	var regPrjctUserIdHideVal = $("#regPrjctUserIdHide").val();
+	var regPrjctUserIdHideArr = [];
+	
+	regPrjctUserIdHideArr = regPrjctUserIdHideVal.split(",");
+	
+	for(var i =0; i<regPrjctUserIdHideArr.length;i++){
+		var userIdArr = regPrjctUserIdHideArr[i];
+		if(userIdArr === userId){
+			regPrjctUserIdHideArr.splice(i,1);
+			i--;
+		}
+	}
+	
+	$("#regPrjctUserIdHide").val(regPrjctUserIdHideArr);
+	
+	$("input:checkbox[name=chkUserNm]:checked").each(function(){
+		var chkdUserId = $(this).data("userid");
+		if(userId == chkdUserId){
+			$(this).prop("checked",false);
+		}
+	});
+	
+	$("#regPrjctUserNm .li_usernm").each(function(){
+		if($(this).attr("value") == userId){
+			$(this).remove();
+		}
+	});
+}
+
+// 프로젝트 저장 버튼
+function fnRegPrjctSaveBtn(){
+	
+	fnRegCloseSelectStdSetListBtn();
+	fnRegCloseCheckUserListBtn();
+	
+	if(!fnCheckValid("#regPrjctNm", "프로젝트명"))
+		return;
+	
+	var stdSetSn = $("#regPrjctStdSetSnHide").val();
+	var dbmsSn = $("#regPrjctDbmsSn").val();
+	
+	/* if (stdSetSn == "" || dbmsSn =="") {
+		alert("표준세트 및 DBMS 정보를 입력하지 않으면 메타시스템 기능이 제한될 수 있습니다.");
+	} */
+
+	if(!confirm("저장 하시겠습니까?")) 
+		return;
+	
+	var prjctInfo ={
+			stdSetSn : stdSetSn
+			, prjctNm : $("#regPrjctNm").val()
+			, prjctSn : $("#regPrjctSnHide").val()
+			, prjctCn : $("#regPrjctCn").val()
+			, chkUserId : $("#regPrjctUserIdHide").val()
+	};
+
+	var dbmsInfo = {dbmsSn : dbmsSn , dbmsCnncSn : $("#regPrjctDbmsCnncSnHide").val()};
+	
+	if (dbmsSn != "") {
+		
+/* 		if(!fnCheckValid("#regPrjctDbmsIpAddr", "DB서버IP"))
+			return;
+		
+		if(!fnCheckValid("#regPrjctDbmsPortNo", "DB서버PORT"))
+			return;
+		
+		if(!fnCheckValid("#regPrjctDbmsId", "접속계정"))
+			return;
+		
+		if(!fnCheckValid("#regPrjctDbmsPassword", "비밀번호"))
+			return; */
+		
+		var dbmsDetailInfo = {
+				operYn : $("input:radio[name=prjctOperYn]:checked").val()
+				, dbmsIpAddr : $("#regPrjctDbmsIpAddr").val()
+				, dbmsPortNo : $("#regPrjctDbmsPortNo").val()
+				, dbmsId : $("#regPrjctDbmsId").val()
+				, dbmsPassword : $("#regPrjctDbmsPassword").val()
+				, dbmsDatabaseNm : $("#regPrjctDbmsDatabaseNm").val()
+				, dbmsSchemaNm : $("#regPrjctDbmsSchemaNm").val()
+				, dbmsSidNm : $("#regPrjctDbmsSidNm").val()
+		};
+		
+		$.extend(dbmsInfo, dbmsDetailInfo);
+	}	
+
+	var pmode = $("#regPrjctPmodeHide").val();
+	
+	var pagingNo ="";
+	$("#dv_paging .on a").each(function(){
+		pagingNo = $(this).text();
+	});
+	
+	$.ajax({
+		url : "/json/project/saveProjectInfo"
+		, method : "POST"
+ 		, contentType : 'application/json'
+		, data : JSON.stringify({
+			prjctInfo : prjctInfo
+			, dbmsInfo : dbmsInfo
+			, pmode : pmode
+		})
+		, success: function(data){
+			if(data.resultCd == "OK") {
+				alert("저장이 완료 되었습니다.");
+				if(pmode == "M"){
+					
+					var myPrjctSn = parent.$("#topgv_prjctSn").val();
+					var myStdSetSn = parent.$("#topgv_stdSetSn").val();
+
+					if(myPrjctSn == prjctInfo.prjctSn){
+						alert("프로젝트 정보가 변경되었습니다 재로그인이 필요합니다.");
+						fnLogoutProc();
+					}
+					
+				}
+				fnCloseModal('prjctreginfo_modal');
+				fnPrjctSearch(pagingNo);
+				
+			} else{
+				alert("실패하셨습니다.");
+			}
+		}
+		
+	});
+	
+}
+
+//프로젝트사용자 추가 버튼
+function fnUserAddBtn(){
+	$("#tr_prjctcn").hide();
+	$("#dbmsInfoTable").hide();
+	$("#dv_userlist_div").show();
+}
+
+// 프로젝트사용자 닫기 버튼
+function fnRegCloseCheckUserListBtn() {
+	fnChangeSelectVal("regAuthrtCdSearch");
+	$("#regUserNmSearch").val("");
+	
+	$("#tr_prjctcn").show();
+	$("#dbmsInfoTable").show();
+	$("#dv_userlist_div").hide();
+}
+
+// 프로젝트표준세트 검색 닫기 버튼
+function fnRegCloseSelectStdSetListBtn(){
+	$("#regStdSetNmSearch").val("");
+	$("#dbmsInfoTable").show();
+}
+
+
+// DBMS별 DBMS정보 작성란 변경 (SCHEMA, SID) 
+function fnChangeDbmsInfoTr(dbmsSn){
+	// 1 = Oracle, 4 = Tibero, 7 = PostgreSQLSQL, 8 = Altibase, 9 = DB2
+	
+	//SID 추가 
+	if (dbmsSn == "1" || dbmsSn == "4") {
+		$("#tr_sidnm").show();
+	} else {
+		$("#tr_sidnm").hide();
+	}
+	
+	//Schema 추가
+	if (dbmsSn == "7" || dbmsSn == "8" || dbmsSn == "9"){
+		$("#tr_schemanm").show();
+	} else {
+		$("#tr_schemanm").hide();
+	}
+	
+}
+</script>
+</th:block>

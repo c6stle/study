@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<!-- head inclue -->
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+<body>
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+
+				<div class="page_info_area">
+					<div class="left">
+						<div class="location_area">
+							<a href="#" class="bookmark active" title="즐겨찾기"></a>
+							<ul>
+								<li>홈</li>
+								<li>데이터표준화관리</li>
+								<li>데이터표준세트관리</li>
+							</ul>
+						</div>
+						<div class="title_area">
+							<p>데이터표준세트관리</p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+							<a href="#"	class="help_btn" title="도움말">도움말</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area" id="stdSetBtnList" style="display:none;">
+							<button class="btn" title="신규등록" onclick="fnRegistModal(); return false;" th:if="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">신규등록</button>
+							<button class="btn" title="조회" onclick="fnSearch(); return false;">조회</button>
+						</div>
+					</div>
+				</div><!-- page_info_area -->
+
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width="6%;">
+									<col width="20%;">
+									<col width="auto;">
+								</colgroup>
+								<tbody>
+									<tr>
+										<!--
+										<th scope="row"><label for="wrdConfmSttusCodeChkBox">승인상태</label></th>
+										<td>
+											<div id="wrdConfmSttusCodeChkBox">
+											</div>
+										</td>
+										<td></td>
+										-->
+										<th scope="row"><label for="prhibtYn">표준세트 명</label></th>
+										<td><input type="text" class="in_w100" id="searchText" name="searchText"/></td>
+										<td></td>
+									</tr>									
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+
+					<div class="division20">
+						<div class="row marginb25">
+							<div class="left" data-width="0">
+								<div class="card">
+									<table class="list fixed" id="tb_datastdsetList_table" >
+										<colgroup>
+											<col style="width: 5%;" />
+											<col style="width: 12%;" />
+											<col style="width: auto;" />
+											<col style="width: 10%;" />
+											<col style="width: 10%;" />
+											<col style="width: 10%;" />
+											<col style="width: 10%;" />
+										</colgroup>
+										<thead>
+											<tr>
+												<th>No</th>
+												<th>공통표준여부</th>
+												<th>표준세트 명</th>
+												<th>단어 수</th>
+												<th>도메인 수</th>
+												<th>용어 수</th>
+												<th>승인상태</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr class="fwk_templete_row">
+												<td>
+													#{FWK_TR_NO}
+													<input type="hidden" name="stdSetSn" value="#{stdSetSn}" />
+													<input type="hidden" name="stdSetTyCd" value="#{stdSetTyCd}" />
+													<input type="hidden" name="confmSttusCd" value="#{aprvSttusCd}" />
+													<input type="hidden" name="stdSetCn" value="#{stdSetCn}" />
+													<input type="hidden" name="stdSetNm" value="#{stdSetNm}" />
+													<input type="hidden" name="wrdTotalCnt" value="#{wrdTotalCnt}" />
+													<input type="hidden" name="domnTotalCnt" value="#{domnTotalCnt}" />
+													<input type="hidden" name="wordTotalCnt" value="#{wordTotalCnt}" />												
+												</td>
+												<td>#fn{fnBindCodeListObj('STDSETTY', 'text', '#{stdSetTyCd}', '')}</td>
+												<td class="alignl">#{stdSetNm}</td>
+												<td class="alignr">#fn{fnFormatNumber(#{wrdTotalCnt})}</td>
+												<td class="alignr">#fn{fnFormatNumber(#{domnTotalCnt})}</td>
+												<td class="alignr">#fn{fnFormatNumber(#{wordTotalCnt})}</td>
+												<td>#fn{fnBindCodeListObj('CONFMCDTY', 'text', '#{aprvSttusCd}', '')}</td>
+											</tr>
+										</tbody>
+									</table>
+									<div class="pagination_area marginb25" id="dv_paging">
+									</div><!-- pagination_area -->
+								</div><!-- card -->
+							</div><!-- left -->
+							
+							<div class="right" data-width="550">
+								<div class="view_wrap">
+								
+									<div class="tbl_top">
+										<p class="tit v2 margin0"><span>표준세트정보</span></p>
+										<div class="btn_wrap" id="stdSetReqBtnList" style="display:none;">
+											<button class="btn sm" id="loadBtn" onclick="fnLoadModal(); return false;">상세조회</button>
+											<div th:if="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">
+												<button class="btn sm" id="deleteBtn" onclick="fnDelete(); return false;">삭제</button>
+												<button class="btn sm blue" id="saveBtn" onclick="fnSaveStdSet('M'); return false;">저장</button>
+											</div>
+										</div>
+									</div><!-- tbl_top -->
+									
+									<table class="view">
+										<colgroup>
+											<col style="width: 120px;" />
+											<col style="width: auto;" />
+										</colgroup>
+										<tbody>
+											<tr>
+												<th>* 표준세트명</th>
+												<td><input type="text" name="stdSetNm" id="stdSetNmInput"/></td>
+											</tr>
+											<tr>
+												<th>표준세트 설명</th>
+												<td>
+													<textarea id="stdSetCnInput" style="height: 140px; overflow:auto; padding: 10px;" name="stdSetCn"></textarea>
+												</td>
+											</tr>																	
+											<tr>
+												<th>단어 수</th><td id="wrdTotalCnt"></td>
+											</tr>
+											<tr>
+												<th>도메인 수</th><td id=domnTotalCnt></td>
+											</tr>
+											<tr>
+												<th>용어 수</th><td id="wordTotalCnt"></td>
+											</tr>																	
+										</tbody>
+									</table>
+								</div><!-- view_wrap -->
+							</div><!-- right -->
+						</div><!-- row -->
+						
+					</div><!-- division20 -->
+				</div><!-- content_area -->
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+
+<!-- 표준세트 신규등록 모달  -->
+<div class="popup layer" id="stdSetModal" style="width:800px;">
+	<div class="pop_header">
+		<p class="title">표준세트정보</p>
+        <button class="btn_ic btn_pop_close" onclick="fnCloseModal('stdSetModal'); return false;">닫기</button>
+    </div>
+    <div class="pop_content">
+    <div class="card">
+    	<div class="tbl_top right">
+    		<div class="btn_wrap">
+    			<button class="btn sm" onclick="fnSaveStdSet('R'); return false;">저장</button>
+    		</div>
+   		</div>	
+		<table class="view">
+			<colgroup>
+				<col style="width: 25%;">
+  					<col style="width: auto;">
+				</colgroup>
+    			<tbody>
+	   				<tr>
+	   					<th>* 표준세트명</th>
+	   					<td><input type="text" id="modalStdSetNm" maxlength="100" placeholder="100자 이내로 입력해주세요" /></td>
+	   				</tr>
+	   				<tr>
+	   					<th>표준세트 설명</th>
+	   					<td>
+	  						<textarea style="height: 140px; overflow:auto; padding: 10px;" id="modalStdSetCn" name="modalStdSetCn" maxlength="500" placeholder="500자 이내로 입력해주세요"></textarea>
+	   					</td>
+	   				</tr>
+  				</tbody>
+		</table>	    
+    </div>
+	</div>
+	<div class="pop_footer">
+	</div>
+</div>
+ 
+
+<!-- 상세조회 모달  -->
+<div class="popup layer" id="stdSetloadModal">
+	<div class="pop_header">
+		<p class="title">표준세트 상세조회</p>
+        <button class="btn_ic btn_pop_close" onclick="fnCloseLoadModal(); return false;">닫기</button>
+    </div>
+    <div class="pop_content">
+    	<div class="tbl_top right">
+    		<div class="btn_wrap">
+    			<button class="btn sm pad0" onclick="fnExcelDownloadStdSetData(); return false;">엑셀다운로드</button>
+    		</div>
+   		</div>	
+		<div class="search_wrap">
+			<table class="search fixed">
+				<colgroup>
+					<col style="width: 100px;"/>
+					<col style="width: auto;" />
+					<col style="width: 60px;"/>
+					<col style="width: auto;" />
+					<col style="width: 100px;" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th><label for="selectStdSet">표준세트</label></th>
+    					<td>
+    						<div class="selectbox" id="selectArea">
+    							<select id="selectStdSet" name="selectStdSet" onchange="fnRefreshLoadModal()">
+    							</select>		
+    						</div>
+    					</td>
+    					<td></td>
+						<th><input type="text" class="in_w90 marginl40" id="loadSearch" name="loadSearch" placeholder="검색어를 입력하세요"/></th>
+						<td><button class="btn sm" id="loadSearchBtn"  name="loadSearchBtn" onclick="fnSearchLoadTable()" >검색</button></td>
+					</tr>
+					<tr>
+
+					</tr>									
+				</tbody>
+			</table>
+ 
+		</div>
+		<div class="tab_wrap card">
+			<ul class="tab_btn_wrap" id="loadButtonArea">
+				<li class="tab_btn on">
+					<button id="loadWrdBtn" data-tab="1" value="wrd" onclick="fnClickLoadTab(this);">단어</button>
+				</li>
+				<li class="tab_btn">
+					<button id="loadDomnBtn" data-tab="2" value="domn" onclick="fnClickLoadTab(this);">도메인</button>
+				</li>
+				<li class="tab_btn">
+					<button id="loadWordBtn" data-tab="3" value="word" onclick="fnClickLoadTab(this);">용어</button>
+				</li>
+			</ul>
+			<div class="tab_cont_wrap" id="loadTableArea">
+				<div class="tab_content" data-tab="1" style="display: block; padding-top: 0px;" >
+					<div class="tbl_wrap in_hp300 overflow-y">
+						<table id="loadWrdTable" class="list">
+							<colgroup>
+								<col width="6%" />
+								<col width="10%" />
+								<col width="17.4%" />
+								<col width="17.2%" />
+								<col width="17.2%" />
+								<col width="auto;" />
+							</colgroup>
+							<thead>
+								<tr>
+									<th>No</th>
+									<th>단어구분</th>
+									<th>단어명</th>
+									<th>영문 약어명</th>
+									<th>영문명</th>
+									<th>단어 설명</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="fwk_templete_row">
+									<td>
+										#{FWK_TR_NO}
+										<input type="hidden" name="stdSetSn" value="#{stdSetSn}" />
+										<input type="hidden" name="wrdSn" value="#{wrdSn}" />
+									</td>
+									<td>#{wrdTyCdNm}</td>
+									<td class="alignl">#{wrdNm}</td>
+									<td class="alignl">#{wrdEngAbrvNm}</td>
+									<td class="alignl">#{wrdEngNm}</td>
+									<td class="alignl">#{wrdCn}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="tab_content" data-tab="2" style="display: none; padding-top: 0px;" >
+					<div class="tbl_wrap in_hp300 overflow-y">
+						<table id="loadDomnTable" class="list">
+							<colgroup>
+								<col width="6%" />
+								<col width="10%" />
+								<col width="17.4%" />
+								<col width="34.4%" />
+								<col width="auto;" />
+							</colgroup>
+							<thead>
+								<tr>
+									<th>NO</th>
+									<th>도메인 구분</th>
+									<th>도메인그룹명</th>
+									<th>도메인명</th>
+									<th>도메인 설명</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="fwk_templete_row">
+									<td>
+										#{FWK_TR_NO}
+										<input type="hidden" name="stdSetSn" value="#{stdSetSn}" />
+										<input type="hidden" name="domnSn" value="#{domnSn}" />
+										<input type="hidden" name="domnNm" value="#{domnNm}" />									
+									</td>
+									<td>#{dataTyCd}</td>
+									<td>#{domnGroupNm}</td>
+									<td class="alignl">#{domnNm}</td>
+									<td class="alignl">#{domnCn}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="tab_content" data-tab="3" style="display: none;  padding-top: 0px;" >
+					<div class="tbl_wrap in_hp300 overflow-y">
+						<table id="loadWordTable" class="list">
+							<colgroup>
+								<col width="6%" />
+								<col width="10%" />
+								<col width="17.4%" />
+								<col width="17.2%" />
+								<col width="17.2%" />
+								<col width="auto;" />
+							</colgroup>
+							<thead>
+								<tr>
+									<th>NO</th>
+									<th>용어구분</th>
+									<th>용어명</th>
+									<th>용어영문약어명</th>
+									<th>용어약어명</th>
+									<th>용어설명</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="fwk_templete_row">
+									<td>
+										#{FWK_TR_NO}
+										<input type="hidden" name="stdSetSn" value="#{stdSetSn}" />
+										<input type="hidden" name="wordSn" value="#{wordSn}" />
+										<input type="hidden" name="wordEngAbrvNm" value="#{wordEngAbrvNm}" />									
+									</td>
+									<td>#{wordTyCdNm}</td>
+									<td class="alignl">#{wordNm}</td>
+									<td class="alignl">#{wordEngAbrvNm}</td>
+									<td class="alignl">#{wordEngNm}</td>
+									<td class="alignl">#{wordCn}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="pop_footer">
+	</div>
+</div>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+	fnInit();
+	$("#searchText").on("keyup", function(event){
+		if(event.keyCode == 13){
+			fnSearch();
+		}
+	});
+	
+	var stdSetSn = parent.$("#topgv_stdSetSn").val();
+	
+	if(!fnChkStdSet(stdSetSn)){
+		return;
+	} else {
+		$("#stdSetReqBtnList").show();
+		$("#stdSetBtnList").show();
+	}
+
+});
+
+//페이지 초기화 및 검색 결과 조회
+function fnSearch(pageNum){
+ 	if(!pageNum){
+ 		pageNum = 1;
+	}	
+	var confmSttusCodeArrList = [];
+	$("#wrdConfmSttusCodeChkBox :checked").each(function(){
+		confmSttusCodeArrList.push($(this).val());
+	});
+ 	
+	$.ajax({
+		url: "/json/stdSet/getDataStdSetList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			confmSttusCodeArrList
+			, searchText: fnUnderbarChgVar($("#searchText").val())
+			, pageNum: pageNum
+		})
+		, success: function(data){
+			
+			fnBindTableValue("tb_datastdsetList_table", data.list, data.pagingInfo);
+			fnSetPaging("dv_paging", data.pagingInfo); 
+ 			fnSelectTrEvent("#tb_datastdsetList_table tbody tr", function(rtnObj){
+ 				var stdSetTyCd = $(rtnObj).find("input[name=stdSetTyCd]").val();
+ 				fnShowDetail(stdSetTyCd);
+			}); 
+			fnInitDtlView();
+		}
+	});
+}
+
+// 승인상태 select초기화
+function fnInit(){
+	new CodeBinder()
+		.setCommonCode("CONFMCDTY", "wrdConfmSttusCodeChkBox", "checkbox")
+		.setCommonCode("STDSETTY", "", "text")
+		.setCommonCode("WRDCDTY", "","text")
+		.setSqlCode("meta_stdset.selectStdSetList", "selectStdSet", "select")
+		.setLoadCallbackFunc("fnSearch()")
+		.load();
+}
+
+function fnInitDtlView(){
+	$("#stdSetNmInput").attr("disabled",true);
+	$("#stdSetCnInput").attr("disabled",true);
+	$("#stdSetNmInput").val("");
+	$("#stdSetCnInput").val("");
+	$("#wrdTotalCnt").text("");
+	$("#domnTotalCnt").text("");
+	$("#wordTotalCnt").text("");
+	fnFuncBtnsHide();
+	
+}
+
+// 기능 버튼 모두 hide 처리
+function fnFuncBtnsHide() {
+	$("#deleteBtn").hide();
+	$("#saveBtn").hide();
+	$("#loadBtn").hide();
+}
+
+// 현재 테이블에 선택된 row가 있는지 확인
+function checkTableClickedRow(){
+	var isChkObj =fnIsSelectTrChk("tb_datastdsetList_table");
+	return !isChkObj.isChk ;
+}
+
+
+// 표준세트정보(오른쪽 테이블) 테이블 바인딩
+function fnShowDetail(stdSetTyCd){
+	var selectedTr =$("#tb_datastdsetList_table").find("tr[data-selectedtr=Y]");
+	$("#loadBtn").show();
+	if(stdSetTyCd == "COMMON"){
+		$("#saveBtn").hide(); 
+		$("#deleteBtn").hide();
+		$("#stdSetNmInput").attr("disabled",true);
+		$("#stdSetCnInput").attr("disabled",true);
+	}else{
+		$("#saveBtn").show();
+		$("#deleteBtn").show();
+		$("#stdSetNmInput").attr("disabled",false);
+		$("#stdSetCnInput").attr("disabled",false);
+	}
+	$("#stdSetNmInput").val($(selectedTr).find('input[name=stdSetNm]').val());	
+	$("#stdSetCnInput").val($(selectedTr).find('input[name=stdSetCn]').val());	
+	$("#wrdTotalCnt").text(fnFormatNumber($(selectedTr).find('input[name=wrdTotalCnt]').val())+"건");
+	$("#domnTotalCnt").text(fnFormatNumber($(selectedTr).find('input[name=domnTotalCnt]').val())+"건");	
+	$("#wordTotalCnt").text(fnFormatNumber($(selectedTr).find('input[name=wordTotalCnt]').val())+"건");
+	
+} 
+
+//삭제 
+function fnDelete(){
+	if(checkTableClickedRow()){
+		alert("선택된 표준세트정보가 없습니다.");
+		return false;
+	}
+	var	stdSetSn = fnSelectTrHiddenValue("tb_datastdsetList_table","stdSetSn");
+	if(!confirm("삭제하시겠습니까?")){
+		return false;
+	}
+	$.ajax({
+		url: "/json/stdSet/deleteDataStdSetInfo"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			stdSetSn: stdSetSn
+		})
+		, success: function(data){
+			alert("삭제되었습니다.");
+			fnSearch();
+		}
+	});
+}
+
+// 신규등록 모달
+function fnRegistModal(){
+	fnClearSelectTrEvent("#tb_datastdsetList_table tbody tr");
+	fnShowModal("stdSetModal");	 
+	fnInitDtlView();
+}
+
+// 표준세트 신규등록(R) 수정(저장버튼)(M) 
+function fnSaveStdSet(pmode){
+	 
+	var stdSetInfo;
+	var stdSetSn=0;
+	var stdSetNm; 
+	var stdSetCn;
+	
+	
+	if(pmode=="R"){ 
+		if($("#modalStdSetNm").val()==''){
+			alert("표준세트명을 입력해주세요");
+			return false;
+	 	}
+		 
+		stdSetNm = $("#modalStdSetNm").val();
+ 		stdSetCn = $("#modalStdSetCn").val();
+	}
+	else if(pmode=="M"){
+		if(checkTableClickedRow()){
+			alert("선택된 표준세트가 없습니다.");
+			return false;
+		}
+		stdSetSn = fnSelectTrHiddenValue("tb_datastdsetList_table","stdSetSn");
+					
+		if($("#stdSetNmInput").val()==''){
+			alert("표준세트명을 입력해주세요");
+			return false;
+		}
+		
+		stdSetNm= $("#stdSetNmInput").val();
+		stdSetCn= $("#stdSetCnInput").val();		
+	}
+	
+	if(!confirm("저장하시겠습니까?")){
+		return false;
+	}
+	
+	$.ajax({
+		url: "/json/stdSet/saveDataStdSetInfo"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pmode: pmode
+			,stdSetNm: stdSetNm
+   			,stdSetCn: stdSetCn
+   			,stdSetSn: stdSetSn
+		})
+		, success: function(data){
+			alert("저장되었습니다.");
+			$("#modalStdSetNm").val('');
+			$("#modalStdSetCn").val('');
+			fnCloseModal('stdSetModal');
+			fnSearch();
+		}
+	}); 
+}
+ 
+
+
+
+// 상세조회
+function fnLoadModal(){
+	if(checkTableClickedRow()){
+		alert("선택된 표준세트가 없습니다.");
+		return false;
+	}
+	$("#loadSearch").keyup(function(keyNum){
+		if(keyNum.keyCode==13){
+		 	fnSearchLoadTable();
+		}
+	});
+	var	stdSetSn = fnSelectTrHiddenValue("tb_datastdsetList_table","stdSetSn");
+	
+	$("#loadSearch").val("");
+	//$("#selectStdSet option[value='1']").remove();
+	//$("#selectStdSet option[value="+stdSetSn+"]").remove();
+	//$("#selectArea label").text($("#selectStdSet option:selected").text());
+	
+	 
+	$("#selectStdSet").val(fnSelectTrHiddenValue("tb_datastdsetList_table","stdSetSn")).prop("selected", true);
+	$("#selectArea label").text($("#selectStdSet option:selected").text());
+	
+
+	fnShowModal("stdSetloadModal");
+
+	//현재 선택된(단어,도메인,용어 중 하나)것의 내용(버튼)
+	var currentObj = $("#loadButtonArea").find('.on :button')[0];
+	
+	fnShowLoadTable(currentObj);
+}
+
+// 불러오기 테이블 바인딩
+function fnShowLoadTable(obj){
+	var dataTab;
+	var type;
+	var stdSetNm;
+	var stdSetSn=$("#selectStdSet").val();
+	var tableId;
+
+	dataTab=obj.dataset.tab;
+	type = obj.value;
+	 
+	 
+	//현재 선택된 불러오기 모달의 테이블의 아이디
+	tableId=$("#loadTableArea").find('[data-tab='+dataTab+'] div table').attr('id');
+	
+	var searchNm=$("#loadSearch").val();
+	
+	fnClearBindData("loadWrdTable");
+	fnClearBindData("loadDomnTable");
+	fnClearBindData("loadWordTable");
+	
+	$.ajax({
+		url: "/json/stdSet/loadDataStdSetInfo"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			type: type
+			,stdSetSn: stdSetSn
+			,searchNm: fnUnderbarChgVar(searchNm)
+		})
+		, success: function(data){
+			fnBindTableValue(tableId, data.list, data.pagingInfo);
+		}
+	});
+}
+
+function fnSearchLoadTable() {
+	fnShowLoadTable($("#loadButtonArea").find('.on :button')[0]);
+}
+
+//검색 버튼을 누르거나 select에서 선택 할 때 화면 다시 그리기
+function fnRefreshLoadModal(){
+	$("#loadSearch").val("");
+	fnSearchLoadTable();
+	// 현재 내가 보는 화면(단어,도메인,용어)을 다시 갱신
+	//$("#loadButtonArea").find('.on :button').click();
+	//fnShowLoadTable($("#loadButtonArea").find('.on :button')[0]);
+}
+
+function fnClickLoadTab(obj) {
+	$("#loadSearch").val("");
+	fnShowLoadTable(obj);
+}
+
+
+// 1. 탭이동 시 체크 항목 다 해제
+// 2. "확인" 버튼 클릭 시 해당 탭에 table > tbody > tr for 돌면서
+// 3. 체크박스 여부가 true 인것만 콘솔로그 찍기
+// 4. 3에 대해서 for문 돌려서 tr안에 있는 input 값 obj로 만들어서 arr 넣줘야함
+
+// wrdList = [{aa:1, bb:2},{aa:3, bb:4}]
+ 
+// 테이블에서 각 tr 별로
+
+
+// 단어, 도메인, 용어 테이블중 한 곳에서 체크된 것들을 자신이 선택한 표준세트로 불러옴
+function fnExcelDownloadStdSetData(){
+	var wrdArray=[];
+	var domnArray=[];
+	var wordArray=[];
+	 
+	var stdNm = $("#selectStdSet option:selected").text();
+	var stdSetSn = $("#selectStdSet option:selected").val();
+	//console.log("stdSetSn: ",stdSetSn);
+	var type = $("#loadButtonArea").find('.on :button').attr('value');
+	var dataTab = $("#loadButtonArea").find('.on :button').attr('data-tab');
+
+	var tableId=$("#loadTableArea").find('[data-tab='+dataTab+'] div table').attr('id');		// 현재 화면에 보여지는 테이블의 아이디를 가져옴
+	//console.log("tableId 비교 ",tableId,"each 없이",$("#loadTableArea").find('[data-tab='+dataTab+'] div table').attr('id'));
+	
+	var	paramObj = {
+		stdSetSn : stdSetSn
+		, type: type
+		, searchNm:$("#loadSearch").val()
+	};
+ 
+
+	if(type == 'wrd'){
+		fnCommFileDownByUrl("/exceldown/stdSet/excelImportStdSetData", stdNm +"_단어", JSON.stringify(paramObj));
+	} else if(type == 'domn'){
+		fnCommFileDownByUrl("/exceldown/stdSet/excelImportStdSetData", stdNm+"_도메인", JSON.stringify(paramObj));
+	} else{
+		fnCommFileDownByUrl("/exceldown/stdSet/excelImportStdSetData", stdNm + "_용어", JSON.stringify(paramObj));
+	}
+}
+
+// 테이블에서 체크된 row를 찾아 값들을 배열로 리턴
+function fnGetSelectedThings(array,tableId){
+	$("#"+tableId).find('tbody').children('.fwk_data_row').each(function(index,value){
+		//현재 row가 체크되었다면
+		if($(value).find('td input[type="checkbox"]').is(':checked')){
+			var obj={};
+			var tbj={};
+			$(value).children('input[type="hidden"]').each(function(i,val){
+				obj[val.name]=val.value;				
+			});
+			array.push(obj);	
+		}		 
+	});
+	//console.log($("#"+tableId).find('tbody').children('.fwk_data_row'));
+}
+
+function fnCloseLoadModal(){
+	fnClearBindData("loadWrdTable");
+	fnClearBindData("loadDomnTable");
+	fnClearBindData("loadWordTable");
+	fnCloseModal('stdSetloadModal');
+}
+
+</script>
+</body>
+</html>

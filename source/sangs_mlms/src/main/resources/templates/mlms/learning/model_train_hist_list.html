@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+
+	
+</head>
+
+<body id="body">
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+				<div class="page_info_area">
+                    <div class="left">
+                        <div class="location_area">
+                            <a href="#" class="bookmark active" title="즐겨찾기"></a>
+                            <ul>
+                                <li>홈</li>
+                                <li>학습관리</li>
+								<li>학습모델훈련이력</li>
+                            </ul>
+                        </div>
+                        <div class="title_area">
+                            <p>학습모델훈련이력</p>
+                            <a href="#" class="reload_btn" title="새로고침">새로고침</a>
+                            <a href="#" class="help_btn" title="도움말">도움말</a>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="button_area">
+                            <button class="btn" title="조회" onclick="fnSearch(); return false;">조회</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content_area">
+                	<div class="division20">
+                		<div class="search_wrap">
+                			<table class="search fixed">
+                				<colgroup>
+                                    <col style="width: 100px;" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 60px;" />
+                                    <col style="width: 100px" />
+                                    <col style="width: auto;" />
+                                    <col style="width: 60px;" />
+                                    <col style="width: 100px" />
+                                    <col style="width: auto;" />
+                                </colgroup>
+                                <tbody>
+                                	<tr>
+                                		<th scope="row"><label for="beginDtFrom">학습일자</label></th>
+                                		<td>
+                                            <div class="calendar_box">
+                                                <input type="text" id="beginDtFrom" name="beginDtFrom">
+                                            </div>
+                                            ~
+                                            <div class="calendar_box">
+                                                <input type="text" id="beginDtTo" name="beginDtTo">
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                        
+                                        <th scope="row"><label for="beginDtFrom">학습그룹</label></th>
+                                        <td>
+                                        	<div class="selectbox">
+                                        		<select id="lrnGroupSn" name="lrnGroupSn">
+                                        			<option value="">선택</option>
+                                        		</select>
+                                        	</div>
+                                        </td>
+                                        <td></td>
+                                        
+                                        <th scope="row"><label for="lrnNm">학습명</label></th>
+                                        <td><input type="text" class="in_w100" id="lrnNm" name="lrnNm" /></td>
+                                	</tr>
+                                </tbody>
+                			</table>
+                		</div>
+                	</div>
+                	
+                	<div class="division">
+                		<div class="row">
+                			<div class="left" data-width="auto">
+		                		<div class="table_area marginb25">
+		                			<table class="list fixed" id="tb_data_table">
+		                				<colgroup>
+											<col width="60px;" /> 
+											<col width="160px;" />
+											<col width="160px;" />
+											<col width="60px;" />
+											<col width="auto;" />
+											<col width="auto;" />
+											<col width="80px;" />
+											<col width="80px;" />
+										</colgroup>
+										<thead>
+											<tr>
+												<th>실행순번</th>
+												<th>시작일시</th>
+												<th>종료일시</th>
+												<th>상태</th>
+												<th>학습그룹</th>
+												<th>학습명</th>
+												<th>소요시간</th>
+												<th>정확도</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr class="fwk_templete_row">
+												<td>
+													#{lrnExcnSn}
+													<input type="hidden" name="lrnExcnSn" value="#{lrnExcnSn}" />
+													<input type="hidden" name="resultFlpth" value="#{resultFlpth}" />
+													<input type="hidden" name="crtModelFlpth" value="#{crtModelFlpth}" />
+												</td>
+												<td>#{lrnExcnBgngDt}</td>
+												<td>#{lrnExcnEndDt}</td>
+												<td>#{traingSttusCdNm}</td>
+												<td class="alignl">#{lrnGroupNm}</td>
+												<td class="alignl">#{lrnNm}</td>
+												<td class="alignr">#fn{fnDateTextBySec(#{diffSecond})}</td>
+												<td class="alignr">#{accrcyRate}%</td>
+											</tr>
+										</tbody>
+		                			</table>
+		                		</div>
+		                		<div class="pagination_area marginb25" id="dv_paging"></div>
+	                		</div>
+	                		
+	                		
+	                		<div class="right" data-width="400"> 
+	                			<div class="view_wrap">
+		                			<div class="tbl_top" style="flex: 0 0 0;">
+				                		<p class="tit v2"><span>학습모듈 구성</span></p>
+			                			<div class="button_wrap">
+				                			<button class="btn sm" onclick="fnModelPublishing(); return false;">퍼블리싱</button>
+				                			<button class="btn sm" onclick="fnOpenResultPop(); return false;">결과조회</button>
+			                			</div>
+			                		</div>
+		                			<div class="table_area marginb25">
+			                			<table class="view fixed">
+			                				<colgroup>
+			                					<col width="140px" /> 
+												<col width="auto;" />
+											</colgroup>
+											<tbody>
+												<tr>
+													<th>학습 데이터셋</th>
+													<td id="dtlview_traindataset"></td>
+												</tr>
+												<tr>
+													<th>훈련 선처리모듈</th>
+													<td id="dtlview_trainpreproc"></td>
+												</tr>
+												<tr>
+													<th>훈련 모델러</th>
+													<td id="dtlview_modeler"></td>
+												</tr>
+												<tr>
+													<th>모델</th>
+													<td id="dtlview_model"></td>
+												</tr>
+												<tr>
+													<th>테스트 데이터셋</th>
+													<td id="dtlview_testdataset"></td>
+												</tr>
+												<tr>
+													<th>테스트 선처리모듈</th>
+													<td id="dtlview_testpreproc"></td>
+												</tr>
+												<tr>
+													<th>결과파일</th>
+													<td id="dtlview_result"></td>
+												</tr>
+											</tbody>
+			                			</table>
+			                		</div>
+		                		</div>
+	                		</div>
+	                		
+                		</div>
+                	</div>
+                	
+                	
+                	
+                </div>
+                
+                
+			</div>
+		</div>
+	</div>
+
+
+<script type="text/javascript">
+
+
+$(document).ready(function() {
+	
+	$("#lrnNm").on("keyup", function(event) {
+		if(event.keyCode == 13) 
+			fnSearch();
+	});
+
+	
+	$("#beginDtFrom, #beginDtTo").datepicker();
+	
+	try {
+		// 왼쪽 메뉴 선택 처리 (링크로 해당 페이지 들어온경우 오른쪽 메뉴를 선택 처리 한다. )
+		parent.fnSelectLeftMenu(location.pathname);
+	} catch(e) {}
+	
+	
+	// 공통코드 load
+	fnInit();
+	
+});
+
+
+function fnInit() {
+	
+	new CodeBinder()
+	.setSqlCode("LEARNING_GROUP_CODE","lrnGroupSn", "select")
+	.load();
+	
+	
+	// 검색 시작
+	fnSearch(1);
+}
+
+
+function fnSearch(pageNum) {
+	if(!pageNum) 
+		pageNum = 1;
+	
+	//fnClearDetail();
+	
+	$.ajax({
+		url: "/json/learning/getModelTrainHistList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum: pageNum
+			, lrnGroupSn : $("#lrnGroupSn").val()
+			, lrnNm : $("#lrnNm").val()
+			, beginDtFrom : fnRemoveDateDelim($("#beginDtFrom").val())
+			, beginDtTo : fnRemoveDateDelim($("#beginDtTo").val())
+		})
+		, success: function(data){
+			
+			// 테이블 데이터 처리 
+			fnBindTableValue("tb_data_table", data.list, data.pagingInfo);
+			
+			// 페이징 처리 
+			fnSetPaging("dv_paging", data.pagingInfo); 
+
+			// 선택 tr event 처리 후 color 처리 		
+			fnSelectTrEvent("#tb_data_table tbody tr", function(rtnObj) {
+				fnViewDetail($(rtnObj).find("input[name=lrnExcnSn]").val());
+			})
+		}
+	});
+	 
+}
+
+// 상세영역 초기화
+function fnClearDetail() {
+	$("#dtlview_traindataset").empty();
+	$("#dtlview_trainpreproc").empty();
+	$("#dtlview_modeler").empty();
+	$("#dtlview_model").empty();
+	$("#dtlview_testdataset").empty();
+	$("#dtlview_testpreproc").empty();
+	$("#dtlview_result").empty();
+}
+
+// 상세 조회
+function fnViewDetail(lrnExcnSn) {
+	
+	//fnClearDetail();
+	
+	// 실행학습적용모듈정보조회
+	$.ajax({
+		url: "/json/learning/getLearningExcnAplcnModule"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			lrnExcnSn : lrnExcnSn
+		})
+		, success: function(data){
+			var aplcnDatasetList = data.aplcnDatasetList;
+			var aplcnModuleList = data.aplcnModuleList;
+			var aplcnModuleParamList = data.aplcnModuleParamList;
+			
+			
+			// 데이터셋
+			for(var i = 0 ; i < aplcnDatasetList.length ; i++) {
+				var item = aplcnDatasetList[i];
+				//console.log(item);
+				if(item.datasetType == "TRAIN") {
+					$("#dtlview_traindataset").html("<a href='#' onclick='fnViewDatasetPop(\"L\","+item.lrnDatasetSn+"); return false;' >"+ item.datasetNm + "</a>");
+					
+					//$("#dtlview_traindataset").html(item.datasetNm+"<br/>("+item.dataFlpth+")");
+				} else if(item.datasetType == "TEST") {
+					//$("#dtlview_testdataset").html(item.datasetNm+"<br/>("+item.dataFlpth+")");
+					$("#dtlview_testdataset").html("<a href='#' onclick='fnViewDatasetPop(\"L\","+item.lrnDatasetSn+"); return false;' >"+ item.datasetNm + "</a>");
+				}
+			}
+			var trainpreprocHtml = "";
+			var modelerHtml = "";
+			var testpreprocHtml = "";
+			
+			// 적용모듈
+			for(var i = 0 ; i < aplcnModuleList.length ; i++) {
+				var item = aplcnModuleList[i];
+				
+				var paramHtml = "";
+				
+				for(var j = 0 ; j < aplcnModuleParamList.length ; j++) {
+					var itemDtl = aplcnModuleParamList[j];
+					if(item.moduleAplcnSn == itemDtl.moduleAplcnSn && itemDtl.paramtrValue != "") {
+						paramHtml+="<br/> - " + itemDtl.paramtrNm + " = " + itemDtl.paramtrValue; 
+					}
+				}
+				
+				if(item.moduleAplcnTyCd == "PRE_TRAIN") {
+					if(trainpreprocHtml != "") {
+						trainpreprocHtml = trainpreprocHtml + "<br/>";
+					}	
+					trainpreprocHtml = trainpreprocHtml + item.moduleNm + paramHtml;
+				} else if(item.moduleAplcnTyCd == "MODELER") {
+					if(modelerHtml != "") {
+						modelerHtml = modelerHtml + "<br/>";
+					}	
+					modelerHtml = modelerHtml + item.moduleNm + paramHtml;
+				} else if(item.moduleAplcnTyCd == "PRE_TEST") {
+					if(testpreprocHtml != "") {
+						testpreprocHtml = testpreprocHtml + "<br/>";
+					}	
+					testpreprocHtml = testpreprocHtml + item.moduleNm + paramHtml;
+				} 
+			}
+			
+			
+			$("#dtlview_trainpreproc").html(trainpreprocHtml);
+			$("#dtlview_modeler").html(modelerHtml);
+			$("#dtlview_testpreproc").html(testpreprocHtml);
+			
+			
+			$("#dtlview_model").text($("#tb_data_table").find("tr[data-selectedtr=Y]").find("input[name=crtModelFlpth]").val());
+			$("#dtlview_result").text($("#tb_data_table").find("tr[data-selectedtr=Y]").find("input[name=resultFlpth]").val());
+		}
+	});
+}
+
+
+// 학습결과 팝업
+function fnOpenResultPop() {
+	var lrnExcnSn = $("#tb_data_table").find("tr[data-selectedtr=Y]").find("input[name=lrnExcnSn]").val();
+	//window.open('/open/mlms/result/result_info_pop?lrnExcnSn='+lrnExcnSn, '_blank', 'width=1400, height=1000, resize=yes');
+	fnOpenCmmnResultPop(lrnExcnSn);
+	
+}
+
+// 퍼블리싱 처리
+function fnModelPublishing() {
+	
+	var lrnExcnSn = $("#tb_data_table").find("tr[data-selectedtr=Y]").find("input[name=lrnExcnSn]").val();
+	if(!lrnExcnSn || lrnExcnSn == undefined)
+		return ;
+	if(!confirm("선택한 모델을 퍼블리싱 하시겠습니까?"))
+		return;
+		
+		
+	$.ajax({
+		url: "/json/learning/regModelPublishing"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			lrnExcnSn : lrnExcnSn
+		})
+		, success: function(data){
+			console.log(data);
+			
+			if(data.resultCd == "OK") {
+				alert("퍼블리싱 처리 되었습니다.");	
+			}
+			
+		}
+	});
+}
+
+
+</script>
+</body>
+</html>

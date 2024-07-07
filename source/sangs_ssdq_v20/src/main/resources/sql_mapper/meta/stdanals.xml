@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="meta_stdanals">
+
+ 
+ 	<!-- 표준 분석 제외 테이블 정보 조회 -->
+ 	<select id="selectStdAnalsExclTblInfo" resultType="sangsMap" parameterType="map">
+ 		select 
+ 			dbms_cnnc_sn
+ 			, excl_tbl_cn
+ 			, reg_user_id
+ 		from META_STD_ANLS_EXCL_TBL 
+ 		where dbms_cnnc_sn = #{dbmsCnncSn}
+	</select>
+	<!-- 표준 분석 제외 테이블 정보 등록 -->
+	<insert id="insertStdAnalsExclTblInfo" parameterType="map">
+		insert into META_STD_ANLS_EXCL_TBL (
+			dbms_cnnc_sn
+			, excl_tbl_cn
+			, reg_user_id
+			, reg_dt
+			, chg_user_id
+			, chg_dt
+		) values (
+			#{dbmsCnncSn}
+			, #{exclTblCn}
+			, #{regUserId}
+			, now()
+			, #{regUserId}
+			, now()
+		)
+	</insert>
+	<!-- 표준 분석 제외 테이블 정보 수정 -->
+	<update id="updateStdAnalsExclTblInfo" parameterType="map">
+		update META_STD_ANLS_EXCL_TBL set
+			excl_tbl_cn = #{exclTblCn}
+			, chg_user_id = #{regUserId}
+			, chg_dt = now()
+		where dbms_cnnc_sn = #{dbmsCnncSn}
+	</update>
+	 
+</mapper>  

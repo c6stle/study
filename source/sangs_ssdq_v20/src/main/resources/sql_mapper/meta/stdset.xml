@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="meta_stdset">
+
+
+	<!-- 표준세트 목록 조회 -->
+	<select id="selectStdSetList" resultType="sangsMap" parameterType="map">
+		select
+			std_set_sn as code
+			, std_set_nm as code_nm
+		from META_STD_SET
+		where use_yn ='Y'
+		and del_yn = 'N'
+		and aprv_sttus_cd = 'APPROVAL'
+		<if test="stdSetTyCd != '' and stdSetTyCd != null ">
+			and std_set_ty_cd = #{stdSetTyCd}
+		</if>
+	</select>
+	
+	<!-- 프로젝트 표준세트 목록 조회 -->
+	<select id="selectPrjctStdSetList" resultType="sangsMap" parameterType="map">
+		select
+			t1.std_set_sn
+			, t1.std_set_nm
+			, (select count(*) from META_WRD t0 where t1.std_set_sn = t0.std_set_sn and t0.use_yn='Y') as wrd_total_cnt
+			, (select count(*) from META_WORD t0 where t1.std_set_sn = t0.std_set_sn and t0.use_yn='Y') as word_total_cnt
+			, (select count(*) from META_DOMN t0 where t1.std_set_sn = t0.std_set_sn and t0.use_yn='Y') as domn_total_cnt
+		from META_STD_SET t1
+		where t1.use_yn ='Y'
+		and t1.del_yn = 'N'
+		and t1.aprv_sttus_cd = 'APPROVAL'
+		and t1.std_set_ty_cd = 'NONE'
+		<if test="searchText != '' and searchText != null ">
+	 		and t1.std_set_nm like CONCAT('%',#{searchText},'%')
+	 	</if>
+	</select>
+	
+	<!-- 표준세트 순번 채번 -->
+	<select id="selectNextStdSetSn" resultType="Integer" parameterType="map">
+		select 
+			ifnull(max(std_set_sn), 0) + 1
+		from META_STD_SET
+	</select>
+	<!-- 표준세트 정보 등록 -->
+	<insert id="insertStdSetInfo" parameterType="map">
+		insert into META_STD_SET(
+			std_set_sn
+			, std_set_nm
+			, std_set_cn
+			, std_set_ty_cd
+			, aprv_sttus_cd
+			, use_yn
+			, del_yn
+			, reg_user_id
+			, reg_dt
+			, chg_user_id
+			, chg_dt
+		)values(
+			#{stdSetSn} 
+			, #{stdSetNm}
+			, #{stdSetCn}
+			, #{stdSetTyCd}
+			, #{aprvSttusCd}
+			, #{useYn}
+			, #{delYn}
+			, #{regUserId}
+			, now()
+			, #{chgUserId}
+			, now()
+		)
+	</insert>
+	
+	<!-- 표준세트 테이블 조회 -->
+	<select id="selectDataStdSetList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.std_set_sn
+			, t1.std_set_ty_cd
+			, t1.std_set_nm
+			, t1.std_set_cn
+			, t1.aprv_sttus_cd
+			, fn_get_cmmn_code_nm('STDSETTY', t1.std_set_ty_cd) as std_set_ty_nm
+			, (select count(*) from META_WRD t0 where t1.std_set_sn = t0.std_set_sn and t0.use_yn='Y') as wrd_total_cnt
+			, (select count(*) from META_WORD t0 where t1.std_set_sn = t0.std_set_sn and t0.use_yn='Y') as word_total_cnt
+			, (select count(*) from META_DOMN t0 where t1.std_set_sn = t0.std_set_sn and t0.use_yn='Y') as domn_total_cnt
+		from META_STD_SET t1
+		where 1=1
+			and t1.del_yn = 'N'
+			<include refid="where_selectDataStdSetList"></include>
+		order by t1.std_set_sn
+		limit #{pageSize} offset #{offset}
+	</select>
+	
+	
+	<!-- 표준세트의 수 조회  -->
+	<select id="selectDataStdSetListCount" resultType="Integer" parameterType="map" >
+		select count(*)
+		from META_STD_SET t1
+		where 1=1
+			and t1.DEL_YN = 'N'
+			<include refid="where_selectDataStdSetList"></include>
+	</select>
+
+
+
+	<!--표준세트 상세조건-->
+	<sql id="where_selectDataStdSetList">
+		<if test="confmSttusCodeArrList != '' and confmSttusCodeArrList != null ">
+			<if test="!confmSttusCodeArrList.isEmpty()">
+				and t1.aprv_sttus_cd in 
+				<foreach collection="confmSttusCodeArrList" item="item" open="(" close=")" separator=",">
+					#{item}
+				</foreach>
+			</if>
+		</if>
+		<if test=" searchText != '' and searchText != null ">
+			and t1.std_set_nm like concat('%',  #{searchText} , '%')
+		</if>
+	</sql>
+
+	
+	<!-- 표준세트 이름 불러오기(표준세트 신규등록시 표준세트명 중복체크를 위함) -->
+	<select id="getStdSetNm"  resultType="sangsMap" parameterType="map">
+		select std_set_nm 
+		from META_STD_SET 
+	</select>
+
+	<!-- 신규 표준세트와 프로젝트 맵핑
+	<insert id="insertPrjctStdSetInfo" parameterType="map">
+		insert into META_PRJCT_STD_SET(prjct_sn, std_set_sn)
+		values(#{prjctSn}, #{stdSetSn})
+	</insert> -->
+
+	<!-- 표준세트 수정 -->
+	<update id="updateStdSetInfo" parameterType="map">
+		update META_STD_SET 
+		set std_set_nm = #{stdSetNm}
+			, std_set_cn = #{stdSetCn}
+			<include refid="common_update_query" />
+		where 1=1
+			and std_set_sn = #{stdSetSn}
+	</update>
+
+	<!-- 변경 공통 쿼리(변경자 id, 변경일)  -->
+	<sql id="common_update_query">
+		, chg_user_id = #{regUserId}
+		, chg_dt = now()
+	</sql>
+
+
+	<!-- 표준세트 삭제 -->
+	<delete id="deletestdSetInfo" parameterType="map">
+		update META_STD_SET 
+		set use_yn = 'N'
+			, del_yn = 'Y'
+		<include refid="common_update_query" />
+		where 1=1
+			and std_set_sn = #{stdSetSn}
+	</delete>
+
+ 
+	 
+
+	 
+	<!-- 불러오기 테이블에서 단어 테이블 조회 -->
+	<select id="selectLoadWrdList" resultType="sangsMap" parameterType="map">
+		select 
+			wrd_nm
+			, wrd_eng_abrv_nm
+			, wrd_cn
+			, prhibt_yn
+			, wrd_eng_nm
+			, rel_wrd_nm
+			, std_wrd_nm
+			, wrd_ty_cd
+		from META_WRD
+		where std_set_sn = #{stdSetSn}
+			and use_yn = 'Y'
+			and del_yn = 'N'
+			and aprv_sttus_cd = 'APPROVAL'
+			<if test="searchNm != '' and searchNm != null ">
+			and (
+				wrd_cn like CONCAT('%',#{searchNm},'%')
+				or 
+				wrd_nm like CONCAT('%',#{searchNm},'%')
+				or 
+				upper(wrd_eng_abrv_nm) like upper(CONCAT('%',#{searchNm},'%'))
+				or 
+				upper(wrd_eng_nm) like upper(CONCAT('%',#{searchNm},'%'))
+				or 
+				upper(rel_wrd_nm) like upper(CONCAT('%',#{searchNm},'%'))
+			)
+			</if>
+		order by wrd_sn
+	</select>
+
+
+
+
+	<!-- 불러오기 테이블에서 도메인 테이블 조회 -->
+	<select id="selectLoadDomnList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.std_set_sn
+			, t1.domn_group_sn
+			, t2.domn_group_nm
+			, t1.domn_cl_nm 
+			, t1.domn_sn
+			, t1.data_ty_cd
+			, t1.data_lt_value
+			, t1.domn_nm
+			, t1.domn_cn
+			, t1.use_yn
+			, t1.del_yn
+			, t1.aprv_sttus_cd
+		from META_DOMN t1
+			, META_DOMN_GROUP t2
+		where t1.domn_group_sn = t2.domn_group_sn
+			and t1.std_set_sn = #{stdSetSn}
+			and t1.use_yn ='Y'
+			and t1.del_yn = 'N'
+			and t2.del_yn = 'N'
+			and t1.aprv_sttus_cd = 'APPROVAL'
+		<if test="searchNm != '' and searchNm != null ">
+			and (
+				domn_nm like CONCAT('%',#{searchNm},'%')
+				or 
+				domn_cn like CONCAT('%',#{searchNm},'%')
+				or 
+				domn_group_nm like CONCAT('%',#{searchNm},'%')
+			)
+		</if>
+		order by t1.domn_sn
+	</select>
+
+
+	<!-- 불러오기 테이블에서 용어 테이블 조회 -->
+	<select id="selectLoadWordList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.std_set_sn 
+			, t1.word_sn
+			, t1.domn_sn
+			, t1.word_nm
+			, t1.word_eng_nm
+			, t1.word_eng_abrv_nm
+			, t1.word_cn
+			, t1.word_ty_cd
+			, t2.domn_nm
+			, t1.prhibt_yn
+		from META_WORD t1
+			, META_DOMN t2
+		where t1.std_set_sn = t2.std_set_sn
+			and t1.domn_sn = t2.domn_sn
+			and t1.std_set_sn = #{stdSetSn}
+			and t1.use_yn = 'Y'
+			and t1.del_yn = 'N'
+			and t2.del_yn = 'N'
+			and t2.use_yn = 'Y'
+			and t1.aprv_sttus_cd = 'APPROVAL'
+		<if test="searchNm != '' and searchNm != null ">
+			and (
+				word_nm like CONCAT('%',#{searchNm},'%')
+				or 
+				word_eng_nm like CONCAT('%',#{searchNm},'%')
+				or 
+				word_eng_abrv_nm like CONCAT('%',#{searchNm},'%')
+				or 
+				word_cn like CONCAT('%',#{searchNm},'%')
+			)
+		</if>
+		order by t1.word_sn
+	</select>
+ 
+
+</mapper>  

@@ -1,0 +1,610 @@
+<html th:lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="wrd_list_reg_inc">
+	<div class="pop_header">
+		<p class="title">단어정보</p>
+		<button class="btn_ic btn_pop_close" onclick="fnCloseModal('wrdreginfo_modal');">닫기</button>
+	</div>
+	
+	<div class="pop_content">
+		<div class="card">
+			<div class="tbl_top right">
+				<div style="width:100%;">※ 용어 생성시 <b>영문약어명</b> 기준으로 생성이 됩니다.</div> 
+				<div class="btn_wrap">
+					<input type="hidden" name="regWrdPmodeHide" id="regWrdPmodeHide" />
+					<input type="hidden" name="regWrdSnHide" id="regWrdSnHide" />
+					<input type="hidden" name="regChkWrdTyCdHide" id="regChkWrdTyCdHide" />
+					<input type="hidden" name="regWrdTyCdNmHide" id="regWrdTyCdNmHide" />
+					<input type="hidden" name="regWrdStdSetTyCdHide" id="regWrdStdSetTyCdHide" />
+					<input type="hidden" name="regWrdAprvSttusCdNmHide" id="regWrdAprvSttusCdNmHide" />
+					<button class="btn sm" onclick="fnRegWrdBtn(); return false;" th:if="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">저장(승인)</button>
+					<button class="btn sm" onclick="fnRegWrdBtn(); return false;" th:unless="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">저장</button>
+				</div>
+			</div>
+			<table class="view">
+				<colgroup>
+					<col width="10%" />
+					<col width="auto" />
+					<col width="10%" />
+					<col width="auto" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th>* 단어구분</th>
+						<td>
+							<div id="regWrdTyCd">
+							</div>
+						</td>
+						<th>* 승인상태</th>
+						<td id="regWrdAprvSttusCdNm" ></td>
+					</tr>
+					<tr>
+						<th>* 단어명</th>
+						<td><div style="display: flex; align-items: center;">
+							<input type="text" name="regWrdNm" id="regWrdNm" maxlength="100" readonly>
+							<button class="btn sm" style="margin-left: 4px;" onclick="fnRegWrdChkNmBtn('wrdNm');" >검사</button></div>
+						</td>
+						<th>* 영문약어명</th>
+						<td style="padding-right: 3px;"><div style="display: flex; align-items: center;">
+							<input type="text" name="regWrdEngAbrvNm" id="regWrdEngAbrvNm" style="text-transform: uppercase;" maxlength="100" readonly>
+							<button class="btn sm" style="margin-left: 4px;" id="regWrdEngAbrvNmBtn" onclick="fnRegWrdChkNmBtn('wrdEngAbrvNm');" >검사</button></div>
+						</td>
+					</tr>
+					<tr id="regWrd_tr_row3">
+						<th>* 영문명</th>
+						<td><div style="display: flex; align-items: center;">
+							<input type="text" name="regWrdEngNm" id="regWrdEngNm" style="text-transform: uppercase;" maxlength="100">
+							<button class="btn sm" style="margin-left: 4px;" id="regWrdEngNmBtn" onclick="fnRegWrdChkNmBtn('wrdEngNm');" >검사</button></div>
+						</td>
+						<th>* 금칙어</th>
+						<td>
+							<div id="regWrdPrhibtYn">
+								<input type="radio" name="wrdPrhibtYn" id="wrdprhibtyn_y" value="Y"/>
+								<label for="wrdprhibtyn_y" class="req">Y</label>
+								<input type="radio" name="wrdPrhibtYn" id="wrdprhibtyn_n" value="N"/>
+								<label for="wrdprhibtyn_n" class="req">N</label>
+							</div>
+						</td>
+					</tr>
+					<tr id="regWrd_tr_row4">
+						<th id="th_wrdStdWrdNm">표준어</th>
+						<td>
+							<div style="display: flex; align-items: center;">
+							<input type="text" name="regWrdStdWrdNm" id="regWrdStdWrdNm" maxlength="100" />
+							<button class="btn sm" id="regWrdSearchStdWrdNmBtn" style="margin-left: 4px;" onclick="fnRegWrdSearchStdWrdNm();" >조회</button>
+							</div>
+						</td>
+						<th>연관어</th>
+						<td>
+							<input type="text" name="regWrdRelWrdNm" id="regWrdRelWrdNm" maxlength="100" >
+						</td>
+					</tr>
+					<tr id="regWrd_tr_row5">
+						<th>단어설명</th>
+                        <td colspan="3">
+                        	<textarea name="regWrdCn" id="regWrdCn" style="height: 140px; overflow:auto; padding: 10px;" maxlength="500" placeholder="500자 이내로 입력해주세요"></textarea>
+                        </td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	
+		<div id="dv_nmchecklist_div" style="display: none; margin-top: 5px;">
+			<div class="tbl_top padt10">
+				<p class="tit v2 margin0"><span>검사</span></p>
+				<button class="btn sm pad0" onclick="fnRegCloseCheckNmBtn();">닫기</button>
+			</div>
+			<div class="tbl_wrap" data-height="200">
+				<div class="card">
+					<table id="tb_wrdnmlist_table" class="list margint0">
+						<colgroup>
+							<col style="width: 60px;" />
+							<col style="width: 70px;" />
+							<col style="width: auto;" />
+							<col style="width: auto;" />
+							<col style="width: auto;" />
+							<col style="width: 120px;" />
+							<col style="width: auto;" />
+							<col style="width: 100px;" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>NO</th>
+								<th>구분</th>
+								<th>표준단어</th>
+								<th>영문약어명</th>
+								<th>영문명</th>
+								<th>표준단어 위치</th>
+								<th>승인상태</th>
+								<th>기능</th>
+							</tr>
+						</thead>											
+						<tbody>
+							<tr class="fwk_templete_row">
+								<td>#{FWK_TR_NO}</td>
+								<td>#{wrdTyCdNm}</td>
+								<td>#{wrdNm}</td>
+								<td>#{wrdEngAbrvNm}</td>
+								<td>#{wrdEngNm}</td>
+								<td>#{stdSetNm}</td>
+								<td>#{aprvSttusCdNm}</td>
+								<td>
+									<button class="btn sm cl_wrdcopybtn" data-wrdsn="#{wrdSn}" data-stdsetsn="#{stdSetSn}" data-sortno="#{sortNo}" onclick="fnCopyWrdNmBtn(this);" style="display: none;">선택</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		
+		<div id="dv_stdwrdnmlist_div" style="display: none;">
+			<div class="tbl_top padt10">
+				<p class="tit v2 margin0"><span>표준어조회</span></p>
+				<button class="btn sm pad0" onclick="fnRegCloseCheckStdWrdNmBtn();" >닫기</button>
+			</div>
+			<div class="tbl_wrap" data-height="200">
+				<div class="card">
+					<table id="tb_stdwrdnmlist_table" class="list margint0">
+						<colgroup>
+							<col style="width: auto;" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>NO</th>
+								<th>세트명</th>
+								<th>단어명(표준어)</th>
+								<th>영문약어명</th>
+								<th>영문명</th>
+								<th>선택</th>
+							</tr>
+						</thead>											
+						<tbody>
+							<tr class="fwk_templete_row">
+								<td>#{FWK_TR_NO}</td>
+								<td>#{stdSetNm}</td>
+								<td>#{wrdNm}</td>
+								<td>#{wrdEngNm}</td>
+								<td>#{wrdEngAbrvNm}</td>
+								<td>
+									<button class="btn sm" onclick="fnSelStdWrdNmBtn('#{wrdEngNm}', '#{wrdEngAbrvNm}');">선택</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		
+	<div class="pop_footer">
+	</div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	if(!fnChkStdSet())
+		return;
+	
+	
+	fnInitRegWrdForm();
+	
+	$("#regWrdNm").on("keyup", function(event) {
+		if(event.keyCode == 13)
+			fnRegWrdChkNmBtn('wrdNm');
+	});
+	
+	$("#regWrdEngNm").on("keyup", function(event) {
+		if(event.keyCode == 13)
+			fnRegWrdChkNmBtn('wrdEngNm');
+	});
+	
+	$("#regWrdEngAbrvNm").on("keyup", function(event) {
+		if(event.keyCode == 13)
+			fnRegWrdChkNmBtn('wrdEngAbrvNm');
+	});
+	
+	$("#regWrdStdWrdNm").on("keyup", function(event) {
+		if(event.keyCode == 13)
+			fnRegWrdSearchStdWrdNm();
+	});
+	
+	$("#regWrdStdWrdNm").on("input", function(event) {
+		$("#regChkWrdTyCdHide").val('');
+		$("#regWrdEngAbrvNm").val('');	// 영문약어명
+		$("#regWrdEngNm").val('');		// 영문명
+		fnRegCloseCheckStdWrdNmBtn();
+	});
+	
+});
+
+function fnInitRegWrdForm() {
+	new CodeBinder().setCommonCode("WRDCDTY", "regWrdTyCd", "radio")
+		.setLoadCallbackFunc("fnCodeLoadCallbackRegWrd()")
+		.load();
+}
+
+function fnCodeLoadCallbackRegWrd() {
+	
+	// 단어구분
+	$("#regWrdTyCd").change(function() {
+		var idVal = $("#regWrdTyCd :checked").attr("id");
+
+		var regWrdTyCdNmHide = $("label[for="+idVal+"]").text();
+		var regWrdTyCd = $("#regWrdTyCd :checked").val();
+		
+		$("#regWrdStdWrdNm").val(''); // 표준어
+		$("#regWrdEngAbrvNm").val(''); // 영문약어명
+		$("#regWrdEngNm").val(''); // 영문명
+		
+		fnRegWrdTyCd(regWrdTyCd);
+		
+		$("#regWrdTyCdNmHide").val(regWrdTyCdNmHide);
+		
+		fnRegCloseCheckNmBtn();
+	});
+	
+}
+
+// 수정 데이터 조회
+function fnRegWrdSearch(wrdSn, pmode) {
+	fnRegCloseCheckNmBtn();
+	
+	if (!wrdSn)
+		wrdSn="";
+	
+	$("#regWrdSnHide").val(wrdSn);
+	$("#regWrdPmodeHide").val(pmode);
+
+	if (pmode == "M") {
+		$.ajax({
+			url : "/json/stdDicary/getStdDicaryWrdInfo"
+			, method : "POST"
+			, contentType : 'application/json'
+			, data : JSON.stringify({
+				wrdSn : wrdSn
+				, pmode : pmode
+			})
+			, success : function(data) {
+				var wrdInfo = data.info;
+				var wrdTyCd = wrdInfo.wrdTyCd;
+				
+				$("#regWrdTyCdNmHide").val(wrdInfo.wrdTyCdNm); 				// hidden value 단어구분명
+				$("#regWrdStdSetTyCdHide").val(wrdInfo.stdSetTyCd); 		// hidden value 표준세트타입코드
+				$("#regWrdAprvSttusCdNmHide").val(wrdInfo.aprvSttusCdNm); 	// hidden value 승인상태명
+				
+				$("#regWrdTyCd input:radio[name=WRDCDTY]:input[value="+wrdTyCd+"]").prop("checked", true);	// 단어구분
+				$("#regWrdAprvSttusCdNm").text(wrdInfo.aprvSttusCdNm);										// 승인상태
+				$("#regWrdNm").val(wrdInfo.wrdNm); 															// 단어명
+				$("#regWrdEngNm").val(wrdInfo.wrdEngNm); 													// 영문명
+				$("#regWrdEngAbrvNm").val(wrdInfo.wrdEngAbrvNm); 											// 영문약어명
+				$("#regWrdPrhibtYn input:radio[name=wrdPrhibtYn]:input[value="+wrdInfo.prhibtYn+"]").prop("checked", true);	// 금칙어
+				$("#regWrdStdWrdNm").val(wrdInfo.stdWrdNm); 												// 표준어
+				$("#regWrdRelWrdNm").val(wrdInfo.relWrdNm); 												// 연관여
+				$("#regWrdCn").val(wrdInfo.wrdCn); 															// 단어설명
+				
+				$("#regWrdTyCd input:radio[name=WRDCDTY]").attr("disabled", true);
+				
+				if(wrdInfo.aprvSttusCd == "APPROVAL"){
+					$("#regWrdNm").prop("readonly", true);
+					$("#regWrdEngAbrvNm").prop("readonly", true);
+				} else {
+					$("#regWrdNm").prop("readonly", false);
+					$("#regWrdEngAbrvNm").prop("readonly", false);
+				}
+				
+				fnRegWrdTyCd(wrdTyCd);
+			}
+		});
+	} else {
+		$("#regWrdSearchStdWrdNmBtn").hide();			// hidden value 표준어조회버튼			
+		$("#regWrdStdSetTyCdHide").val("");				// hidden value 표준세트타입코드
+		$("#regWrdTyCdNmHide").val("");					// hidden value 단어구분명
+		$("#regWrdAprvSttusCdNmHide").val("등록");		// hidden value 승인상태명
+		$("#regWrdSnHide").val("")						// hidden value 단어순번
+		$("#regChkWrdTyCdHide").val('');
+		
+		$("#regWrdTyCd input:radio[name=WRDCDTY]:input[value=TYPE01]").prop("checked", true);		// 단어구분
+		$("#regWrdAprvSttusCdNm").text("등록");						// 승인상태
+		$("#regWrdNm").val("");										// 단어명
+		$("#regWrdEngNm").val("");									// 영문명
+		$("#regWrdEngAbrvNm").val("");								// 영문약어명
+		$("#regWrdPrhibtYn input:radio[name=wrdPrhibtYn]:input[value=N]").prop("checked", true);	// 금칙어
+		$("#regWrdStdWrdNm").val("");								// 표준어
+		$("#regWrdRelWrdNm").val("");								// 연관어
+		$("#regWrdCn").val("");										// 단어설명
+		
+		$("#regWrdTyCd input:radio[name=WRDCDTY]").attr("disabled", false);
+		
+		$("#regWrdNm").prop("readonly", false);
+		$("#regWrdEngAbrvNm").prop("readonly", false);
+		fnRegWrdTyCd("");
+	}
+}
+
+function fnRegWrdTyCd(wrdTyCd){
+	fnRegCloseCheckStdWrdNmBtn();
+	
+	if (wrdTyCd == "TYPE02") {
+		$("#regChkWrdTyCdHide").val('Y');
+		
+		$("#regWrdSearchStdWrdNmBtn").show();
+		$("#regWrdEngAbrvNmBtn").hide();
+		$("#regWrdEngNmBtn").hide();
+		
+		$("#regWrdEngNm").prop("readonly", true);
+		$("#regWrdEngAbrvNm").prop("readonly", true);
+		$("#regWrdStdWrdNm").prop("readonly", false);
+
+		// 단어구분 동의어 일때 표준어 필수
+		$("#th_wrdStdWrdNm").text("* 표준어");
+		
+	} else {
+		$("#regChkWrdTyCdHide").val('');
+		
+		$("#regWrdSearchStdWrdNmBtn").hide();
+		$("#regWrdEngAbrvNmBtn").show();
+		$("#regWrdEngNmBtn").show();
+		
+		$("#regWrdStdWrdNm").prop("readonly", true);
+		$("#regWrdEngAbrvNm").prop("readonly", false);
+		$("#regWrdEngNm").prop("readonly", false);
+		
+		$("#th_wrdStdWrdNm").text("표준어");
+	}
+	
+	
+}
+
+// 표준어 조회
+function fnRegWrdSearchStdWrdNm() {
+
+	if (!fnCheckValid("#regWrdStdWrdNm", "표준어"))
+		return;
+	
+	$("#regChkWrdTyCdHide").val("");
+	
+	$.ajax({
+		url : "/json/stdDicary/getStdWrdNmList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			stdWrdNm : $("#regWrdStdWrdNm").val()
+		})
+		, success : function(data) {
+			
+			var list = data.list;
+			var cnt = data.totalCount;
+			
+			fnBindTableValue("tb_stdwrdnmlist_table", list);
+			
+			if(cnt > 1){
+				$('#dv_stdwrdnmlist_div').show();
+				$("#regWrd_tr_row5").hide();
+			} else if(cnt == 1){
+				$.each(list, function(){
+					 fnSelStdWrdNmBtn(this.wrdEngNm, this.wrdEngAbrvNm)
+				});
+			} else {
+				alert("미등록 표준어 입니다.");
+			}
+			
+		}
+	});
+}
+
+function fnSelStdWrdNmBtn(wrdEngNm, wrdEngAbrvNm){
+	$("#regChkWrdTyCdHide").val("Y");
+	$("#regWrdEngNm").val(wrdEngNm);
+	$("#regWrdEngAbrvNm").val(wrdEngAbrvNm);
+}
+
+//표준어 조회 버튼(닫기)
+function fnRegCloseCheckStdWrdNmBtn() {
+	$('#dv_stdwrdnmlist_div').hide();
+	$("#regWrd_tr_row5").show();
+}
+
+// 단여명, 영문약어명, 영문명 검사 버튼 (닫기)
+function fnRegCloseCheckNmBtn() {
+	$('#dv_nmchecklist_div').hide();
+	$("#regWrd_tr_row3, #regWrd_tr_row4, #regWrd_tr_row5").show();
+	
+}
+
+// 단여명, 영문약어명, 영문명 검사 버튼
+function fnRegWrdChkNmBtn(chkType) {
+		
+	var searchWrd = ""; 
+	
+	if(chkType == "wrdNm") {
+		if (!fnCheckValid("#regWrdNm", "단어명")) {
+			fnRegCloseCheckNmBtn();
+			return;
+		} else {
+			$('#dv_nmchecklist_div').show();
+			$("#regWrd_tr_row3, #regWrd_tr_row4, #regWrd_tr_row5").hide();
+		}
+		searchWrd = $("#regWrdNm").val();
+		
+	} else if(chkType == "wrdEngNm") {
+		if (!fnCheckValid("#regWrdEngNm", "영문명")) {
+			fnRegCloseCheckNmBtn();	
+			return;
+		} else {
+			$('#dv_nmchecklist_div').show();
+			$("#regWrd_tr_row4, #regWrd_tr_row5").hide();	
+		}
+		searchWrd = $("#regWrdEngNm").val();
+		
+	} else if(chkType == "wrdEngAbrvNm") {
+		if (!fnCheckValid("#regWrdEngAbrvNm", "영문약어명")) {
+			fnRegCloseCheckNmBtn();
+			return;
+		} else {
+			$('#dv_nmchecklist_div').show();
+			$("#regWrd_tr_row3, #regWrd_tr_row4, #regWrd_tr_row5").hide();
+		}
+		searchWrd = $("#regWrdEngAbrvNm").val();
+		
+	} else {
+		alert("파라미터 에러 입니다.");
+		fnRegCloseCheckNmBtn();
+		return;
+	}
+
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryWrdCheckList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			searchWrd : searchWrd
+			, chkType: chkType
+		})
+		, success : function(data) {
+			
+			fnBindTableValue("tb_wrdnmlist_table", data.list);
+			
+			// 선택 버튼 
+			$("#tb_wrdnmlist_table .cl_wrdcopybtn").each(function() {
+				if ($(this).attr("data-sortno") == "3") {
+					$(this).show();
+				}
+			});
+			
+		}
+	});
+}
+
+// 선택 버튼 
+function fnCopyWrdNmBtn(obj) {
+	
+	var wrdSn = $(obj).data("wrdsn");
+	var stdSetSn = $(obj).data("stdsetsn");
+	
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryWrdInfo"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			wrdSn : wrdSn
+			, stdSetSn :stdSetSn
+		})
+		, success : function(data) {
+			// 단어 상세 정보
+			var wrdInfo = data.info;
+			$("#regWrdNm").val(wrdInfo.wrdNm);
+			$("#regWrdTyCd input:radio[name=WRDCDTY]:input[value="+wrdInfo.wrdTyCd+"]").prop("checked", true);				// 단어구분
+			$("#regWrdEngNm").val(wrdInfo.wrdEngNm);
+			$("#regWrdEngAbrvNm").val(wrdInfo.wrdEngAbrvNm);
+			$("#regWrdStdWrdNm").val(wrdInfo.stdWrdNm);
+			$("#regWrdPrhibtYn input:radio[name=wrdPrhibtYn]:input[value="+wrdInfo.prhibtYn+"]").prop("checked", true);				// 단어구분
+			$("#regWrdRelWrdNm").val(wrdInfo.relWrdNm);
+			$("#regWrdCn").val(wrdInfo.wrdCn);
+			
+			fnRegWrdTyCd(wrdInfo.wrdTyCd);
+			
+			fnRegCloseCheckNmBtn();
+		}
+	});
+}
+
+// 저장 버튼
+function fnRegWrdBtn() {
+
+	if (!fnCheckValid("#regWrdTyCd :checked", "단어구분"))
+		return;
+	
+	if (!fnCheckValid("#regWrdNm", "단어명"))
+		return;
+	
+	if (!fnCheckValid("#regWrdEngAbrvNm", "영문약어명"))
+		return;
+
+	if (!fnCheckValid("#regWrdEngNm", "영문명"))
+		return;
+	
+	if (!fnCheckValid("#regWrdPrhibtYn :checked", "금칙어"))
+		return;
+	
+	if($("#regWrdTyCd :checked").val() == "TYPE02"){
+		
+		if($("#regWrdStdWrdNm").val() == ""){
+			alert("표준어를 입력해주세요.")
+			return;
+		}
+		
+		if($("#regChkWrdTyCdHide").val() != "Y"){
+			alert("미등록 표준어는 등록 할수 없습니다.");
+			return;
+		}
+		
+	}
+	
+	
+	
+	if (!confirm("등록하시겠습니까?"))
+		return;
+	
+	var pmode = $("#regWrdPmodeHide").val();
+	var chgKeyList = "";
+	
+	// 작성한 정보
+	var wrdMap = {
+			wrdSn : $("#regWrdSnHide").val()
+			, wrdTyCdNm : $("#regWrdTyCdNmHide").val()
+			, aprvSttusCdNm : $("#regWrdAprvSttusCdNmHide").val()
+			, wrdTyCd : $("#regWrdTyCd :checked").val()
+			, wrdNm : $("#regWrdNm").val()
+			, wrdEngNm : $("#regWrdEngNm").val().toUpperCase()
+			, wrdEngAbrvNm : $("#regWrdEngAbrvNm").val().toUpperCase()
+			, prhibtYn : $("#regWrdPrhibtYn :checked").val()
+			, stdWrdNm : $("#regWrdStdWrdNm").val()
+			, relWrdNm : $("#regWrdRelWrdNm").val()
+			, wrdCn : $("#regWrdCn").val()
+	}
+	
+	// 변경 히스토리 저장 항목 정의 
+	if (pmode == "M") {
+		chgKeyList = [
+			{"wrdTyCdNm":"단어구분"}
+			, {"aprvSttusCdNm":"승인상태"}
+			, {"wrdNm":"단어명"}
+			, {"wrdEngNm":"영문명"}
+			, {"wrdEngAbrvNm":"영문약어명"}
+			, {"prhibtYn":"금칙어"}
+			, {"stdWrdNm":"표준어"}
+			, {"relWrdNm":"연관어"}
+			, {"wrdCn":"단어설명"}
+		];
+	}
+	
+	var pagingNo ="";
+	$("#dv_paging .on a").each(function(){
+		pagingNo = $(this).text();
+	});
+	
+	$.ajax({
+		url : "/json/stdDicary/saveStdDicaryWrdInfo"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			pmode : pmode
+			, isApprover : g_isApprover
+			, wrdMap : wrdMap
+			, chgKeyList :chgKeyList
+		})
+		, success : function(data) {
+			if (data.resultCd == "OK") {
+				alert("저장되었습니다.");
+				fnCloseModal('wrdreginfo_modal');
+				fnWrdSearch(pagingNo);
+			} else {
+				alert("실패하셨습니다.");
+			}
+		}
+	});
+}
+</script>
+</th:block>

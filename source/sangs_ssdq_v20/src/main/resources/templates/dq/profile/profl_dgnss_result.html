@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<!-- head inclue -->
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+		
+</head>
+<body>
+	<!-- wrap -->
+	<div id="wrap">
+		<!-- container -->
+		<div class="container">
+			<!-- content -->
+			<div id="content">
+				<div class="page_info_area">
+					<div class="left">
+						<div class="title_area">
+							<p></p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area">
+							<button class="btn" title="조회" onclick="fnSearch(); return false;">조회</button>
+						</div>
+					</div>
+				<form id="frm" name="frm" action="/view/profileMng/getProflDgnssResultViewInfo" method="get">
+					<input type="hidden" id="excSn" name="excSn" value="" />
+				</form>
+				</div><!-- page_info_area -->
+				
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width="7%" />
+									<col width="25%" />
+									<col width="3%" />
+									<col width="7%" />
+									<col width="auto;" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th>날짜선택</th>
+										<td>
+											<div class="calendar_box">
+                                                <input type="text" id="beginDtFrom" name="beginDtFrom">
+                                            </div>
+                                            ~
+                                            <div class="calendar_box">
+                                                <input type="text" id="beginDtTo" name="beginDtTo">
+                                            </div>
+                                        </td>
+										<td></td>
+										<th>프로파일명</th>
+										<td><input type="text" class="in_w30" id="proflNmSearch" name="proflNmSearch" value=""/></td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+					
+					<div class="card">
+						<table class="list fixed" id="tb_result_table">
+							<colgroup>
+								<!-- <col width="5%"/> -->
+								<col width="5%"/>
+								<col width="10%"/>
+								<col width="10%"/>
+								<col width="auto"/>
+								<col width="8%"/>
+								<col width="8%"/>
+								<col width="8%"/>
+								<col width="8%"/>
+								<col width="6%"/>
+								<col width="6%"/>
+								<col width="6%"/>
+							</colgroup>
+							<thead>
+								<tr>
+									<!-- <th>No</th> -->
+									<th>수행순번</th>
+									<th>시작 시간</th>
+									<th>종료 시간</th>
+									<th>프로파일명</th>
+									<th>진단 테이블 수</th>
+									<th>진단 컬럼 수</th>
+									<th>진단 데이터 수</th>
+									<th>일치율(%)</th>
+									<th>작업 상태</th>
+									<th>소요시간</th>
+									<th>결과보기</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="fwk_templete_row">
+									<!-- <td>#{FWK_TR_NO}</td> -->
+									<td>#{excSn}</td>
+									<td>#{excBgngDt}</td>
+									<td>#{excEndDt}</td>
+									<td class="alignl">#{proflNm}</td>
+									<td class="alignr">#fn{fnFormatNumber(#{tblCnt})}</td>
+									<td class="alignr">#fn{fnFormatNumber(#{colCnt})}</td>
+									<td class="alignr">#fn{fnFormatNumber(#{dgnssTotDataCnt})}</td>
+									<td class="alignr" name="mtchRate">#{mtchRate}%</td>
+									<td>#{excSttusCdText}</td>
+									<td>#fn{fnDateTextBySec(#{diffSecond})}</td>
+									<td>#fn{fnDetailButtonView('#{excSttusCd}', #{excSn})}</td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="pagination_area marginb25" id="dv_result_paging"></div>
+					</div>
+				</div><!-- content_area -->
+			</div>
+		</div>
+	</div>
+	
+<div class="popup layer" id="resulterrinfo_modal" style="width:700px;">
+ 	<div class="pop_header">
+		<p class="title">프로파일 진단 오류 상세</p>
+		<button class="btn_ic btn_pop_close" id="closeModalBtn" onclick="fnCloseModal('resulterrinfo_modal');">닫기</button>
+	</div>
+	<div class="pop_content">
+	    <div class="card">
+			<table class="view">
+				<colgroup>
+					<col width="30%"/>
+					<col width="70%"/>
+				</colgroup>
+				<tbody>
+					<tr>
+						<th>수행 순번</th>
+						<td>
+							<input type="text" class="in_w100" id="dtlview_excsn" name="dtlview_excsn" disabled/>
+						</td>
+					</tr>
+					<tr>
+						<th>수행 오류 내용</th>
+						<td>
+							<textarea style="height: 140px; overflow:auto; padding: 10px;" id="dtlview_excerrcn" name="dtlview_excerrcn" disabled></textarea>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+	    </div>
+	</div>
+	<div class="pop_footer"></div>
+</div>
+	
+</body>
+
+
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	fnSearch();
+	$("#proflNmSearch").on("keyup", function(event) {
+		if(event.keyCode == 13)
+			fnSearch();
+	});
+	
+	
+	$("#beginDtFrom, #beginDtTo").datepicker();
+	fnSet1YearFromTo("#beginDtFrom", "#beginDtTo");
+});
+
+
+// 진단 결과 리스트 조회
+function fnSearch(pageNum) {
+	if (!pageNum) {
+		var pageNum = 1;
+	}
+	
+	// 날짜 조건 체크
+	if(!fnSearcDateChk($("#beginDtFrom").val(), $("#beginDtTo").val())) return;
+	
+	$.ajax({
+		url:'/json/profileMng/getDgnssResultList'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			beginDtFrom: fnRemoveDateDelim($("#beginDtFrom").val())
+			, beginDtTo: fnRemoveDateDelim($("#beginDtTo").val())
+			, proflNm: fnUnderbarChgVar($("#proflNmSearch").val())
+			, pageNum: pageNum
+		})
+		, success:function(data) {
+			fnBindTableValue("tb_result_table", data.dgnssResultList, data.pagingInfo);
+			fnSetPaging("dv_result_paging", data.pagingInfo, "fnSearch");
+			
+			fnMtchRateNull("tb_result_table");
+		}
+	});
+}
+
+function fnDetailButtonView(excSttusCd, excSn) {
+	var button_html = "";
+	if (excSttusCd == "E") {
+		button_html = "<button class='btn sm' title='확인' onclick='fnResultDetail("+excSn+"); return false;'>확인</button>"
+	} else if(excSttusCd == "F") {
+		button_html = "<button class='btn sm' title='확인' onclick='fnResultErrDetail("+excSn+"); return false;'>확인</button>"
+	}
+	return button_html;
+}
+
+// 결과보기 상세
+function fnResultDetail(excSn) {
+	$("#excSn").val(excSn);
+	$('#frm').submit();
+}
+
+// 일치율 null인 경우 
+function fnMtchRateNull(tableId){
+	$("#"+tableId+" tbody tr.fwk_data_row").each(function(index){
+		var textVal = $(this).find("td[name=mtchRate]").text();
+		if(textVal=="%"){
+			$(this).find("td[name=mtchRate]").text("-");
+		}
+	});
+}
+
+// 오류결과보기 상세
+function fnResultErrDetail(excSn){
+	fnShowModal("resulterrinfo_modal");
+	
+	$.ajax({
+		url:'/json/profileMng/getDgnssResultErrInfo'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			excSn : excSn
+		})
+		, success:function(data) {
+			var info = data.info;
+			$("#dtlview_excsn").val(info.excSn);
+			$("#dtlview_excerrcn").text(info.excErrCn);
+		}
+	});
+}
+
+</script>
+</html>

@@ -1,0 +1,320 @@
+<!--
+	Description : (팝업)수집통합관리 > 주소정보 리스트
+
+	Modification Information
+	수정일				수정자			수정내용
+	-------		-----------------------------------
+	2016.01.28		조남훈			최초작성
+
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+
+	<style>
+		.guide_box {
+			margin-bottom: 15px;
+		    padding: 12px;
+		    border: 1px solid #d6d5c9;
+		    background-color: #fefbde;
+		}
+	</style>
+
+<script type="text/javascript" th:inline="javascript">
+
+//등록 실행
+function doSave() {
+
+	var frm = document.addr_frm;
+	//유효성 체크 시작
+	var addrTr = $("#adrs_tbody").find("tr").not("#nullTr");
+
+	if ($(addrTr).length == 0) {
+		alert("저장할 정보가 없습니다.");
+		return false;
+	}
+
+	var loop = 0; //주소 수
+
+	// 주소명
+	$(frm.apiAddrNm).each(function() {
+		loop++;
+	});
+
+	if(loop == 0) {
+		alert("주소정보를 추가한 후 \'저장\' 버튼을 눌러주세요");
+		return false;
+	}
+
+	if(confirm("입력한 정보를 저장하겠습니까?")){
+		$('#frm').attr("target", "_self");
+
+		var _frm = document.frm;
+		var _frmArr = $(_frm).serializeArray();
+
+		var jsonObj = fnArrayToJson(_frmArr);
+
+		var addrTrArr = new Array();
+
+		$.each(addrTr, function(index, value) {
+			addrTrArr.push(fnArrayToJson($(value).find("input,select,textarea").not("input:checked").serializeArray()));
+		});
+
+		jsonObj['addrList'] = addrTrArr;
+
+		console.log("==== jsonObj ====");
+		console.log(jsonObj);
+
+		$.ajax({
+			url: "/json/collectAddressInfo/saveMetaMngAddressExec"
+			, contentType: "application/json"
+			, method: "POST"
+			, data: JSON.stringify(jsonObj)
+			, success: function(data) {
+				var resultCd = data.resultCd;
+				if (resultCd == "OK") {
+					alert("처리가 완료되었습니다.");
+					location.href="/collector/collect/collect_address_list?apiCd="+$("#apiCd").val()+"&tIdx="+$("#tIdx").val();
+				}
+			}
+		});
+	}
+
+}
+
+//배열(form.serializeArray)을 JSON 으로 변경
+function fnArrayToJson(array) {
+	var jsonObj = {};
+
+	$.each(array, function(idx, value){
+		jsonObj[value.name] = value.value;
+	}); // end each
+
+	return jsonObj;
+}
+
+//주소정보 라인 추가
+function addLine() {
+	var rcnt = Number($("#rcnt").val()) + 1; //신규의 경우 추가. (삭제시 사용)
+	var rnum = "r"+rcnt;
+	var col_new = "";
+
+	col_new += "<tr id=\"adrs_tr_"+rnum+"\">";
+	col_new += "	<input type=\"hidden\" name=\"pmode\" value=\"INS\" />";
+	col_new += "	<input type=\"hidden\" name=\"apiAddrSn\" value=\"\" />";
+	col_new += "	<td>신규</td>";
+	col_new += "	<td><input type=\"text\" name=\"apiAddrNm\" class=\"frm_"+rnum+"\" value=\"\" style=\"width:97%;\" maxlength=\"100\" placeholder=\"100자 이내로 입력해주세요\" /></td>";
+	col_new += "	<td><textarea name=\"apiAddr\" class=\"frm_"+rnum+"\" style=\"width:97%;\" rows=\"5\" maxlength=\"500\" placeholder=\"500자 이내로 입력해주세요\"></textarea></td>";
+	col_new += "	<td><textarea name=\"apiAddrCn\" class=\"frm_"+rnum+"\" style=\"width:97%;\" rows=\"5\" maxlength=\"500\" placeholder=\"500자 이내로 입력해주세요\"></textarea></td>";
+	col_new += "	<td><textarea name=\"apiRqstCn\" class=\"frm_"+rnum+"\" style=\"width:97%;\" rows=\"5\" maxlength=\"500\" placeholder=\"500자 이내로 입력해주세요\"></textarea></td>";
+	col_new += "	<td><select name=\"useYn\" class=\"frm_"+rnum+"\"><option value=\"\">선택</option><option value=\"Y\" selected=\"selected\">Y</option><option value=\"N\">N</option></select></td>";
+	col_new += "	<td><a href=\"#\" onclick=\"btnDel('"+rnum+"', 'quick');\" class=\"btn sm\" style=\"color:black\">삭제</a></td>";
+	col_new += "</tr>";
+
+	$("#adrs_tbody").append(col_new);
+	$("#rcnt").val(rcnt);
+
+	checkNullTrOnOff();
+	
+	parent.setFrameHeight();
+}
+
+//주소정보 라인 제거
+function btnDel(rnum, cmd) {
+	if(cmd == "delete") {
+		if(confirm("삭제하시겠습니까?")) {
+			$("#pmode_"+rnum).val("DEL");
+			$(".frm_"+rnum).attr("readOnly", true); //폼 비활성
+			$(".frm_"+rnum).css("background", "#eee"); //색 변경
+			$("#adrs_btn_td_"+rnum).html("<a href=\"#\" onclick=\"btnDel("+rnum+", 'cancel'); return false;\" class=\"btn sm\" style=\"color:black\">취소</a>"); //버튼변경
+		}
+
+	}else if(cmd == "cancel") {
+		$("#pmode_"+rnum).val("UPD");
+		$(".frm_"+rnum).attr("readOnly", false); //폼 비활성
+		$(".frm_"+rnum).css("background", "#fff"); //색 변경
+		$("#adrs_btn_td_"+rnum).html("<a href=\"#\" onclick=\"btnDel("+rnum+", 'delete'); return false;\" class=\"btn sm\" style=\"color:black\">삭제</a>"); //버튼변경
+
+	}else if(cmd == "quick") { // 새로추가한 라인일 경우
+		if(confirm("삭제하시겠습니까?")) {
+			$("#adrs_tr_"+rnum).remove(); //그냥삭제
+
+			var rcnt = Number($("#rcnt").val()) -1;
+			$("#rcnt").val(rcnt);
+			checkNullTrOnOff();
+		}
+	}
+}
+
+//tr 숨김처리
+function checkNullTrOnOff() {
+	var rcnt = $("#rcnt").val();
+	if(rcnt == 0) {
+		$("#nullTr").show();
+	}else {
+		$("#nullTr").hide();
+	}
+}
+
+function doExcelSave() {
+	if(!checkNullNAlert("quesImageFileIemSn", "선택된 파일이 없습니다.")) return;
+	if(confirm("입력한 엑셀을 저장 하시겠습니까?")){
+		$('#excelFrm').submit();
+	}
+}
+
+function fnGoMetaList() {
+	location.href='/collector/collect/collect_info_list';
+}
+</script>
+
+</head>
+<body>
+
+<div id="wrap">
+	<div class="container">
+		<div id="content">
+			<div class="page_info_area">
+				<div class="left">
+					<div class="title_area">
+						<p>수집통합관리</p>
+						<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+					</div>
+				</div>
+				<div class="right">
+					<div class="btn_wrap">
+						<button type="button" class="btn" onclick="fnGoMetaList();">목록</button>
+					</div>
+				</div>
+			</div><!-- page_info_area -->
+
+			<div class="content_area">
+				<th:block th:replace="collector/inc/metamng_tab_inc :: metamng_tab_inc" />
+				<div class="division20">
+					<form name="frm" id="frm"  method="post">
+						<input type="hidden" name="rcnt" id="rcnt" value="0" />
+						<input type="hidden" name="apiCd" id="apiCd" th:value="${params?.apiCd}" />
+						<input type="hidden" name="tIdx" id="tIdx" th:value="${params?.tIdx}" />
+					</form>
+
+					<div class="guide_box margint10">
+						<p class="guide_txt">
+							<b>&#183;</b> ‘주소명’ : 데이터를 수집할 주소의 이름을 입력한다.<br>
+							<b>&#183;</b> ‘주소’ : 데이터를 수집할 url을 입력한다.<br>
+						</p>
+					</div>
+
+					<div class="btn_wrap">
+						<div class="btn_left">
+
+						</div>
+						<div class="right marginb10">
+							<button type="button" class="btn" onclick="addLine(); return false;">행추가</button>
+						</div>
+					</div>
+
+					<div class="card" style="min-height:100px;">
+						<form name="addr_frm" id="addr_frm">
+							<table class="list fixed" id="metaAddrTable">
+								<caption>주소정보</caption>
+								<colgroup>
+									<col style="width: 5%;" />
+									<col style="width: 15%;" />
+									<col style="width: 20%;" />
+									<col style="width: 15%;" />
+									<col style="width: 23%;" />
+									<col style="width: 10%;" />
+									<col style="width: 7%;" />
+								</colgroup>
+								<thead>
+									<tr>
+										<th>번호</th>
+										<th>주소명</th>
+										<th>주소</th>
+										<th>설명</th>
+										<th>요청정보</th>
+										<th>사용여부</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody id="adrs_tbody">
+									<th:block th:if="${#lists.size(resultList) != 0}" th:each="result : ${resultList}">
+										<tr th:id="|adrs_tr_${result.apiAddrSn}|" > <!-- id에 리스트순번을 넣어 구분함 -->
+											<input type="hidden" name="pmode" th:id="|pmode_${result.apiAddrSn}|" value="UPD" />
+											<input type="hidden" name="apiAddrSn" th:value="${result.apiAddrSn}" >
+											<td>[[${result.apiAddrSn}]]</td>
+											<td><input type="text" name="apiAddrNm" th:class="|frm_${result.apiAddrSn}|" th:value="${result.apiAddrNm}" style="width:97%;" /></td>
+											<td><textarea name="apiAddr" th:class="|frm_${result.apiAddrSn}|" style="width:97%;" rows="5">[[${result.apiAddr}]]</textarea></td>
+											<td><textarea name="apiAddrCn" th:class="|frm_${result.apiAddrSn}|" style="width:97%;" rows="5">[[${result.apiAddrCn}]]</textarea></td>
+											<td><textarea name="apiRqstCn" th:class="|frm_${result.apiAddrSn}|" style="width:97%;" rows="5">[[${result.apiRqstCn}]]</textarea></td>
+											<td>
+												<select name="useYn" th:class="|frm_${result.apiAddrSn}|">
+													<option value="" th:selected="${result.useYn} == ''">선택</option>
+													<option value="Y" th:selected="${result.useYn} == 'Y'">Y</option>
+													<option value="N" th:selected="${result.useYn} == 'N'">N</option>
+				                          		</select>
+											</td>
+											<td th:id="|adrs_btn_td_${result.apiAddrSn}|"><a href="#" th:onclick="btnDel([[${result.apiAddrSn}]], 'delete'); return false;" class="btn sm" style="color:black">삭제</a></td>
+										</tr>
+									</th:block>
+
+									<th:block th:unless="${#lists.size(resultList) != 0}">
+										<tr id="nullTr">
+											<td colspan="7">조회된 데이터가 없습니다.</td>
+										</tr>
+									</th:block>
+								</tbody>
+							</table>
+						</form>
+					</div> <!-- //table_wrap -->
+					<div class="btn_wrap right">
+						<button type="button" class="btn" onclick="doSave();">저장</button>
+					</div>
+					<!-- <form name="excelFrm" id="excelFrm"  method="post" action="/mngr/metaMng/metaMngAddressImportExec" enctype="multipart/form-data">
+					<input type="hidden" name="apiCd" id="apiCd" th:value="${params?.apiCd}" />
+					<input type="hidden" name="tIdx" id="tIdx" th:value="${params?.tIdx}" />
+
+
+					<div class="tbl_top">
+						<p class="tit v2">엑셀 일괄등록</p>
+					</div>
+
+					<div class="guide_box">
+						<p>
+							<b>&#183;</b> 엑셀 양식을 다운로드 받아 주소정보를 한번에 업로드할 수 있다.<br>
+						</p>
+					</div>
+
+					<div class="btn_wrap marginb10">
+						<div class="right">
+							<a href="/mngr/sample/metamng_address_sample.xls" class="btn">양식다운로드</a>
+							<button type="button" class="btn" onclick="doExcelSave();">저장</button>
+						</div>
+					</div>
+
+					<div class="view_wrap" style="min-height:50px;">
+						<table class="view">
+							<caption>테이블</caption>
+							<colgroup>
+								<col style="width: 15%;" />
+								<col style="width: 85%;" />
+							</colgroup>
+							<tbody>
+								<tr>
+									<th scope="row">파일선택</th>
+									<td>&nbsp;&nbsp;&nbsp;<input type="file" name="quesImageFileIemSn" id="quesImageFileIemSn" /></td>
+								</tr>
+							</tbody>
+						</table>
+					</div> //table_wrap
+					</form> -->
+				</div> <!-- //division20 -->
+			</div> <!-- //content_area -->
+		</div> <!-- content -->
+	</div> <!-- container -->
+</div> <!-- wrap -->
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+
+
+<div class="content">
+        	
+	<div class="breadcrumb-line" >
+		<ul class="breadcrumb">
+			<li></li>
+			<li>sample</li>
+			<li class="active">테이블목록조회</li>
+		</ul>
+	</div>
+	  
+	<div class="tab-pane active">            
+		<div class="row">
+			<div class="col-sm-12"> 
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<div class="form-group col-sm-3">
+							<label for="columnType" class="req">컬럼타입</label>
+							<select class="form-control" name="columnType" id="columnType">
+								<option value="">선택</option>
+								<option value="varchar">varchar</option>
+								<option value="int">int</option>
+								<option value="datetime">datetime</option>
+							</select>                        
+						</div>  
+						<div class="form-group col-sm-3">
+							<label for="tableName" class="req">테이블명</label>
+							<input type="text" name="tableName" class="form-control" id="tableName" />
+						</div>
+						<div class="form-group col-sm-3">
+							<label for="columnName" class="req">컬럼명</label>
+							<input type="text" name="columnName" class="form-control" id="columnName" />
+						</div>
+						<div class="form-group col-sm-2">
+							<label for="reg_input" class="">&nbsp;</label><br>
+							<a href="javascript:fnSearch();" class="btn btn-info">조회</a> 
+						</div>
+					</div>
+				</div>
+			</div>
+	
+			<div class="col-sm-12">
+				<div class="grid-view" >
+					<table class="items" id="tb_data_table" style="width:100%">
+						<colgroup>
+							<col width="25%" />
+							<col width="25%" />
+							<col width="25%" />
+							<col width="25%" />
+						</colgroup>
+						<thead>
+							<tr>
+								<th>테이블명</th>
+								<th>컬럼명</th>
+								<th>커멘트</th>
+								<th>테이터타입</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="fwk_tr_no_row">
+								<td colspan="4" style="text-align: center">조회된데이터가 없습니다.</td>
+							</tr>
+							<tr class="fwk_templete_row">
+								<td>#tableName</td>
+								<td>#columnName</td>
+								<td>#columnComment</td>
+								<td>#columnType</td>
+							</tr>
+						</tbody>
+					</table>
+			
+					<!-- paging start -->
+					<div id="dv_paging" class="pager"></div>
+					<!--
+					<div class="pager">
+						<ul class="yiiPager">
+							<li class="first hidden"><a href="#">&lt;&lt;</a></li>
+							<li class="previous hidden"><a href="#">&lt;</a></li>
+							<li class="page selected"><a href="#">1</a></li>
+							<li class="page"><a href="#">2</a></li>
+							<li class="page"><a href="#">3</a></li>
+							<li class="next"><a href="#">&gt;</a></li>
+							<li class="last"><a href="#">&gt;&gt;</a></li>
+						</ul>
+					</div>
+					-->
+					<!-- paging end -->
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<script type="text/javascript">
+
+
+$(document).ready(function() {
+	
+	$("#tableName, #columnName").on("keyup", function(event) {
+		if(event.keyCode == 13) 
+			fnSearch();
+	});
+});
+
+
+function fnSearch(pageNum) {
+	if(!pageNum) 
+		pageNum = 1;
+	
+	$.ajax({
+		url: "/json/sample/testPagingList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			tableName : $("#tableName").val()
+			, columnName : $("#columnName").val()
+			, columnType : $("#columnType").val()
+			, pageNum: pageNum
+				
+		})
+		, success: function(data){
+			
+			fnBindTableValue("tb_data_table", data.list);
+			
+			fnSetPaging("dv_paging", data.pagingInfo);
+			
+			//$("#dv_json_area").text(JSON.stringify(data));
+		}
+	});
+	 
+} 
+
+	
+ 
+	
+</script>
+
+ 
+
+</html>
+					 

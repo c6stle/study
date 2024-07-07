@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout" style="overflow: auto;">
+
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+	<title>DB 스키마조회</title>
+</head>
+
+<body id="body">
+
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+			
+				<div class="page_info_area">
+					<div class="left">
+						<div class="title_area">
+							<p>DB 스키마조회</p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+						</div>
+					</div>
+					<div class="right">
+                        <div class="button_area" id="btnList" >
+							<button class="btn" title="엑셀다운로드" onclick="fnSchemaDownloadExcel(); return false;">엑셀다운로드</button>
+                        </div>
+                    </div>
+				</div><!-- page_info_area -->
+				
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width="8%" />
+									<col width="25%" />
+									<col width="5%" />
+									<col width="10%" />
+									<col width="25%" />
+									<col width="auto" />
+									
+								</colgroup>
+								<tbody>
+									<tr>
+										<th>DBMS 명</th>
+										<td><input type="text" class="in_w100" name="dbmsNm" id="dbmsNm" readonly="readonly" /></td>
+										<td></td>
+										<th class="dbmsDatabaseNm">DATABASE 명</th>
+										<td class="dbmsDatabaseNm"><input type="text" class="in_w100" name="dbmsDatabaseNm" id="dbmsDatabaseNm" readonly="readonly" /></td>
+										<td class="dbmsDatabaseNm"></td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+				</div>
+				<div class="content_area" style="padding-top: 0;">
+					<div class="view_wrap">
+					
+						<div class="division" >
+	                		<div class="row">
+	                			<div class="left " data-width="590">
+		                			<div class="tbl_top" style="flex: 0 0 0;">
+										<p class="tit v2">
+											<span>테이블 목록 (총 <span id="tableCnt">0</span>건)	</span>
+										</p>
+										<div>
+											<input type="text" name="tableNmSearchText " id="tableNmSearchText" style="width: 200px;" title="검색어" placeholder="검색어를 입력해주세요" >
+										</div>
+									</div>
+									<div class="table_area">
+										<table id="tb_tabledata_table" class="list margin0">
+											<colgroup>
+												<col width = "36%" />
+												<col width = "15%" />
+												<col width = "11%" />
+												<col width = "11%" />
+												<col width = "27%" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>테이블 명</th>
+													<th>Row 수</th>
+													<th>PK컬럼 수</th>
+													<th>Index 수</th>
+													<th>테이블 설명</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr class="fwk_templete_row cl_datalisttr">
+													<td class="alignl">
+														#{dbmsTableNm}
+														<input type="hidden" name="tableName" value="#{dbmsTableNm}" />
+														<input type="hidden" name="seachTable" value="#{dbmsTableNm}_#{comments}" />
+													</td>
+													<td>#fn{fnFormatNumber(#{numRows})}</td>
+													<td>#{pkCnt}</td>
+													<td>#{indexCnt}</td>
+													<td class="alignl">#{comments}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div><!-- left -->
+								
+	                			<div class="right">
+		                			<div class="tbl_top" style="flex: 0 0 0;">
+										<p class="tit v2">
+											<span>컬럼 목록 (총 <span id="columnCnt">0</span>건)</span>
+										</p>
+										<div>
+											<input type="hidden" name="checkedTableNm" id="checkedTableNm" />
+											<button class="btn sm" title="전체보기" onclick="fnClearColumnFilter(); return false;" style="margin-right: 3px;">전체보기</button>
+											<input type="text" name="columnNmSearchText" id="columnNmSearchText" style="width: 300px;" title="검색어" placeholder="검색어를 입력해주세요" >
+										</div>
+									</div> 
+				                	<div class="table_area">
+										<table id="tb_columndata_table" class="list margin0">
+											<colgroup>
+												<col width = "20%"	/>
+												<col width = "13%"	/>
+												<col width = "10%"	/>
+												<col width = "10%"	/>
+												<col width = "10%"	/>
+												<col width = "8%"	/>
+												<col width = "10%"	/>
+												<col width = "20%"	/>
+											</colgroup>
+											<thead>
+												<tr>
+													<th>컬럼 명</th>
+													<th>Data 타입</th>
+													<th>Data 길이</th>
+													<th>Data 정밀도</th>
+													<th>Data 스케일</th>
+													<th>널 허용</th>
+													<th>디폴트 값</th>
+													<th>컬럼 설명</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr class="fwk_templete_row cl_datalisttr">
+													<td class="alignl">#{columnName}
+														<input type="hidden" name="searchColumn" value="#{columnName}_#{comments}"/>
+														<input type="hidden" name="tableName" value="#{dbmsTableNm}"/>
+													</td>
+													<td>#{dataType}</td>
+													<td>#{dataLength}</td>
+													<td>#{dataPrecision}</td>
+													<td>#{dataScale}</td>
+													<td>#{nullable}</td>
+													<td>#{dataDefault}</td>
+													<td class="alignl">#{comments}</td>
+												</tr>
+											</tbody>
+										</table>
+	                				</div>
+								</div>
+		                	</div><!-- row -->
+	       		        </div>
+					</div>
+				</div><!-- content_area -->
+			</div>
+		</div>
+	</div>
+
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	var isConnectedYn = fnGetMyIsConnectedYn();
+	var chk =isSessionConChk(isConnectedYn);
+	if(chk){
+		var dbmsNm = fnGetMyDbmsNm();
+		var dbmsDatabaseNm = "";
+		
+		if(dbmsNm == "VoltDB" || dbmsNm == "CSV"){
+			$(".dbmsDatabaseNm").hide();
+		
+		} else {
+			
+			$(".dbmsDatabaseNm").show();
+			dbmsDatabaseNm = fnGetMyDbmsDatabaseNm();
+			$("#dbmsDatabaseNm").val(dbmsDatabaseNm);
+		}
+		//isCsvFileCheck(dbmsNm);
+		
+		$("#dbmsNm").val(dbmsNm);
+		
+		
+		fnGetTableList();
+		fnGetTableColumnList();
+		
+		$("#columnNmSearchText").on("keyup", function(event) {
+			if(event.keyCode == 13)
+				fnColumnNmFilter($(this).val());
+		});
+		
+		$("#tableNmSearchText").on("keyup", function(event) {
+			if(event.keyCode == 13)
+				fnTableNmFilter($(this).val());
+		});
+		
+	}
+	
+});
+
+function fnTableNmFilter(searchText) {
+	var dbmsTableNm = "";
+	$("#tb_tabledata_table tbody .fwk_data_row").filter(function() {
+		dbmsTableNm = $(this).find("input[name=seachTable]").val().toUpperCase();
+		if (searchText != "") {
+			if (dbmsTableNm.indexOf(searchText.toUpperCase()) != -1) {
+				$(this).show();
+			} else {
+				$(this).hide();
+			}
+		} else {
+			$(this).show();
+		}
+	});
+}
+
+function fnColumnNmFilter(searchText) {
+	var columnName = "";
+	var tableName = "";
+	var checkedTableNm = $("#checkedTableNm").val().toUpperCase();
+	
+	$("#tb_columndata_table tbody .fwk_data_row").filter(function() {
+		
+ 		columnName = $(this).find("input[name=searchColumn]").val().toUpperCase();
+		tableName = $(this).find("input[name=tableName]").val().toUpperCase();
+		
+		
+		if(checkedTableNm == ""){
+			if(searchText != ""){
+				if (columnName.indexOf(searchText.toUpperCase()) != -1) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			} else {
+				$(this).show()
+			}
+		} else {
+			if(checkedTableNm == tableName){
+				if (columnName.indexOf(searchText.toUpperCase()) != -1) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			} else {
+				$(this).hide();
+			}
+		}
+		
+	});
+}
+
+function fnClearColumnFilter() {
+	$("#checkedTableNm").val("");
+	$("#tableNmSearchText").val("");
+	$("#columnNmSearchText").val("");
+ 	fnClearSelectTrEvent(".cl_datalisttr");
+	
+	fnColumnNmFilter("");
+	fnTableNmFilter(""); 
+}
+
+
+function fnGetTableList(){
+
+	$.ajax({
+		url : '/dq/analysis/getAnalysisTableList'
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({})
+		, success : function(data) {
+			
+			$("#tableCnt").text(fnFormatNumber(data.tableCnt));
+			fnBindTableValue("tb_tabledata_table", data.tableList);
+
+			fnSelectTrEvent("#tb_tabledata_table tbody tr", function(rtnObj) {
+				fnTableViewDetail($(rtnObj).find("input[name=tableName]").val());
+			});
+			
+			
+		}
+	});
+}
+
+
+function fnGetTableColumnList(){
+	$.ajax({
+		url : '/dq/analysis/getAnalysisTableColumnList'
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({})
+		, success : function(data) {
+			$("#columnCnt").text(fnFormatNumber(data.columnCnt));
+			fnBindTableValue("tb_columndata_table", data.columnList);
+		}
+	});
+}
+
+function fnTableViewDetail(tableName) {
+	$("#checkedTableNm").val(tableName);
+	
+	var columnName = "";
+	var columnSearchText = "";
+	
+	$("#tb_columndata_table tbody tr").each(function(){
+
+		if(tableName.toUpperCase() == $(this).find("input[name=tableName]").val().toUpperCase()){
+			
+			columnSearchText = $("#columnNmSearchText").val().toUpperCase();
+			columnName = $(this).find("input[name=searchColumn]").val().toUpperCase();
+			
+			if(columnSearchText != ""){
+				if (columnName.indexOf(columnSearchText.toUpperCase()) != -1) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			} else {
+				$(this).show();
+			}
+		} else {
+			$(this).hide();
+		}
+	});
+}
+
+function fnSchemaDownloadExcel() {
+	fnCommFileDownByUrl("/exceldown/analysis/getSchemaExcelDown","DBMS 스키마조회", JSON.stringify({}));
+}
+
+</script>
+</body>
+</html>
+

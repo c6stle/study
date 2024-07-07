@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<!-- head inclue -->
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+<body>
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+
+				<div class="page_info_area">
+					<div class="left">
+						<div class="location_area">
+							<a href="#" class="bookmark active" title="즐겨찾기"></a>
+							<ul>
+								<li>홈</li>
+								<li>데이터표준화관리</li>
+								<li>도메인</li>
+							</ul>
+						</div>
+						<div class="title_area">
+							<p>도메인</p>
+							<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+							<a href="#"	class="help_btn" title="도움말">도움말</a>
+						</div>
+					</div>
+					<div class="right">
+						<div class="button_area" id="domnBtnList" style="display:none;" >
+							<div class="btn_wrap">
+								<div th:if="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">
+									<button class="btn" title="엑셀다운로드" id="domnDownloadExcelBtn" onclick="fnDomnDownloadExcel()">엑셀다운로드</button>
+									<button class="btn" title="엑셀업로드" id="domnBundleRegBtn" onclick="fnDomnBundleRegBtnModal()">엑셀업로드</button>
+									<button class="btn" title="데이터타입관리" id="dataTypeBtn" onclick="fnDataTypeModal(); return false;">데이터타입관리</button>
+									<button class="btn" title="도메인그룹관리" id="domnGroupBtn" onclick="fnDomnGroupModal(); return false;">도메인그룹관리</button>
+									<button class="btn" title="신규등록" id="domnRegBtn" onclick="fnDomnRegBtnModal('R'); return false;">신규등록</button>
+									<button class="btn" title="조회" onclick="fnDomnSearch(); return false;" id="btn_search">조회</button>
+								</div>
+								<div th:unless="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">
+									<button class="btn" title="엑셀다운로드" id="domnDownloadExcelBtn" onclick="fnDomnDownloadExcel()">엑셀다운로드</button>
+									<button class="btn" title="엑셀업로드" id="domnBundleRegBtn" onclick="fnDomnBundleRegBtnModal()">엑셀업로드</button>
+									<button class="btn" title="신규등록" id="domnRegBtn" onclick="fnDomnRegBtnModal('R'); return false;">신규등록</button>
+									<button class="btn" title="조회" onclick="fnDomnSearch(); return false;" id="btn_search">조회</button>	
+								</div>
+							</div>
+						</div>
+					</div>
+				</div><!-- page_info_area -->
+
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col style="width: 100px;" />
+									<col style="width: auto;" />
+									<col style="width: 60px;" />
+									<col style="width: 100px;" />
+									<col style="width: auto;" />
+									<col style="width: 60px;" />
+									<col style="width: 100px" />
+									<col style="width: auto;" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th scope="row"><label for="domnAprvSttusCdChkBox">승인상태</label></th>
+										<td>
+											<div id="domnAprvSttusCdChkBox" style="display:none;">
+											</div>
+										</td>
+										<td></td>
+										<th scope="row">사용여부</th>
+										<td>
+											<input type="radio" name="availUseYn" id="availUseYn_all" class="cl_availUseYn" value="" checked=checked><label for="availUseYn_all">전체</label>
+											<input type="radio" name="availUseYn" id="availUseYn_y" class="cl_availUseYn" value="Y"><label for="availUseYn_y">사용</label>
+											<input type="radio" name="availUseYn" id="availUseYn_n" class="cl_availUseYn" value="N"><label for="availUseYn_n">미사용</label>
+										</td>
+										<!--
+										<th scope="row"><label for="domnStdSetNmChkBox">세트</label></th>
+										<td>
+											<div id="domnStdSetNmChkBox">
+											</div>
+										</td>
+										-->
+										<td></td>
+										<th scope="row"><label for="domnDataTyCd">데이터타입</label></th>
+										<td>
+											<div class="selectbox">
+												<select id="domnDataTyCd" name="domnDataTyCd">
+													<option value="">전체</option>
+												</select>
+											</div>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row"><label for="domnGroupSn">도메인그룹</label></th>
+										<td>
+											<div class="selectbox">
+												<select id="domnGroupSn" name="domnGroupSn">
+													<option value="">전체</option>
+												</select>
+											</div>
+										</td>
+										<td></td>
+										<th scope="row"><label for="domnClNm">도메인분류명</label></th>
+										<td>
+											<input type="text" class="in_w100" id="domnClNm" name="domnClNm" />
+										</td>
+										<td></td>
+										<th scope="row"><label for="domnNm">도메인명</label></th>
+										<td>
+											<input type="text" class="in_w100" id="domnNm" name="domnNm" />
+										</td>
+									</tr>
+									<tr>
+										<th scope="row"><label for="domnCn">설명</label></th>
+										<td>
+											<input type="text" class="in_w100" id="domnCn" name="domnCn" />
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+
+					<div class="division20">
+						<div class="row marginb25">
+							<div class="left" data-width="0">
+								<div class="card">
+									<table class="list fixed" id="tb_domnlist_table">
+										<colgroup>
+											<col style="width: 60px;" />
+											<col style="width: auto;" />
+											<col style="width: auto;" />
+											<col style="width: auto;" />
+											<col style="width: auto;" />
+											<col style="width: 80px;" />
+											<col style="width: 80px;" />
+										</colgroup>
+										<thead>
+											<tr>
+												<th>No</th>
+												<th>도메인그룹</th>
+												<th>도메인분류명</th>
+												<th>도메인명</th>
+												<th>데이터타입(길이)</th>
+												<th>사용여부</th>
+												<th>승인상태</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr class="fwk_templete_row">
+												<td>#{FWK_TR_NO}
+													<input type="hidden" name="domnSn" value="#{domnSn}" />
+													<input type="hidden" name="stdSetSn" value="#{mergedStdSetSn}" />
+												</td>
+												<td class="alignl">#{domnGroupNm}</td>
+												<td class="alignl">#{domnClNm}</td>
+												<td class="alignl" style="font-weight: bold;">#{domnNm}</td>
+												<td class="alignl">#{dataTypeLength}</td>
+												<td>#fn{fnGetUseYnNm('#{availUseYn}')}</td>
+												<td>#fn{fnBindCodeListObj('CONFMCDTY', 'text', '#{aprvSttusCd}', '')}<br>
+												#fn{fnTdAprvSttusCdChkPrcsSeCd('#{prcsSeCd}')} 
+												</td>
+											</tr>
+										</tbody>
+									</table>
+									<div class="pagination_area marginb25" id="dv_paging"></div>
+									<!-- pagination_area -->
+								</div><!-- card -->
+							</div><!-- left -->
+							
+							<div class="right" data-width="550"> 
+								<div class="view_wrap">
+								
+									<div class="tbl_top">
+										<p class="tit v2 margin0"><span>도메인정보</span></p>
+										<input type="hidden" name="domnAprvSttusCdHide" id="domnAprvSttusCdHide" />
+										<input type="hidden" name="domnSnHide" id="domnSnHide" />
+										<div class="btn_wrap" id="domnReqBtnList" style="display:none !important;">
+											<div th:if="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">
+												<button class="btn sm" id="useDomnBtn" onclick="fnSaveUseDomn(); return false;">사용</button>
+												<button class="btn sm" id="acceptDomnBtn" onclick="fnRequestDomnBtn('A'); return false;">승인</button>
+		   										<button class="btn sm" id="returnDomnBtn" onclick="fnRequestDomnBtn('RT'); return false;">반려</button>
+		   										<button class="btn sm" id="deleteDomnBtn" onclick="fnRequestDomnBtn('D'); return false;">삭제</button>
+											</div>
+											<div th:unless="${session.STANDARD_USER_SESSION_KEY.userAttrMap[isApprover]} == 'Y'">
+												<button class="btn sm" id="useDomnBtn" onclick="fnSaveUseDomn(); return false;">사용요청</button>
+												<button class="btn sm" id="acceptDomnBtn" onclick="fnRequestDomnBtn('A'); return false;">승인요청</button>
+										    	<button class="btn sm" id="deleteDomnBtn" onclick="fnRequestDomnBtn('D'); return false;">삭제요청</button>
+											</div>
+											<button class="btn sm" id="domnModifyBtn" onclick="fnDomnRegBtnModal('M'); return false;">수정</button>
+										</div>
+									</div><!-- tbl_top -->
+									
+									<table class="view">
+										<colgroup>
+											<col width="22%" />
+											<col width="auto" />
+											<col width="22%" />
+											<col width="10%" />
+											<col width="4%" />
+											<col width="14%" />
+										</colgroup>
+										<tbody>
+											<tr>
+												<th>도메인그룹명</th>
+												<td id="dtlview_domngroupnm"></td>
+												<th>승인상태</th>
+												<td id="dtlview_domnAprvSttusCdnm" colspan="3"></td>
+											</tr>
+											<tr>
+												<th>도메인분류명</th>
+												<td id="dtlview_domnclnm"></td>
+												<th>데이터타입</th>
+												<td id="dtlview_domndatatycd" colspan="3"></td>
+											</tr>
+											<tr>
+												<th>데이터길이</th>
+												<td id="dtlview_domndataltvalue"></td>
+												<th>소수점</th>
+												<td id="dtlview_domndatadcmlpointltvalue" colspan="3"></td>
+											</tr>
+											<tr>
+												<th>도메인명</th>
+												<td id="dtlview_domnnm" style="font-weight: bold;"></td>
+												<th>데이터범위</th>
+												 <td id="dtlview_domndatamummvalue"></td>
+												 <td>~</td>
+												 <td id="dtlview_domndatamxmmvalue"></td>
+											</tr>
+											<tr>
+												<th>설명</th>
+												<td colspan="5" id="dtlview_domncn"></td>
+											</tr>
+										</tbody>
+									</table>
+									
+									<div class="tbl_top margint20">
+										<p class="tit v2 margin0"><span>표준변경영향도</span></p>
+										<div class="btn_wrap">
+											<button class="btn sm" onclick="fnChangeDomnEffectBtnModal('domn');">상세 </button>
+										</div>
+									</div>
+									
+									<div class="tbl_wrap" data-height="300">
+										<table id="tb_domneffectlist_table" class="list margin0">
+											<colgroup>
+												<col style="width: 80px;" />
+												<col style="width: 155px;" />
+												<col style="width: 155px;" />
+												<!--
+												<col style="width: 100px;" />
+												-->
+											</colgroup>
+											<thead>
+												<tr>
+													<th>사용위치</th>
+													<th>대상명</th>
+													<!--
+													<th>영문명</th>
+													-->
+													<th>영문약어명</th>
+													<!--
+													<th>모델링적용여부</th>
+													-->
+												</tr>
+											</thead>											
+											<tbody>
+												<tr class="fwk_templete_row">
+													<td>용어</td>
+													<td>#{wordNm}</td>
+													<!--
+													<td>#{wordEngNm}</td>
+													-->
+													<td>#{wordEngAbrvNm}</td>
+													<!--
+													<td></td>
+													-->
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									
+									<div class="tbl_top margint20">
+										<p class="tit v2 margin0"><span>변경승인이력</span></p>
+										<div class="btn_wrap">
+											<button class="btn sm" id="detailDomnHistBtn" onclick="fnChangeDomnHistBtnModal('domn');">상세</button>
+										</div>
+									</div>
+									<div class="tbl_wrap" data-height="300">
+										<table id="tb_domnhistlist_table" class="list margin0">
+											<colgroup>
+												<col style="width: 110px;" />
+												<col style="width: auto;" />
+												<col style="width: 110px;" />
+												<col style="width: auto;" />
+												<col style="width: auto;" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>변경일</th>
+													<th>처리</th>
+													<th>항목</th>
+													<th>변경전</th>
+													<th>변경후</th>
+												</tr>
+											</thead>											
+											<tbody>
+												<tr class="fwk_templete_row">
+													<td>#{chgDt2}</td>
+													<td>#{prcsSeCdNm}</td>
+													<td>#{chgIemNm}</td>
+													<td>#{bfchgCn}</td>
+													<td>#{aftchCn}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									
+								</div><!-- view_wrap -->
+							</div><!-- right -->
+						</div><!-- row -->
+						
+					</div><!-- division20 -->
+				</div><!-- content_area -->
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+
+<!-- 데이터타입관리 -->
+<div class="popup layer" id="datatypelist_modal" style="width:1100px;">
+	<th:block th:replace="meta/stddicary/domn_datatype_list_inc :: domn_datatype_list_inc" />
+</div>
+
+<!-- 도메인그룹 -->
+<div class="popup layer" id="domngrouplist_modal">
+	<th:block th:replace="meta/stddicary/domn_list_group_inc :: domn_list_group_inc" />
+</div>
+
+<!-- 신규등록 및 수정  -->
+<div class="popup layer" id="domnreginfo_modal">
+	<th:block th:replace="meta/stddicary/domn_list_reg_inc :: domn_list_reg_inc" />
+</div>
+
+<!-- 표준변경영향도 상세 -->
+<div class="popup layer" id="changeeffectlist_modal" style="width:1500px;">
+	<th:block th:replace="meta/stddicary/std_change_effect_list_inc :: std_change_effect_list_inc" />
+</div>
+
+
+<!-- 변경승인이력 상세 -->
+<div class="popup layer" id="changehistlist_modal" style="width:1500px;">
+	<th:block th:replace="meta/stddicary/std_change_hist_list_inc :: std_change_hist_list_inc" />
+</div>
+
+<!-- 엑셀업로드 -->
+<div class="popup layer" id="domndatastdbundle_modal" style="height :700px; width:1500px;">
+	<th:block th:replace="meta/stddicary/domn_datastd_bundle_inc :: domn_datastd_bundle_inc" />
+</div>
+
+<!-- DBMS 등록 -->
+<div class="popup layer" id="regdbmsInfo_modal" style="width:650px;">
+	<th:block th:replace="meta/stddicary/domn_dbms_reg_inc :: domn_dbms_reg_inc" />
+</div>
+
+<!--현 페이지를 조회 팝업으로 사용시  SEARCH_POP 값으로 들어옴 -->
+<input type="hidden" id="p_pageMode" name="p_pageMode" th:if="${#maps.containsKey(paramMap, 'pageMode')}"  th:value="${paramMap.pageMode}" /> 
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	
+	try {
+		// 왼쪽 메뉴 선택 처리 (링크로 해당 페이지 들어온경우 오른쪽 메뉴를 선택 처리 한다. )
+		parent.fnSelectLeftMenu(location.pathname);
+	} catch(e) {}
+	
+	
+	// 현 페이지를 조회 팝업으로 사용시  SEARCH_POP 값으로 들어옴
+	if($("#p_pageMode").val() != undefined && $("#p_pageMode").val() == "SEARCH_POP") {
+		// 조회 버튼만 보이도록 처리 
+		$(".button_area").find("button").hide();
+		$("#btn_search").show();
+		
+		// 오른쪽 영역 안보이도록 처리 
+		$(".content_area").find(".right").hide();
+	} 
+	
+	
+	var stdSetSn = parent.$("#topgv_stdSetSn").val();
+	
+	if(!fnChkStdSet(stdSetSn)){
+		return;
+	} else {
+		//$("#domnReqBtnList").show();
+		$("#domnBtnList").show();
+	}
+	
+	$("#domnNm, #domnCn, #domnClNm").on("keyup", function(event) {
+		if (event.keyCode == 13)
+			fnDomnSearch();
+	});
+	fnDomnInit();
+	
+	$("#domnNm").focus();
+});
+
+// 데이터타입관리
+function fnDataTypeModal(){
+	// fnChangeSelectVal("datatypeDbmsSn");
+	$("#datatypeDbmsSn").find("option[value='']").prop("selected", true);
+	fnDbmsDataTypeListDetail("","");
+	$("#datatypeGroupSn").val("");
+	$("#tb_datatypelist_table tbody tr.fwk_add_row").remove();
+	fnClearSelectTrEvent("#tb_datatypegrouplist_table tbody tr");
+	
+	fnShowModal("datatypelist_modal");	
+}
+
+// selectbox 초기화
+function fnCloseModalResetSelectBox(modalId, selectedBoxId){
+	
+
+	$("#"+selectedBoxId).empty();
+	var addObj = '<option value="">전체</option>';
+	
+	$("#"+selectedBoxId).append(addObj);
+	
+	if (selectedBoxId == "domnDataTyCd") {
+		var prjctSn = parent.$("#topgv_prjctSn").val();
+		new CodeBinder().setSqlCode("meta_code.selectPrjectCnncDbmsSnList:prjctSn="+prjctSn+"", selectedBoxId, "select").load();
+	} else if (selectedBoxId == "domnGroupSn") {
+		new CodeBinder().setSqlCode("meta_code.selectDomnGroupCodeList", selectedBoxId, "select").load();
+	}
+
+	fnCloseModal(modalId);
+}
+
+function fnDomnInit() {
+	
+	var prjctSn = parent.$("#topgv_prjctSn").val();
+	new CodeBinder()
+		.setCommonCode("CONFMCDTY", "domnAprvSttusCdChkBox", "checkbox")
+		.setSqlCode("meta_code.selectPrjectCnncDbmsSnList:prjctSn="+prjctSn+"","domnDataTyCd", "select")
+		.setSqlCode("meta_code.selectDomnGroupCodeList", "domnGroupSn", "select")
+		.setSqlCode("cmmn_project.selectDbmsList", "domnDbmsSn", "select")
+		.setLoadCallbackFunc("fnDomnSearch()")
+		.load();
+}
+
+// DBMS 등록
+function fndomnRegDbmsBtn(){
+	var dbmsInfo = {dbmsSn :  $("#domnDbmsSn").val()};
+	
+	$.ajax({
+		url : "/json/project/saveProjectInfo"
+		, method : "POST"
+ 		, contentType : 'application/json'
+		, data : JSON.stringify({
+			dbmsInfo : dbmsInfo
+			, pmode : "M"
+		})
+		, success: function(data){
+			if(data.resultCd == "OK") {
+				alert("저장이 완료 되었습니다.");
+				alert("프로젝트 정보가 변경되었습니다 재로그인이 필요합니다.");
+				fnLogoutProc();
+				//location.reload();
+			} else{
+				alert("실패하셨습니다.");
+			}
+		}
+		
+	});
+	
+}
+
+// 검색 조건
+var getDomnSearchParamObj = function(){
+	var aprvSttusCdArrList = [];
+	$("#domnAprvSttusCdChkBox :checked").each(function(){
+		aprvSttusCdArrList.push($(this).val());
+	});
+
+	var paramObj = {
+			aprvSttusCdArrList
+			//, stdSetNmArrList
+			, domnGroupSn : $("#domnGroupSn").val()
+			, domnNm : fnUnderbarChgVar($("#domnNm").val())
+			, dataTyCd : $("#domnDataTyCd").val()
+			, domnCn : fnUnderbarChgVar($("#domnCn").val())
+			, domnClNm : fnUnderbarChgVar($("#domnClNm").val())
+			, availUseYn : $(".cl_availUseYn:checked").val()
+	};
+	return paramObj;
+};
+// 조회
+function fnDomnSearch(pageNum) {
+
+	if (!pageNum)
+		pageNum = 1;
+	
+ 	var searchParamObj = getDomnSearchParamObj();
+	searchParamObj["pageNum"]= pageNum;
+	
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryDomnList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify(searchParamObj)
+		, success : function(data) {
+			fnBindTableValue("tb_domnlist_table", data.list, data.pagingInfo);
+
+			fnSetPaging("dv_paging", data.pagingInfo, "fnDomnSearch");
+
+			// 요청건과 반려 건 있을때 조회 조건에 노출 처리
+			fnSetSttusCntDisp(data.sttusCntInfoList);
+			
+			fnSelectTrEvent("#tb_domnlist_table tbody tr", function(rtnObj) {
+				show_loading_bar_flag = false;
+				fnStartMainLoading();
+				
+				fnViewDetail($(rtnObj).find("input[name=stdSetSn]").val(), $(rtnObj).find("input[name=domnSn]").val());
+				fnChangeEffectByDomnList($(rtnObj).find("input[name=stdSetSn]").val(), $(rtnObj).find("input[name=domnSn]").val());
+				fnChangeDomnHistList($(rtnObj).find("input[name=stdSetSn]").val(), $(rtnObj).find("input[name=domnSn]").val());
+				
+				fnStopMainLoading();
+				show_loading_bar_flag = true;
+			});
+			fnInitDtlView();
+			
+			fnAprvSttusCdChkBox();
+		}
+	});
+}
+
+//승인상태 삭제 체크박스 hide 처리 
+function fnAprvSttusCdChkBox(){
+	
+	$("#domnAprvSttusCdChkBox").find("#CONFMCDTY_DELETE").hide();
+	$("#domnAprvSttusCdChkBox").find("label[for=CONFMCDTY_DELETE]").hide();
+	$("#domnAprvSttusCdChkBox").show();
+	
+}
+
+//승인상태 삭제 체크박스 hide 처리 
+function fnTdAprvSttusCdChkPrcsSeCd(prcsSeCd){
+	if(prcsSeCd=="DEL"){
+		return "(삭제)";
+	} else {
+		return "";
+	}
+	
+	
+}
+
+// 요청건과 반려 건 있을때 조회 조건에 노출 처리
+function fnSetSttusCntDisp(sttusCntInfoList) {
+	//console.log("sttusCntInfoList = ", sttusCntInfoList);
+
+	var reqCnt = 0;
+	var rtnCnt = 0;
+	for(var i = 0 ; i < sttusCntInfoList.length ; i++) {
+		var item = sttusCntInfoList[i]
+		if(item.aprvSttusCd == "REQUEST")
+			 reqCnt = item.cnt;
+		if(item.aprvSttusCd == "RETURN")
+			 rtnCnt = item.cnt;
+	}
+	
+	$(".cl_sttus_cnt_s").remove();
+	
+	if(reqCnt > 0) {
+		$("#domnAprvSttusCdChkBox").find("label").each(function() {
+			if($(this).attr("for") == "CONFMCDTY_REQUEST") {
+				$(this).append(' <font color="red" class="cl_sttus_cnt_s">('+reqCnt+')</font>');
+			}
+		});
+	}
+	if(rtnCnt > 0) {
+		$("#domnAprvSttusCdChkBox").find("label").each(function() {
+			if($(this).attr("for") == "CONFMCDTY_RETURN") {
+				$(this).append(' <font color="red" class="cl_sttus_cnt_s">('+rtnCnt+')</font>');
+			}
+		});
+	}
+}
+
+// 표준변경영향도 조회
+var wordList;
+function fnChangeEffectByDomnList(stdSetSn, domnSn) {
+	var effectLocation = "domn";
+	
+	$.ajax({
+		url : "/json/stdDicary/getChangeEffectByList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			effectLocation : effectLocation
+			, stdSetSn : stdSetSn
+			, domnSn : domnSn
+			, cnt : 10
+		})
+		, success : function(data) {
+			wordList = data.wordList
+			fnBindTableValue("tb_domneffectlist_table", wordList);
+		}
+	});
+}
+
+
+// 변경 승인 이력 
+function fnChangeDomnHistList(stdSetSn, domnSn) {
+	var histLocation = "domn";
+
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryStdChangeHistList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			histLocation : histLocation
+			, domnSn : domnSn
+			, stdSetSn : stdSetSn
+			, cnt : 10
+		})
+		, success : function(data) {
+
+			fnBindTableValue("tb_domnhistlist_table", data.list);
+
+		}
+	});
+
+}
+
+// 표준변경영향도 상세
+function fnChangeDomnEffectBtnModal(location) {
+	
+	var domnSn = fnSelectTrHiddenValue("tb_domnlist_table", "domnSn");
+	var stdSetSn = fnSelectTrHiddenValue("tb_domnlist_table", "stdSetSn");
+	if (!domnSn) {
+		alert("선택한 도메인정보가 없습니다.");
+		return;
+	}
+ 	$("#effectSn").val(domnSn);
+	$("#effectLocation").val(location);
+	$("#effectStdSetSn").val(stdSetSn);
+	fnShowModal("changeeffectlist_modal");
+
+	fnEffectSearch();
+}
+
+
+// 변경승인이력 상세
+function fnChangeDomnHistBtnModal(location) {
+	var domnSn = fnSelectTrHiddenValue("tb_domnlist_table", "domnSn");
+	var stdSetSn = fnSelectTrHiddenValue("tb_domnlist_table", "stdSetSn");
+	
+	if (!domnSn) {
+		alert("선택한 도메인정보가 없습니다.");
+		return;
+	}
+	
+	$("#histSn").val(domnSn);
+	$("#histLocation").val(location);
+	$("#histStdSetSn").val(stdSetSn);
+	
+	// fnChangeSelectVal("histSltDt");
+	$("#histSltDt").find("option[value='']").prop("selected", true);
+	$("#histBeginDtFrom").val("");
+	$("#histBeginDtTo").val("");
+
+	// fnChangeSelectVal("histSltText");
+	$("#histSltText").find("option[value='']").prop("selected", true);
+	$("#histSearchText").val("");
+	
+	fnShowModal("changehistlist_modal");
+	fnHistSearch();
+
+}
+
+// 도메인정보 상세
+function fnViewDetail(stdSetSn, domnSn) {
+	$.ajax({
+		url : "/json/stdDicary/getStdDicaryDomnInfo"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			domnSn : domnSn
+			, stdSetSn : stdSetSn
+		})
+		, success : function(data) {
+			// 단어 상세 정보
+			var domnInfo = data.info;
+			$("#dtlview_domngroupnm").text(domnInfo.domnGroupNm);
+			$("#dtlview_domnclnm").text(domnInfo.domnClNm);
+			$("#dtlview_domndatatycd").text(domnInfo.dataTyCd);
+			$("#dtlview_domndataltvalue").text(domnInfo.dataLtValue);
+			$("#dtlview_domndatamummvalue").text(domnInfo.dataMummValue);
+			$("#dtlview_domndatamxmmvalue").text(domnInfo.dataMxmmValue);
+			$("#dtlview_domndatadcmlpointltvalue").text(domnInfo.dataDcmlpointLtValue);
+			$("#dtlview_domnnm").text(domnInfo.domnNm);
+			$("#dtlview_domnAprvSttusCdnm").text(domnInfo.aprvSttusCdNm);
+			$("#dtlview_domncn").text(domnInfo.domnCn);
+
+
+			$("#domnAprvSttusCdHide").val(domnInfo.aprvSttusCd);
+			$("#domnSnHide").val(domnInfo.domnSn);
+			
+			var stdSetTyCd = domnInfo.stdSetTyCd;
+			var prcsSeCd = domnInfo.prcsSeCd;
+			
+			fnMngBtnStng(stdSetTyCd, prcsSeCd);
+			
+		}
+	});
+}
+
+// 수정 및 신규등록 모달
+function fnDomnRegBtnModal(pmode) {
+	
+	// DBMS 체크
+	if(!isDbmsChk())
+		return;
+	
+	fnShowModal("domnreginfo_modal");
+
+	$("#regDomnPmodeHide").val(pmode);
+	$("#multipage").val("N");
+	
+	if (pmode == "R") {
+		$("#regDomnSnHide").val("");
+		fnInitDtlView();
+	} else {
+		
+		var domnSn = fnSelectTrHiddenValue("tb_domnlist_table", "domnSn");
+		$("#regDomnSnHide").val(domnSn);
+	}
+	
+	fnRegDomnSearch();
+	
+}
+
+// 도메인그룹관리모달
+function fnDomnGroupModal() {
+	fnGpSearch();
+	fnGpListDetail();
+	fnRemoveDomnGpAddBtn();
+	fnShowModal("domngrouplist_modal");
+}
+
+// 표준사전 도메인 엑셀 다운로드
+function fnDomnDownloadExcel() {
+	
+	var searchParamObj = getDomnSearchParamObj();
+	
+	fnCommFileDownByUrl("/exceldown/stdDicary/getStdDicaryDomnExcelDown","도메인목록", JSON.stringify(searchParamObj));
+
+}
+
+// 정보 초기화
+function fnInitDtlView() {
+	fnClearSelectTrEvent("#tb_domnlist_table tbody tr");
+	$("#dtlview_domngroupnm").empty(); 
+	$("#dtlview_domnAprvSttusCdnm").empty();
+	$("#dtlview_domnclnm").empty();
+	$("#dtlview_domndatatycd").empty();
+	$("#dtlview_domndataltvalue").empty();
+	$("#dtlview_domnnm").empty();
+	$("#dtlview_domndatamummvalue").empty();
+	$("#dtlview_domndatamxmmvalue").empty();
+	$("#dtlview_domndatadcmlpointltvalue").empty();
+	$("#dtlview_domncn").empty();
+
+	$('#tb_domneffectlist_table tbody .fwk_tr_no_row').remove();
+	$('#tb_domneffectlist_table tbody .fwk_data_row').remove();
+	$('#tb_domnhistlist_table tbody .fwk_tr_no_row').remove();
+	$('#tb_domnhistlist_table tbody .fwk_data_row').remove();
+
+	fnFuncBtnsHide();	// 기능 버튼 모두 hide 처리
+}
+
+// 기능 버튼 모두 hide 처리
+function fnFuncBtnsHide() {
+	$("#useDomnBtn").hide(); // 사용버튼
+	$("#domnModifyBtn").hide();
+	$("#acceptDomnBtn").hide();
+	$("#returnDomnBtn").hide();
+	$("#deleteDomnBtn").hide();
+}
+
+// 엑셀업로드
+function fnDomnBundleRegBtnModal() {
+	
+	// DBMS 체크
+	if(!isDbmsChk())
+		return;
+	
+	
+	$("#selFile").val("");
+	$(".txt_filename").text("선택된 파일 없음")
+	$("#subDir").val("");
+	$("#savedFileNm").val("");
+	$("#totalTargetCnt").text("0건");
+	$("#totalClearCnt").text("0건");
+	$("#totalErrorCnt").text("0건");
+	$("input[name=chkBox]").prop('checked',false);
+	$("#tb_filelist_table").width("100%");
+	fnShowModal("domndatastdbundle_modal");
+	$('#tb_filelist_table tbody .fwk_data_row').remove();
+}
+
+// 승인,반려,삭제 관리
+function fnMngBtnStng(stdSetTyCd, prcsSeCd){
+	
+	var aprvSttusCd = $("#domnAprvSttusCdHide").val();
+	
+	fnFuncBtnsHide();	// 기능 버튼 모두 hide 처리
+	
+	if($("#domnDataTyCd option").length != 1){
+		if (stdSetTyCd == "COMMON"){
+			if (aprvSttusCd == "APPROVAL") {
+				$("#useDomnBtn").show();
+			}
+		} else {
+			if (g_isApprover == "Y") {
+				if(aprvSttusCd == "REQUEST" ) {
+					$("#acceptDomnBtn").show();
+					$("#returnDomnBtn").show();
+				} else if (aprvSttusCd == "APPROVAL") {
+					$("#deleteDomnBtn").show();
+				}
+			} else {
+				if(aprvSttusCd == "REQUEST" ) {
+					if(prcsSeCd =="DEL"){
+						$("#deleteDomnBtn").hide();
+					} else {
+						$("#deleteDomnBtn").show();
+						
+					}
+				}
+			}
+			if(aprvSttusCd == "RETURN" ) {
+				$("#acceptDomnBtn").show();
+				$("#deleteDomnBtn").show();
+			}
+			$("#domnModifyBtn").show();
+		}
+	} else {
+		$("#useDomnBtn").show();
+	}
+	
+	$("#domnReqBtnList").show();
+}
+
+// 승인/요청/삭제 버튼
+function fnRequestDomnBtn(pmode) {
+
+	var domnSn = $("#domnSnHide").val();
+	var aprvSttusCd = $("#domnAprvSttusCdHide").val();
+
+	if (pmode == "D") {
+		if(wordList.length != 0){
+			alert("삭제할 수 없습니다.");
+			return;
+		}
+	}
+	
+	if (g_isApprover == "Y") {
+		if (pmode == "RT") {
+			if (!confirm("반려 하시겠습니까?")) {
+				return;
+			}
+		} else if (pmode == "D") {
+			if (!confirm("삭제 하시겠습니까?")) {
+				return;
+			}
+		} 
+	} else if (g_isApprover == "N") {
+		if (pmode == "D") {
+			if (!confirm("삭제요청 하시겠습니까?")) {
+				return;
+			}
+		} 
+	} else {
+		return;
+	}
+
+	var pagingNo ="";
+	$("#dv_paging .on a").each(function(){
+		pagingNo = $(this).text();
+	});
+	
+	$.ajax({
+		url : "/json/stdDicary/saveStdDicaryConfmInfo"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			pmode : pmode
+			, domnSn : domnSn
+			, location : "domn"
+			, isApprover : g_isApprover
+			, aprvSttusCd : aprvSttusCd
+		})
+		, success : function(data) {
+			if (data.resultCd == "OK") {
+				alert("저장되었습니다.");
+				fnDomnSearch(pagingNo);
+				//location.reload();
+			} else {
+				alert("실패하셨습니다.");
+				fnDomnSearch(pagingNo);
+				//location.reload();
+			}
+		}
+	});
+}
+
+
+// 도메인 사용 처리
+function fnSaveUseDomn() {
+
+	// DBMS 체크
+	if(!isDbmsChk())
+		return;
+	
+	var fromDomnSn = $("#domnSnHide").val();
+	var fromStdSetSn = fnSelectTrHiddenValue("tb_domnlist_table", "stdSetSn");
+
+	if (g_isApprover == "Y") {
+		if (!confirm("사용처리 하시겠습니까?")) 
+			return;
+	} else if (g_isApprover == "N") {
+		if (!confirm("사용요청 하시겠습니까?"))
+			return;
+	} else {
+		return;
+	}
+
+	var pagingNo ="";
+	$("#dv_paging .on a").each(function(){
+		pagingNo = $(this).text();
+	});
+	
+	
+	$.ajax({
+		url : "/json/stdDicary/saveCopyCmmnToMyDomn"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			fromStdSetSn: fromStdSetSn
+			, fromDomnSn : fromDomnSn
+			, isApprover : g_isApprover
+		})
+		, success : function(data) {
+			if (data.resultCd == "OK") {
+				alert("저장되었습니다.");
+				fnDomnSearch(pagingNo);
+				//location.reload();
+			} else {
+				alert("실패하셨습니다.");
+				fnDomnSearch(pagingNo);
+				//location.reload();
+			}
+		}
+	});
+}
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,805 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="dq_profile">
+	
+	<sql id="where_selectProfileList">
+		<if test="proflNm != '' and proflNm != null ">
+			and profl_nm like CONCAT('%',#{proflNm},'%')
+		</if>
+	</sql>
+	<!-- 프로파일 관리 - 진단 프로파일리스트 조회 -->
+	<select id="selectProfileList" resultType="sangsMap">
+		select
+			t1.profl_sn
+			, t1.profl_nm
+			, DATE_FORMAT(t1.next_exc_schdul_dt, '%Y-%m-%d %H:%i:%s') as next_exc_schdul_dt
+			, t1.cron_exprsn_value
+			, t1.cron_exprsn_se_cd
+			, (select count(*) from DQ_DGNSS_TRGT_TBL t2 where t1.profl_sn = t2.profl_sn and t2.del_yn = 'N') as tbl_cnt
+			, t1.use_yn
+			, t1.del_yn
+			, DATE_FORMAT(t1.reg_dt, '%Y-%m-%d %H:%i:%s') as reg_dt
+			, t1.reg_user_id
+		from 
+			DQ_DGNSS_PROFL t1
+		where t1.prjct_sn = #{prjctSn}
+		and t1.del_yn = 'N'
+		<include refid="where_selectProfileList"/>
+		order by t1.reg_dt desc
+		limit #{pageSize} offset #{offset}
+	</select>
+	<select id="selectProfileListCnt" resultType="int">
+		select
+			count(*)
+		from 
+			DQ_DGNSS_PROFL t1
+		where t1.prjct_sn = #{prjctSn}
+		and t1.del_yn = 'N'
+		<include refid="where_selectProfileList"/>
+	</select> 
+
+
+
+
+	<!-- 프로파일 관리 - 진단 테이블 조회 -->
+	<select id="selectDiagnosisTableList" resultType="sangsMap" parameterType="map">
+		select
+			t2.tbl_nm
+			, t2.tbl_sn
+			, (select count(*) from DQ_DGNSS_TRGT_COL t3 where t1.profl_sn=t3.profl_sn and t2.tbl_sn = t3.tbl_sn) AS col_cnt
+			, (select count(distinct t4.rule_sn) from DQ_DGNSS_TRGT_COL_RULE t4 where t1.profl_sn = t4.profl_sn and t2.tbl_sn = t4.tbl_sn) AS rule_cnt
+			, DATE_FORMAT(t2.reg_dt, '%Y-%m-%d %H:%i:%s') AS reg_dt
+		from 
+			DQ_DGNSS_PROFL t1
+			, DQ_DGNSS_TRGT_TBL t2
+		where t1.profl_sn = t2.profl_sn
+		and t2.profl_sn = #{proflSn}
+		and t2.del_yn = 'N'
+		order by t2.reg_dt asc
+		<if test="pageSize != '' and pageSize != null ">
+		limit #{pageSize} offset #{offset}
+		</if>
+	</select>
+	<select id="selectDiagnosisTableListCnt" resultType="int" parameterType="map">
+		select
+			count(*)
+		from 
+			DQ_DGNSS_PROFL t1
+			, DQ_DGNSS_TRGT_TBL t2
+		where t1.profl_sn = t2.profl_sn
+		and t2.profl_sn = #{proflSn}
+		and t2.del_yn = 'N'
+	</select>
+	
+	
+	
+	<!-- 프로파일 순번 채번 -->
+	<select id="selectNextProfileSn" parameterType="map" resultType="int">
+		select ifnull(max(profl_sn), 0) + 1 from DQ_DGNSS_PROFL
+	</select>
+	<!-- 프로파일 등록 -->
+	<insert id="insertProfileInfo" parameterType="map">
+		insert into DQ_DGNSS_PROFL 
+			(profl_sn, profl_nm, prjct_sn, use_yn, del_yn, reg_user_id, reg_dt)
+		values
+			(#{proflSn}, #{proflNm}, #{prjctSn}, 'Y', 'N', #{regUserId}, now())
+	</insert>
+	
+	
+	
+	<!-- 프로파일정보 수정 -->
+	<update id="updateProfileInfo" parameterType="map">
+		update DQ_DGNSS_PROFL
+		set profl_nm = #{proflNm}
+			, use_yn = #{useYn}
+			, chg_user_id = #{regUserId}
+			, chg_dt = now()
+		where profl_sn = #{proflSn}
+	</update>
+	
+	
+	
+	<!-- 프로파일 삭제 -->
+	<update id="deleteProfileInfo" parameterType="map">
+		update DQ_DGNSS_PROFL
+		set del_yn = 'Y'
+		where profl_sn = #{proflSn}
+	</update>
+	
+	
+	
+	
+	<!-- 크론표현식 수정 -->
+	<update id="updateCronExprsnValue" parameterType="map">
+		update DQ_DGNSS_PROFL
+		set cron_exprsn_value = #{cronExprsnValue}
+			, cron_exprsn_se_cd = #{cronExprsnSeCd}
+			, next_exc_schdul_dt = #{nextExcSchdulDt}
+			, chg_dt = now()
+		where profl_sn = #{proflSn}
+	</update>
+	
+	
+	
+	<!-- 프로파일 스케쥴러 전체 비활성화 -->
+	<update id="updateScheduleUseYn" parameterType="map">
+		update DQ_DGNSS_PROFL
+		set use_yn = 'N'
+		where use_yn = 'Y'
+	</update>
+	
+	
+	
+	<!-- 진단 테이블 순번 채번 -->
+	<select id="selectNextTblSn" parameterType="map" resultType="Integer">
+		select
+			(ifnull(max(t1.tbl_sn), 0) + 1) as tbl_sn
+		from DQ_DGNSS_TRGT_TBL t1
+		where profl_sn = #{proflSn}
+	</select>
+	
+	
+	<!-- 프로파일 진단 테이블 추가 -->
+	<insert id="insertProflDgnssTbl">
+		insert into DQ_DGNSS_TRGT_TBL 
+			(profl_sn, tbl_sn, schema_nm, tbl_nm, del_yn, reg_user_id, reg_dt, crtr_ymd_col_nm)
+		values
+			(#{proflSn}, #{tblSn}, #{dbmsDatabaseNm}, #{tblNm}, #{delYn}, #{regUserId}, now(), #{crtrYmdColNm})
+	</insert>
+	
+	
+	<!-- 프로파일 진단 컬럼 추가 -->
+	<insert id="insertProflDgnssCol">
+		insert into DQ_DGNSS_TRGT_COL
+			(profl_sn, tbl_sn, col_sn, col_nm, data_ty_cd, data_lt_value, reg_user_id, reg_dt)
+		values
+			(#{proflSn}, #{tblSn}
+			, (select (ifnull(max(t1.col_sn), 0) + 1) AS col_sn from DQ_DGNSS_TRGT_COL t1 where t1.profl_sn = #{proflSn} and t1.tbl_sn = #{tblSn})
+			, #{colNm}, #{dataTyCd}, #{dataLtValue}, #{regUserId}, now())
+	</insert>
+	
+	
+	<!-- 프로파일 진단 컬럼 룰 정보 추가 -->
+	<insert id="insertProflDgnssColRule">
+		insert into DQ_DGNSS_TRGT_COL_RULE
+			(profl_sn, tbl_sn, col_sn, rule_sn, reg_user_id, reg_dt, null_data_dgnss_yn)
+		values
+			(#{proflSn}, #{tblSn}
+			, (select t1.col_sn from DQ_DGNSS_TRGT_COL t1 where t1.profl_sn = #{proflSn} and t1.tbl_sn = #{tblSn} and t1.col_nm = #{colNm})
+			, #{ruleSn}, #{regUserId}, now(), #{nullDataDgnssYn})
+	</insert>
+	
+	
+	<!-- 진단 테이블 삭제 -->
+	<update id="deleteDgnssTbl" parameterType="map">
+		update DQ_DGNSS_TRGT_TBL
+		set del_yn = 'Y'
+		where profl_sn = #{proflSn}
+		and tbl_sn = #{tblSn}
+	</update>
+	
+	
+	<!-- 진단정보 삭제 -->
+	<delete id="deleteProflDgnssColRule">
+		delete from DQ_DGNSS_TRGT_COL_RULE
+		where profl_sn = #{proflSn}
+		and tbl_sn = #{tblSn}
+	</delete>
+	<delete id="deleteProflDgnssCol">
+		delete from DQ_DGNSS_TRGT_COL
+		where profl_sn = #{proflSn}
+		and tbl_sn = #{tblSn}
+	</delete>
+	<delete id="deleteProflDgnssTbl">
+		delete from DQ_DGNSS_TRGT_TBL
+		where profl_sn = #{proflSn}
+		and tbl_sn = #{tblSn}
+	</delete>
+	
+	
+	
+	<!-- 프로파일 진단 테이블 컬럼 선택 목록 조회(수정) -->
+	<select id="selectDgnssColInfo" parameterType="map" resultType="sangsMap">
+		select
+			t2.crtr_ymd_col_nm
+			, t3.col_nm
+			, t3.col_sn
+			, t3.data_ty_cd
+			, t3.data_lt_value
+		from DQ_DGNSS_PROFL t1
+			, DQ_DGNSS_TRGT_TBL t2
+			, DQ_DGNSS_TRGT_COL t3
+		where t1.profl_sn = t2.profl_sn
+		and t2.profl_sn = t3.profl_sn
+		and t2.tbl_sn = t3.tbl_sn
+		and t3.profl_sn = #{proflSn}
+		and t3.tbl_sn = #{tblSn}
+		and t2.del_yn = 'N'
+	</select>
+	
+	
+	
+	<!-- 진단 테이블명 조회 -->
+	<select id="selectDgnssTableNm" parameterType="map" resultType="sangsMap">
+		select
+			t1.profl_sn
+			, t2.tbl_sn
+			, t2.tbl_nm
+		from DQ_DGNSS_PROFL t1
+			, DQ_DGNSS_TRGT_TBL t2
+		where t1.profl_sn = t2.profl_sn
+		and t2.profl_sn = #{proflSn}
+		and t2.tbl_sn = #{tblSn}
+		and t2.del_yn = 'N'
+	</select>
+	
+	
+	<!-- 진단 컬럼 룰 정보 조회 -->
+	<select id="selectDgnssColRuleInfo" parameterType="map" resultType="sangsMap">
+		select
+			t2.col_nm
+			, t3.col_sn
+			, t3.rule_sn
+			, t3.null_data_dgnss_yn
+		from DQ_DGNSS_TRGT_TBL t1
+			, DQ_DGNSS_TRGT_COL t2
+			, DQ_DGNSS_TRGT_COL_RULE t3
+			, DQ_ANLS_RULE_INFO t4
+		where t1.profl_sn = t2.profl_sn 
+		and t2.profl_sn = t3.profl_sn
+		and t1.tbl_sn = t2.tbl_sn
+		and t2.tbl_sn = t3.tbl_sn
+		and t2.col_sn = t3.col_sn
+		and t3.rule_sn = t4.rule_sn
+		and t3.profl_sn = #{proflSn}
+		and t3.tbl_sn = #{tblSn}
+		and t1.del_yn = 'N'
+	</select>
+	
+	
+
+
+	<!-- 프로파일 진단 결과 목록 조회 -->
+	<sql id="where_selectDgnssResultList">
+		<if test="proflNm != '' and proflNm != null">
+			and t1.profl_nm like CONCAT('%',#{proflNm},'%')
+		</if>
+		<if test="beginDtFrom != '' and beginDtFrom != null ">
+			and t1.exc_bgng_dt between TIMESTAMP(concat(#{beginDtFrom}, '000000')) and TIMESTAMP(concat(#{beginDtTo}, '235959'))
+		</if>
+	</sql>
+	<select id="selectDgnssResultList" parameterType="map" resultType="sangsMap">
+		select t1.exc_sn
+			, t1.exc_bgng_dt
+			, t1.exc_bgng_dt2
+			, t1.exc_end_dt
+			, t1.profl_nm 
+			, t1.tbl_cnt
+			, t1.col_cnt
+			, t1.dgnss_tot_data_cnt
+			, t1.exc_sttus_cd
+			, t1.diff_second
+			, (
+				select
+					truncate((sum(t02.mtch_rate)/ t1.tbl_cnt), 2) as mtch_rate
+				from
+					DQ_DGNSS_RESULT_TBL t01
+					join (
+						select
+						exc_sn
+						, tbl_sn
+						, sum((mtch_cnt/(mtch_cnt + dis_mtch_cnt)*100))/count(col_sn) mtch_rate
+					from DQ_DGNSS_RESULT_COL_RULE
+					where rule_sn not in (select rule_sn from DQ_ANLS_RULE_INFO where rule_se_cd in ('AG000100', 'AG000200')) 
+					group by exc_sn ,tbl_sn
+				) t02 on t01.exc_sn = t02.exc_sn and t01.tbl_sn = t02.tbl_sn
+				where t01.exc_sn = t1.exc_sn
+			) as mtch_rate
+			, date_format(t1.reg_dt, '%Y-%m-%d %H:%i:%s') as reg_dt
+		from (
+			select
+				t2.exc_sn
+				, date_format(t2.exc_bgng_dt, '%Y-%m-%d %H:%i:%s') as exc_bgng_dt
+				, date_format(t2.exc_bgng_dt, '%Y-%m-%d %H:%i') as exc_bgng_dt2
+				, date_format(t2.exc_end_dt, '%Y-%m-%d %H:%i:%s') as exc_end_dt
+				, t1.profl_nm
+				, (select count(*) from DQ_DGNSS_RESULT_TBL t3 where t2.exc_sn = t3.exc_sn) as tbl_cnt
+				, (select count(*) from DQ_DGNSS_RESULT_COL t4 where t2.exc_sn = t4.exc_sn) as col_cnt
+				, (select 
+						sum(t3.tot_data_cnt)
+				   from
+				   		DQ_DGNSS_RESULT_TBL t3
+				   		, DQ_DGNSS_RESULT_COL t5
+				   where t2.exc_sn = t3.exc_sn
+				   		and t3.exc_sn = t5.exc_sn
+				   		and t3.tbl_sn = t5.tbl_sn
+				  ) as dgnss_tot_data_cnt
+				, t2.exc_sttus_cd
+				, timestampdiff(second, t2.exc_bgng_dt, t2.exc_end_dt) as diff_second
+				, t2.reg_dt
+			from DQ_DGNSS_PROFL t1
+				, DQ_DGNSS_EXC t2
+			where t1.profl_sn = t2.profl_sn
+			and t1.prjct_sn = #{prjctSn}
+			and t1.del_yn = 'N') t1
+		where 1 = 1
+		<include refid="where_selectDgnssResultList" />
+		order by t1.exc_sn desc
+		limit #{pageSize} offset #{offset}
+	</select>
+	<select id="selectDgnssResultListCnt" parameterType="map" resultType="int">
+		select
+			count(*)
+		from (
+			select
+				t2.exc_sn
+				, date_format(t2.exc_bgng_dt, '%Y-%m-%d %H:%i:%s') as exc_bgng_dt
+				, date_format(t2.exc_bgng_dt, '%Y-%m-%d %H:%i') as exc_bgng_dt2
+				, date_format(t2.exc_end_dt, '%Y-%m-%d %H:%i:%s') as exc_end_dt
+				, t1.profl_nm
+				, (select count(*) from DQ_DGNSS_RESULT_TBL t3 where t2.exc_sn = t3.exc_sn) as tbl_cnt
+				, (select count(*) from DQ_DGNSS_RESULT_COL t4 where t2.exc_sn = t4.exc_sn) as col_cnt
+				, (select 
+						sum(t3.tot_data_cnt)
+				   from
+				   		DQ_DGNSS_RESULT_TBL t3
+				   		, DQ_DGNSS_RESULT_COL t5
+				   where t2.exc_sn = t3.exc_sn
+				   		and t3.exc_sn = t5.exc_sn
+				   		and t3.tbl_sn = t5.tbl_sn
+				  ) as dgnss_tot_data_cnt
+				, t2.exc_sttus_cd
+				, timestampdiff(second, t2.exc_bgng_dt, t2.exc_end_dt) as diff_second
+				, t2.reg_dt
+			from DQ_DGNSS_PROFL t1
+				, DQ_DGNSS_EXC t2
+			where t1.profl_sn = t2.profl_sn
+			and t1.prjct_sn = #{prjctSn}
+			and t1.del_yn = 'N') t1
+		where 1 = 1
+		<include refid="where_selectDgnssResultList" />
+	</select>
+
+
+	<!-- 프로파일 진단 결과 정보 조회 -->
+	<select id="selectDgnssResultDetailInfo" parameterType="map" resultType="sangsMap">
+		select t1.profl_sn
+			, t1.profl_nm
+			, t2.exc_sn
+			, t2.dbms_nm
+			, t2.dbms_ip_addr
+			, t2.dbms_port_no
+			, t2.dbms_schema_nm
+			, t2.dbms_database_nm
+			, t2.dbms_id
+			, t2.exc_bgng_dt
+			, t2.exc_end_dt
+			, t2.diff_second
+			, t2.tot_tbl_cnt
+			, t2.tot_col_cnt
+			, t2.dgnss_tot_data_cnt
+			, t2.dgnss_tot_err_cnt
+		from DQ_DGNSS_PROFL t1
+			join (
+				select
+					t01.exc_sn
+					, t01.profl_sn
+					, t01.dbms_nm
+					, t01.dbms_ip_addr
+					, t01.dbms_port_no
+					, t01.dbms_schema_nm
+					, t01.dbms_database_nm
+					, t01.dbms_id
+					, date_format(t01.exc_bgng_dt, '%Y-%m-%d %H:%i:%s') as exc_bgng_dt
+					, date_format(t01.exc_end_dt, '%Y-%m-%d %H:%i:%s') as exc_end_dt
+					, timestampdiff(second, t01.exc_bgng_dt, t01.exc_end_dt) as diff_second
+					, (select count(*) from DQ_DGNSS_RESULT_TBL t02 where t01.exc_sn = t02.exc_sn) as tot_tbl_cnt
+					, (select count(*) from DQ_DGNSS_RESULT_COL t03 where t01.exc_sn = t03.exc_sn) as tot_col_cnt
+					, (select sum(t04.tot_data_cnt) from DQ_DGNSS_RESULT_TBL t04, DQ_DGNSS_RESULT_COL t05 where t01.exc_sn = t04.exc_sn and t04.exc_sn = t05.exc_sn and t04.tbl_sn = t05.tbl_sn) as dgnss_tot_data_cnt
+					, (select count(*) from DQ_DGNSS_RESULT_ERR t05 where t01.exc_sn = t05.exc_sn) as dgnss_tot_err_cnt
+				from DQ_DGNSS_EXC t01
+				where t01.exc_sn = #{excSn}
+			) t2 on t1.profl_sn = t2.profl_sn
+	</select>
+	
+	
+	<!-- 프로파일 진단 결과 테이블 목록 -->
+	<select id="selectDgnssResultDetailTblList" parameterType="map" resultType="sangsMap">
+		select t1.profl_sn
+			, t1.exc_sn
+			, t1.tbl_sn
+			, t1.tbl_nm
+			, t1.col_cnt
+			, t1.rule_cnt + (select count(distinct col_sn) from DQ_DGNSS_FQ_RESULT where exc_sn = t1.exc_sn and tbl_sn = t1.tbl_sn) as rule_cnt
+			, t1.tot_data_cnt
+			, t1.err_cnt
+			, truncate(t1.mtch_rate,2) mtch_rate
+		from	
+			(
+			select
+				t01.profl_sn
+				, t01.exc_sn
+				, t02.tbl_sn
+				, t02.tbl_nm
+				, (select count(*) from DQ_DGNSS_RESULT_COL t03 where t01.exc_sn = t03.exc_sn and t02.tbl_sn = t03.tbl_sn) as col_cnt 
+				, (select count(*) from DQ_DGNSS_RESULT_COL_RULE t03 where t01.exc_sn = t03.exc_sn and t02.tbl_sn = t03.tbl_sn) as rule_cnt
+				, t02.tot_data_cnt
+				, (select count(*) from DQ_DGNSS_RESULT_ERR t04 where t01.exc_sn = t04.exc_sn and t02.tbl_sn = t04.tbl_sn) as err_cnt
+				, t03.mtch_rate
+				, t03.col_count
+			from DQ_DGNSS_EXC t01
+				, DQ_DGNSS_RESULT_TBL t02
+				left outer join (select
+						exc_sn
+						, tbl_sn
+						, count(col_sn) col_count
+						, sum((mtch_cnt/(mtch_cnt + dis_mtch_cnt)*100))/count(col_sn) mtch_rate
+					from DQ_DGNSS_RESULT_COL_RULE
+					where rule_sn not in (select rule_sn from DQ_ANLS_RULE_INFO where rule_se_cd in ('AG000100', 'AG000200'))
+					and exc_sn = #{excSn}
+					group by exc_sn ,tbl_sn) t03 on t02.exc_sn = t03.exc_sn and t02.tbl_sn = t03.tbl_sn
+			where t01.exc_sn = t02.exc_sn
+			and t01.exc_sn = #{excSn}
+		) t1
+		order by t1.tbl_sn
+	</select>
+	
+	
+	<!-- 프로파일 진단 결과 테이블 분석 목록 -->
+	<select id="selectDgnssResultDetailTblAnlsList" parameterType="map" resultType="sangsMap">
+		select t1.exc_sn
+			, t1.tbl_sn
+			, t1.tbl_nm
+			<!-- , t1.tot_data_cnt -->
+			, t2.mtch_cnt + t2.dis_mtch_cnt as tot_data_cnt
+			, t2.col_sn
+			, t2.col_nm
+			, t2.rule_sn
+			, t2.rule_nm
+			, t2.mtch_cnt
+			, t2.rule_se_cd
+			, t2.rule_ty_cd
+			, t2.pttrn_se_cd 
+			, truncate(((t2.mtch_cnt /(t2.mtch_cnt + t2.dis_mtch_cnt)) * 100), 2) as mtch_rate  
+			, t2.rule_exc_result_cd
+		from DQ_DGNSS_RESULT_TBL t1
+			join (
+				select t01.exc_sn
+					, t01.tbl_sn
+					, t01.col_nm
+					, t01.col_sn
+					, t02.rule_sn
+					, t02.rule_nm
+					, t02.mtch_cnt
+					, t02.dis_mtch_cnt
+					, t02.rule_se_cd
+					, t02.rule_ty_cd
+					, t02.pttrn_se_cd 
+					, t02.rule_exc_result_cd
+				from DQ_DGNSS_RESULT_COL t01
+					join (
+						select t001.exc_sn 
+							, t001.col_sn
+							, t001.tbl_sn
+							, t001.rule_sn
+							, t001.mtch_cnt
+							, t001.dis_mtch_cnt
+							, t001.rule_exc_result_cd
+							, t002.rule_nm
+							, t002.rule_se_cd
+							, t002.rule_ty_cd
+							, t002.pttrn_se_cd
+						from DQ_DGNSS_RESULT_COL_RULE t001,
+							DQ_ANLS_RULE_INFO t002
+						where t001.rule_sn = t002.rule_sn
+						<choose>
+							<when test='basicAnlsYn == "Y"'>
+							and t002.rule_ty_cd = 'AT000100'
+							and t002.rule_se_cd = 'AG000100'
+							</when>
+							<otherwise>
+							and t002.rule_se_cd not in ('AG000100', 'AG000200')
+							</otherwise>
+						</choose>
+					) t02 on t01.exc_sn = t02.exc_sn and t01.tbl_sn = t02.tbl_sn and t01.col_sn = t02.col_sn
+			) t2 on t1.exc_sn = t2.exc_sn and t1.tbl_sn = t2.tbl_sn
+		where t1.exc_sn = #{excSn}
+		order by t1.tbl_sn, t2.col_sn, t2.rule_sn
+	</select>
+	
+	<!-- 프로파일 진단 결과 테이블 FQ 분석 목록 -->
+	<select id="selectDgnssResultDetailTblFqAnlsList" parameterType="map" resultType="sangsMap">
+		select t1.exc_sn
+			, t1.tbl_sn
+			, t1.tbl_nm
+			, t1.tot_data_cnt
+			, t2.col_sn
+			, t2.col_nm
+			, t2.fq_sn
+			, t2.data_value
+			, t2.data_cnt
+			, truncate(((t2.data_cnt /t1.tot_data_cnt) * 100), 2) as mtch_rate  
+		from DQ_DGNSS_RESULT_TBL t1
+			join (
+				select t01.exc_sn
+					, t01.tbl_sn
+					, t01.col_nm
+					, t01.col_sn
+					, t02.fq_sn
+					, t02.data_value
+					, t02.data_cnt
+				from DQ_DGNSS_RESULT_COL t01
+					join (
+						select t001.exc_sn 
+							, t001.col_sn
+							, t001.tbl_sn
+							, t001.fq_sn
+							, t001.data_value
+							, t001.data_cnt
+						from DQ_DGNSS_FQ_RESULT t001
+					) t02 on t01.exc_sn = t02.exc_sn and t01.tbl_sn = t02.tbl_sn and t01.col_sn = t02.col_sn
+			) t2 on t1.exc_sn = t2.exc_sn and t1.tbl_sn = t2.tbl_sn
+		where t1.exc_sn = #{excSn}
+		order by t1.tbl_sn, t2.col_sn, t2.fq_sn
+	</select>
+
+
+	<!-- 진단 프로파일 정보 조회 -->
+	<select id="selectProfileInfo" resultType="sangsMap" parameterType="map">
+		select 
+			t1.profl_sn
+			, t1.profl_nm
+			, t1.prjct_sn
+			, DATE_FORMAT(t1.next_exc_schdul_dt, '%Y-%m-%d %H:%i:%s') AS next_exc_schdul_dt
+			, t1.cron_exprsn_value
+			, t1.cron_exprsn_se_cd
+			, t1.use_yn
+			, t1.del_yn
+			, t2.dbms_cnnc_sn
+			, t3.dbms_sn 
+			, t3.dbms_nm
+		FROM 
+			DQ_DGNSS_PROFL t1
+			, CMMN_PRJCT t2
+			join (
+				select t01.dbms_cnnc_sn, t01.dbms_sn, t02.dbms_nm
+				from CMMN_PRJCT_DBMS_CNNC_INFO t01, CMMN_PRJCT_DBMS t02
+				where t01.dbms_sn = t02.dbms_sn
+			) t3
+			on t2.dbms_cnnc_sn = t3.dbms_cnnc_sn 
+		where 1 = 1
+		and t1.prjct_sn = t2.prjct_sn
+		and t1. use_yn = 'Y'
+		and t1.profl_sn = #{proflSn}
+	</select>
+	
+	<!-- 진단 대상 컬럼 목록 조회-->
+	<select id="selectDgnssTrgtColList" resultType="sangsMap" parameterType="map">
+		select
+			t1.tbl_sn
+			, t1.col_sn
+			, t1.col_Nm
+			, t1.data_ty_cd
+			, t1.data_lt_value
+		from
+			DQ_DGNSS_TRGT_COL t1
+			join(
+				select 
+					PROFL_SN
+					, tbl_sn 
+				from DQ_DGNSS_TRGT_TBL 
+				where del_yn = 'N'
+			) t2 on t1.PROFL_SN = t2.PROFL_SN and t1.TBL_SN = t2.tbl_sn
+		where t1.profl_sn = #{proflSn}
+		order by tbl_sn, col_sn
+	</select>
+	
+	
+	<!-- 프로파일 결과 불일치 정보 조회 -->
+	<select id="selectProfilResultDisMatchInfo" resultType="sangsMap" parameterType="map">
+		select
+			sum(t03.tot_data_cnt) as total_data_count
+			, t01.exc_sn
+			, t02.prjct_sn
+			, t02.profl_sn
+			, t02.profl_nm
+			, (select count(*) from DQ_DGNSS_RESULT_TBL t02 where t01.exc_sn = t02.exc_sn) as tot_tbl_cnt
+			, (select count(*) from DQ_DGNSS_RESULT_COL t03 where t01.exc_sn = t03.exc_sn) as tot_col_cnt
+			, (select sum(t04.tot_data_cnt) from DQ_DGNSS_RESULT_TBL t04, DQ_DGNSS_RESULT_COL t05	where t01.exc_sn = t04.exc_sn and t04.exc_sn = t05.exc_sn and t04.tbl_sn = t05.tbl_sn) as dgnss_tot_data_cnt
+			, (select count(*) from DQ_DGNSS_RESULT_DIS_MTCH_INFO t05 where t01.exc_sn = t05.exc_sn) as dgnss_tot_mis_cnt
+			, (select count(*) from DQ_DGNSS_RESULT_ERR t05 where t01.exc_sn = t05.exc_sn) as dgnss_tot_err_rule_cnt
+			, date_format(t01.exc_bgng_dt, '%Y-%m-%d %H:%i:%s') as exc_bgng_dt
+			, date_format(t01.exc_end_dt, '%Y-%m-%d %H:%i:%s') as exc_end_dt
+			, t01.exc_sttus_cd
+		from
+			DQ_DGNSS_EXC t01
+			, DQ_DGNSS_PROFL t02
+			, DQ_DGNSS_RESULT_TBL t03
+		where t01.profl_sn = t02.profl_sn
+			and t01.exc_sn = t03.exc_sn
+			and t02.use_yn = 'Y'
+			and t01.exc_sn = #{excSn}
+	</select>
+	
+		<!-- 프로파일 결과 불일치 목록 조회 -->
+	<select id="selectProfilResultDisMatchList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.tbl_nm
+			, t1.tbl_sn 
+			, t2.col_nm 
+			, t2.col_sn 
+			, t5.rule_nm 
+			, t5.rule_sn 
+			, t5.rule_dc
+			, t5.rule_postv_exprsn_yn 
+			, t5.rule_exprsn_value 
+			, t4.data_value 
+			, t4.pk_info_value 
+			, case when t3.RULE_EXC_RESULT_CD = 'E' then 'Y' else 'N' end as err_rule_yn
+		from DQ_DGNSS_RESULT_TBL t1 
+			, DQ_DGNSS_RESULT_COL t2 
+			, DQ_DGNSS_RESULT_COL_RULE t3
+			, (
+				select exc_sn, tbl_sn, col_sn, rule_sn, sub_sn,  data_value, pk_info_value 
+				from DQ_DGNSS_RESULT_DIS_MTCH_INFO
+				where exc_sn = #{excSn}
+				UNION 
+				select exc_sn, tbl_sn, col_sn, rule_sn, -1, '', '' 
+				from DQ_DGNSS_RESULT_ERR 
+				where exc_sn = #{excSn}
+			) t4
+			, DQ_ANLS_RULE_INFO t5
+		where 1 = 1 
+			and t1.exc_sn = t2.exc_sn
+			and t1.tbl_sn = t2.tbl_sn
+			and t2.exc_sn = t3.exc_sn
+			and t2.tbl_sn = t3.tbl_sn
+			and t2.col_sn = t3.col_sn
+			and t3.exc_sn  = t4.exc_sn
+			and t3.tbl_sn = t4.tbl_sn 
+			and t3.col_sn = t4.col_sn 
+			and t3.rule_sn = t4.rule_sn 
+			and t3.rule_sn = t5.rule_sn
+			and t5.rule_se_cd not in ('AG000100', 'AG000200')
+			and t1.exc_sn = #{excSn}
+			<if test="tblSn != '' and tblSn != null ">
+			and t1.tbl_sn = #{tblSn}
+			</if>
+			<if test="ruleSn != '' and ruleSn != null ">
+			and t3.rule_sn = #{ruleSn}
+			</if>
+			<if test="ruleExcResultCd != '' and ruleExcResultCd != null ">
+				<choose>
+					<when test='ruleExcResultCd == "E"'>
+						and t3.rule_exc_result_cd = #{ruleExcResultCd}
+					</when>
+					<otherwise>
+						and t3.rule_exc_result_cd not in('E')
+					</otherwise>
+				</choose>
+			</if>
+		order by t1.tbl_sn
+		<if test='excelYn !="Y"'>
+		limit #{pageSize} offset #{offset}
+		</if>
+	</select>
+	
+	<!-- 프로파일 결과 불일치 목록 count -->
+	<select id="selectProfilResultDisMatchListCnt" resultType="int">
+		select
+			count(*)
+		from DQ_DGNSS_RESULT_TBL t1 
+			, DQ_DGNSS_RESULT_COL t2 
+			, DQ_DGNSS_RESULT_COL_RULE t3
+			, (
+				select exc_sn, tbl_sn, col_sn, rule_sn, sub_sn,  data_value, pk_info_value 
+				from DQ_DGNSS_RESULT_DIS_MTCH_INFO
+				where exc_sn = #{excSn}
+				UNION 
+				select exc_sn, tbl_sn, col_sn, rule_sn, -1, '', '' 
+				from DQ_DGNSS_RESULT_ERR 
+				where exc_sn = #{excSn}
+			) t4
+			, DQ_ANLS_RULE_INFO t5
+		where 1 = 1 
+			and t1.exc_sn = t2.exc_sn
+			and t1.tbl_sn = t2.tbl_sn
+			and t2.exc_sn = t3.exc_sn
+			and t2.tbl_sn = t3.tbl_sn
+			and t2.col_sn = t3.col_sn
+			and t3.exc_sn  = t4.exc_sn
+			and t3.tbl_sn = t4.tbl_sn 
+			and t3.col_sn = t4.col_sn 
+			and t3.rule_sn = t4.rule_sn 
+			and t3.rule_sn = t5.rule_sn
+			and t5.rule_se_cd not in ('AG000100', 'AG000200')
+			and t1.exc_sn = #{excSn}
+			<if test="tblSn != '' and tblSn != null ">
+			and t1.tbl_sn = #{tblSn}
+			</if>
+			<if test="ruleSn != '' and ruleSn != null ">
+			and t3.rule_sn = #{ruleSn}
+			</if>
+			<if test="ruleExcResultCd != '' and ruleExcResultCd != null ">
+				<choose>
+					<when test='ruleExcResultCd == "E"'>
+						and t3.rule_exc_result_cd = #{ruleExcResultCd}
+					</when>
+					<otherwise>
+						and t3.rule_exc_result_cd not in('E')
+					</otherwise>
+				</choose>
+			</if>
+	</select> 
+	
+	<!-- 불일치 규칙 조회 -->
+	<select id="selectProfilResultDisMatchRuleList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.rule_nm
+ 			, t1.rule_sn
+		from DQ_ANLS_RULE_INFO t1
+		where 1 = 1
+		and t1.rule_se_cd not in ('AG000100', 'AG000200') 
+		and t1.rule_sn in 
+		(
+			select rule_sn from DQ_DGNSS_RESULT_DIS_MTCH_INFO where exc_sn  = #{excSn}
+			union 
+			select rule_sn from DQ_DGNSS_RESULT_ERR where exc_sn  = #{excSn}
+		)
+	</select>
+	
+	<!-- 불일치 테이블 조회 -->
+	<select id="selectProfilResultDisMatchTableList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.tbl_sn
+			, t1.tbl_nm
+		from DQ_DGNSS_RESULT_TBL t1
+		where 1 = 1
+		and t1.exc_sn = #{excSn}
+		and t1.tbl_sn in 
+		(
+			select tbl_sn from DQ_DGNSS_RESULT_DIS_MTCH_INFO where exc_sn = #{excSn}
+			union 
+			select tbl_sn from DQ_DGNSS_RESULT_ERR where exc_sn = #{excSn}
+		)
+	</select>
+	
+	<!-- 컬럼 널 데이터 진단 여부 목록 -->
+	<select id="selectProfilResultNullDataDgnssYnList" resultType="sangsMap" parameterType="map">
+		select t2.tbl_sn
+			, t2.col_sn
+			, t2.rule_sn
+			, t3.null_data_dgnss_yn 
+		from DQ_DGNSS_EXC t1
+			, DQ_DGNSS_RESULT_COL_RULE t2
+			, DQ_DGNSS_TRGT_COL_RULE t3
+		where t1.exc_sn = t2.exc_sn
+		and t1.profl_sn = t3.profl_sn
+		and t2.tbl_sn = t3.tbl_sn
+		and t2.col_sn = t3.col_sn
+		and t2.rule_sn = t3.rule_sn
+		and t1.exc_sn = #{excSn}
+	</select>
+	
+	<!-- 진단 결과 에러 조회 -->
+	<select id="selectDgnssResultErrInfo" parameterType="map" resultType="sangsMap">
+		select
+			exc_sn
+			, exc_err_cn			
+		from DQ_DGNSS_EXC
+		where exc_sn = #{excSn}
+	</select>
+	
+	<!-- 진단 결과 규칙 에러 조회 -->
+	<select id="selectDgnssResultRuleErrInfo" parameterType="map" resultType="sangsMap">
+		select err_nm
+			, err_cn
+		from DQ_DGNSS_RESULT_ERR
+		where exc_sn = #{excSn} 
+		and tbl_sn = #{tblSn} 
+		and col_sn = #{colSn}
+		and rule_sn = #{ruleSn}
+	</select>
+	
+</mapper>

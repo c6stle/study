@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cmmn_login_user">
+
+	<!-- 사용자 로그인 정보 조회 -->
+	<select id="selectLoginUserInfo" resultType="sangsMap" parameterType="sangsMap">
+		select 
+			t1.USER_ID
+			, t1.USER_PASSWORD
+			, t2.USER_NM
+			, t1.LGN_FAILR_CNT
+			, case when CURRENT_TIMESTAMP > t1.PASSWORD_EXPRY_DT then 'Y' else 'N' end as EXPIRE_PWD_DT
+			, t3.AUTHRT_CD
+			, case when t3.AUTHRT_CD = 'ADMIN' or t3.AUTHRT_CD = 'APPROVER' then 'Y' else 'N' end as IS_APPROVER
+		from CMMN_MNGR_LOGIN t1
+			, CMMN_MNGR t2
+			, CMMN_MNGR_AUTHOR_DTL t3
+		where t1.USER_ID = t2.USER_ID	
+			and t2.USE_YN = 'Y'
+			and t1.USER_ID = t3.USER_ID
+			and t1.USER_ID = #{userId}
+			<!-- and t1.USER_PASSWORD = #{userPassword} -->
+	</select>
+
+	<!-- 로그인 사용자의 프로젝트 정보 조회 -->
+	<select id="selectLoginUserProjectInfo" resultType="sangsMap" parameterType="map">
+		select 
+			t1.PRJCT_SN
+			, t1.PRJCT_NM
+			, t1.PRJCT_CN
+		from CMMN_PRJCT t1
+			, CMMN_PRJCT_USER t2
+		where t1.PRJCT_SN = t2.PRJCT_SN
+			and t2.PRJCT_SN = #{prjctSn}
+			and t2.USER_ID = #{userId}
+			and t1.USE_YN = 'Y'
+			and t1.DEL_YN = 'N'
+		limit 1
+	</select>
+	
+	<update id="updateLoginFailedCnt" parameterType="map">
+		UPDATE CMMN_MNGR_LOGIN SET 
+			LGN_FAILR_CNT = LGN_FAILR_CNT + 1
+		WHERE 1=1
+			AND USER_ID = #{userId}
+	</update>
+	
+	<update id="updatePasswordInfo" parameterType="map">
+		UPDATE CMMN_MNGR_LOGIN SET 
+			USER_PASSWORD = #{encryptPass}
+		WHERE 1=1
+			AND USER_ID = #{userId}
+	</update>
+	
+</mapper>  

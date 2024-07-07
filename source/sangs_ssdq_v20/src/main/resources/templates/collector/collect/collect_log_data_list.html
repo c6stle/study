@@ -1,0 +1,326 @@
+<!--
+	Description : (팝업)수집통합관리 > 수집로그 > 데이터 내역 조회
+
+	Modification Information
+	수정일				수정자			수정내용
+	-------		-----------------------------------
+	2016.01.25		송호현
+
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+	<style>
+		.guide_box {
+			margin-bottom: 15px;
+		    padding: 12px;
+		    border: 1px solid #d6d5c9;
+		    background-color: #fefbde;
+		}
+	</style>
+
+<script type="text/javascript" th:inline="javascript">
+
+$(document).ready(function(){
+
+	// 그리드 리스트 호출
+	//fnGridList();
+
+	// form에서 엔터로 검색시 1페이지로 셋팅하게 한다.
+	$('#colValue').keydown(function(e) {
+		if(e.keyCode == 13) {
+			$('#pageIndex').val("1");
+			$('#listType').val("LIST");		// 엑셀로 sumbit 후 다시 조회로 바꿔준다.
+			$('#frm').attr("target", "_self");
+		}
+	});
+
+	fnSetPaging("dv_paging", /*[[${pagingInfo}]]*/);
+
+});
+
+
+//조회
+function fnSearch(pageIdx) {
+	if(pageIdx)
+		$('#pageIndex').val(pageIdx);
+	$('#listType').val("LIST");
+	$('#frm').attr("target", "_self");
+	$('#frm').submit();
+
+}
+
+//탭 온오프
+function fnShowSubArea(subTabIdx) {
+	if(subTabIdx == "subTab01") {
+		$("#subTabMenu02").removeClass("on");
+		$("#subTabMenu01").addClass("on");
+		$("#subTab02").hide();
+		$("#subTab01").show();
+		$("#subTidx").val("subTab01");
+	}else if(subTabIdx == "subTab02") {
+		$("#subTabMenu01").removeClass("on");
+		$("#subTabMenu02").addClass("on");
+		$("#subTab01").hide();
+		$("#subTab02").show();
+		$("#subTidx").val("subTab02");
+	}
+}
+
+
+function fnSetGridColor (gridColorFmt) {
+	switch(coloFmt) {
+    case 1:
+             return 'style="background-color:#58D3F7"';
+             break;
+    case 2:
+             return 'style="background-color:#E0F2F7"';
+             break;
+    case 3:
+             return 'style="background-color:white"';
+             break;
+    default:
+	}
+	return  "";
+}
+
+//로그삭제
+function fnDeleteLog(apiCd, logYmd, logSn) {
+
+	var delconWin = window.confirm("로그를 삭제하겠습니까? 수집데이터도 함께 삭제됩니다.");
+	if (delconWin) {
+		window.location.href = "/mngr/metaMng/metaMngCollectLogDelete?apiCd="+apiCd+"&logYmd="+logYmd+"&logSn="+logSn;
+	}
+
+}
+
+</script>
+
+<body>
+
+<div id="wrap">
+	<div class="container">
+		<div id="content">
+			<div class="page_info_area">
+				<div class="left">
+					<div class="title_area">
+						<p>수집통합관리</p>
+						<a href="#" class="reload_btn" title="새로고침">새로고침</a>
+					</div>
+				</div>
+				<div class="right">
+					<div class="btn_wrap">
+						<a th:href="@{/collector/collect/collect_log_list(apiCd=${params.apiCd}, tIdx=${#maps.containsKey(params, 'tIdx') ? param.tIdx : ''})}"><button type="button" class="btn">목록</button></a>
+						<button type="button" class="btn green" onclick="fnSearch('1');" >조회</button>
+					</div>
+				</div>
+			</div><!-- page_info_area -->
+
+			<div class="content_area">
+				<div class="division20">
+					<!-- sub tab메뉴 -->
+					<!--
+					<div class="tab_wrap">
+						<ul class="tab_btn_wrap in_w20">
+							<li id="subTabMenu01" class="tab_btn" th:classappend="${#maps.containsKey(params, subTidx) ? (params.subTidx == 'subTab01' ? 'on' : '') : 'on'}"><a href="#" onclick="fnShowSubArea('subTab01');">수집정보</a><li>
+							<li id="subTabMenu02" class="tab_btn" th:classappend="${#maps.containsKey(params, subTidx) ? (params.subTidx == 'subTab02' ? 'on' : '') : ''}"><a href="#" onclick="fnShowSubArea('subTab02');">데이터검색</a><li>
+						</ul>
+					</div>
+ 					-->
+					<!-- <div id="subTab01" th:style="${#maps.containsKey(params, 'subTidx') ? (params.subTidx == 'subTab02' ? 'display:none' : '') : false}"> -->
+
+					<!-- 검색 영역 -->
+					<form name="frm" id="frm"  method="post" th:action="@{/collector/collect/collect_log_data_list(apiCd=${params.apiCd}, logSn=${params.logSn}, logYmd=${params.logYmd})}">
+						<input type="hidden" name="pageIndex" id="pageIndex" th:value="${params.pageIndex}" />
+						<input type="hidden" name="apiCd" id="apiCd" th:value="${params.apiCd}" />
+						<input type="hidden" name="logSn" id="logSn" th:value="${params.logSn}" />
+						<input type="hidden" name="logYmd" id="logYmd" th:value="${params.logYmd}" />
+						<input type="hidden" name="listType" id="listType" value="" />
+						<input type="hidden" name="tIdx" id="tIdx" th:value="${#maps.containsKey(params, 'tIdx') ? params.tIdx : false}" />
+						<input type="hidden" name="subTidx" id="subTidx" th:value="${#maps.containsKey(params, 'subTidx') ? params.subTidx : false}" />
+
+
+						<!-- <div id="subTab02" th:style="${#maps.containsKey(params, subTidx) ? (params.subTidx == 'subTab01' or params.subTidx == null ? 'display:none' : '') : 'display:none'}"> -->
+							<div class="search_wrap">
+								<table class="search_type fixed">
+									<caption>검색 테이블</caption>
+									<colgroup>
+										<col style="width: 10%;" />
+										<col style="width: 40%;" />
+										<col style="width: 10%;" />
+										<col style="width: 40%;" />
+									</colgroup>
+									<tbody>
+										<tr>
+											<th scope="row"><label for="searchType">검색항목</label></th>
+											<td>
+												<select name="colNm" id="colNm">
+													<option value="">항목선택</option>
+													<th:block th:each="result : ${outputList}">
+														<option th:value="${result.colNm}" th:selected="${#maps.containsKey(params, 'colNm') ? (params.colNm eq result.colNm ? true : false) : false}">[[${result.apiRcptnNm}]]([[${result.apiRcptnEngNm}]])</option>
+													</th:block>>
+			                           			</select>
+											</td>
+											<th scope="row"><label for="searchType">검색어</label></th>
+											<td>
+												<input type="text" name="colValue" id="colValue" title="검색어" class="basic" style="width:100%;" th:value="${#maps.containsKey(params, 'colValue') ? params.colValue : ''}" />
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div> <!-- //table_wrap -->
+
+						<!-- </div> -->
+					</form>
+
+					<div class="tbl_top">
+						<p class="tit v2">수집결과정보</p>
+					</div>
+
+					<div class="view_wrap" style="min-height:100px;">
+						<table class="view fixed" style="word-break:break-all;">
+							<caption>수집결과정보</caption>
+							<colgroup>
+								<col style="width: 13%;" />
+								<col style="width: 13%;" />
+								<col style="width: 8%;" />
+								<col style="width: 13%;" />
+								<col style="width: 13%;" />
+								<col style="width: 13%;" />
+								<col style="width: 13%;" />
+							</colgroup>
+							<thead>
+								<tr>
+									<th scope="row">수집코드</th>
+									<th scope="row">년월일</th>
+									<th scope="row">순번</th>
+									<th scope="row">시작시간</th>
+									<th scope="row">종료시간</th>
+									<th scope="row">결과코드</th>
+									<th scope="row">수집건수</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>[[${resultMap.apiCd}]]</td>
+									<td>[[${resultMap.logYmd}]]</td>
+									<td>[[${resultMap.logSn}]]</td>
+									<td>[[${resultMap.bgngDt}]]</td>
+									<td>[[${resultMap.endDt}]]</td>
+									<td>[[${resultMap.rspnsResultCd}]]</td>
+									<td>[[${resultMap.rspnsResultCnt}]]</td>
+								</tr>
+							</tbody>
+							<thead>
+								<tr>
+									<th scope="row">수집주소</th>
+									<td colspan="3" style="padding:5px 8px;">
+										<a th:href="@{${resultMap.rqstUrlAddr}}" target="_blank">[[${resultMap.rqstUrlAddr}]]</a>
+									</td>
+									<th scope="row">결과내용</th>
+									<td colspan="2" style="padding:5px 8px;">
+										[[${resultMap.rspnsResultCn}]]
+									</td>
+								</tr>
+							</thead>
+						</table>
+					</div> <!-- //table_wrap -->
+
+					<!--
+					<div class="tbl_top">
+						<p class="tit v2">정제결과정보</p>
+					</div>
+					-->
+
+					<!-- <div class="view_wrap" style="min-height:100px;">
+						<table class="view">
+							<caption>정제결과정보</caption>
+							<colgroup>
+								<col style="width: 25%;" />
+								<col style="width: 25%;" />
+								<col style="width: 25%;" />
+								<col style="width: 25%;" />
+							</colgroup>
+							<thead>
+								<tr>
+									<th class="alignc" scope="row">정제여부</th>
+									<th class="alignc" scope="row">정제일자</th>
+									<th class="alignc" scope="row">성공건수</th>
+									<th class="alignc" scope="row">실패건수</th>
+								</tr>
+							</thead>
+							<tr>
+								<td class="alignc" style="padding:5px 8px;">
+									<th:block th:if="${resultMap.arngYn == 'Y'}">[[${resultMap.arngYn}]]</th:block>
+									<th:block th:unless="${resultMap.arngYn == 'Y'}">N</th:block>
+								</td>
+								<td class="alignc" style="padding:5px 8px;">[[${resultMap.arngDt}]]</td>
+								<td class="alignc" style="padding:5px 8px;">[[${resultMap.arngScsCnt}]]</td>
+								<td class="alignc" style="padding:5px 8px;">[[${resultMap.arngFailrCnt}]]</td>
+							</tr>
+							</thead>
+						</table>
+					</div> --> <!-- //table_wrap -->
+
+					<!-- <div class="btn_wrap margin10">
+						<div class="right">
+							<a href="#" th:onclick="fnDeleteLog([[${params.apiCd}]], [[${params.logYmd}]], [[${params.logSn}]]);" class="btn red">로그삭제</a>
+							<a th:href="@{/collector/collect/collect_log_list(apiCd=${params.apiCd}, tIdx=${params.tIdx})}" class="btn green">목록</a>
+						</div>
+					</div> -->
+				<!-- </div>  subTab01-->
+
+				<div class="tbl_top">
+					<p class="tit v2">수집결과데이터</p>
+				</div>
+				<div class="card" style="overflow:auto; min-height:50px;">
+					<table class="list" id="apiClctDataTable" style="white-space:nowrap;">
+						<caption>수집데이터 테이블</caption>
+						<colgroup>
+							<col style="width:auto;"/>
+							<col style="width:auto;"/>
+							<th:block th:each="result : ${outputList}">
+								<col style="width:auto;"/>
+							</th:block>
+						</colgroup>
+						<tbody>
+							<tr>
+								<th scope="col">NO</th>
+								<th scope="col">순번</th>
+							<th:block th:each="result : ${outputList}">
+								<th scope="col">[[${result.apiRcptnNm}]]</th>
+							</th:block>
+							</tr>
+					<th:block th:if="${#lists.size(resultList) != 0}" th:each="result : ${resultList}">
+						<tr>
+							<td>[[${result.rowNum}]]</td>
+							<td>[[${result.logSn}]]</td>
+						<th:block th:each="output : ${outputList}">
+							<th:block th:each="data : ${result}">
+								<th:block th:if="${#strings.toLowerCase(output.colNm)} eq ${data.key}">
+									<td>[[${data.value}]]</td>
+								</th:block>
+							</th:block>
+						</th:block>
+						</tr>
+					</th:block>
+					<th:block th:unless="${#lists.size(resultList) != 0}">
+						<tr>
+							<td th:colspan="${#lists.size(outputList)+2}">조회된 데이터가 없습니다.</td>
+						</tr>
+					</th:block>
+						</tbody>
+					</table>
+
+					<div class="pagination_area marginb25" id="dv_paging"></div>
+				</div> <!-- //table_wrap -->
+
+			</div> <!-- //	division20 -->
+		</div> <!-- //content_area -->
+	</div>
+</div>
+
+</body>
+</html>

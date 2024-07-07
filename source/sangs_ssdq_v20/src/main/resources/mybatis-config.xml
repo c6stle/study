@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<setting name="callSettersOnNulls" value="true"/>
+		<setting name="jdbcTypeForNull" value="NULL"/>
+		<setting name="autoMappingBehavior" value="FULL"/>
+	</settings>
+	
+	<typeAliases>
+		<typeAlias type="java.util.Map" alias="map"/>
+		<typeAlias type="com.sangs.lib.support.domain.SangsMap" alias="sangsMap"/>
+	</typeAliases>
+	
+	<typeHandlers>
+        <typeHandler handler="com.sangs.dq.util.CLOBHandler" javaType="String" jdbcType="CLOB"/>
+    </typeHandlers>
+    
+	
+</configuration>

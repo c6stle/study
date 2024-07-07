@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+
+<link rel="stylesheet" th:href="@{/vender/jstree/style.css}" />
+<link rel="stylesheet" th:href="@{/vender/fontawesome6/css/all.min.css}" />
+<script th:src="@{/vender/jstree/vakata.js}"></script>
+<script th:src="@{/vender/jstree/jstree.min.js}"></script>
+<script th:src="@{/vender/jstree/jstreegrid.js}"></script>
+
+<div id="wrap">
+	<div class="container">
+		<div id="content">
+			<!-- page_info_area -->
+			<div class="page_info_area">
+			    <div class="left">
+			        <div class="location_area">
+			            <a href="#" class="bookmark active" title="즐겨찾기"></a>
+			            <ul>
+			                <li>홈</li>
+			                <li>환경설정</li>
+			            </ul>
+			        </div>
+			        <div class="title_area">
+			            <p>관리자 메뉴관리</p>
+			            <a href="#" class="reload_btn" title="새로고침"  onclick="location.reload(true); return false;">새로고침</a>
+			            <a href="#" class="help_btn" title="도움말">도움말</a>
+			        </div>
+			    </div>
+			    <div class="right">
+			        <div class="button_area">
+			        	<!-- 
+			            <button class="btn" title="조회">조회</button>
+			             -->
+			        </div>
+			    </div>
+			</div>
+			<!--// page_info_area -->
+			
+			<!-- content_area -->
+			<div class="content_area">
+				<div class="division">
+					<div class="view_wrap marginb85">
+						<div class="list_change">
+					        <div class="in_w35">
+								<div class="tbl_top fx_none">
+									<p class="tit v2 margin0">
+										<span>메뉴</span>
+									</p>
+									<div class="btn_wrap">
+										<div class="selectbox in_wp120">
+											<select id="searchMenuSeCd" name="searchMenuSeCd" onchange="fnSearchMenuList('Y')">
+												<option value="">메뉴구분코드</option>
+											</select>
+											<label>전체</label>
+										</div>
+									
+										<!-- <button class="btn sm" onclick="fnDeSelectTreeNode('menuTree'); return false;">선택해제</button> -->
+										<button class="btn sm" onclick="fnAddTreeNode(this,'menuTree'); return false;">신규등록</button>
+										<button class="btn sm" onclick="fnDelectTreeNode('menuTree'); return false;">목록삭제</button>
+                                    </div>
+                                </div>
+					            <div class="jstree_view_wrap" data-height="367">
+					                <div id="menuTree" class="treeDiv"></div>
+					            </div> 
+					        </div>
+					        
+					        <div class="marginr20"></div> 
+					        
+					        
+					        <div class="right">
+					            <div class="tbl_top fx_none">
+									<p class="tit v2 margin0">
+										<span>메뉴정보</span>
+									</p>
+									<div class="btn_wrap">
+										<button class="btn sm" onclick="fnSearchMenuList('Y'); return false;">초기화</button>
+										<button class="btn sm" onclick="fnSaveMenuInfo('menuTree'); return false;">저장</button>
+                                    </div>
+                                </div>
+					        
+					            <form id="menuFrm" name="menuFrm">
+					            <input type="hidden" id="upMenuSn" name="upMenuSn" value=""/>
+					            <input type="hidden" id="menuDpSn" name="menuDpSn" value=""/>
+					           	
+				         		<!-- view_wrap -->
+				                <div class="view_wrap marginb85">
+				                    <div class="table_area">
+				                        <table class="view">
+				                            <colgroup>
+				                                <col style="width: 160px;">
+				                                <col style="width: auto;">
+				                                <col style="width: 160px;">
+				                                <col style="width: auto;">
+				                            </colgroup>
+				                            <tbody>
+				                            	<tr>
+													<th><label for="menuSn">메뉴 순번 </label></th>
+													<td colspan="3"><input type="text" id="menuSn" name="menuSn" readonly="readonly" value=""/></td>
+												</tr>
+												<tr id="trSysSeCd">
+													<th><label for="sysSeCd">시스템 구분코드</label></th>
+													<td><input type="text" id="sysSeCd" name="sysSeCd" readonly="readonly" value="" placeholder="저장 시 자동 생성"/></td>
+													
+													<th><label for="menuSeCd">메뉴 구분코드</label></th>
+													<td>
+														<input type="text" id="menuSeCd" name="menuSeCd" style="text-transform: uppercase;" oninput="fnEngFilterValue(this);" value="" placeholder="입력한 값으로 필터링으로 사용할 수 있습니다."/>
+													</td>
+												</tr>
+												<tr>
+													<th><label for="menuNm"><i class="fas fa-asterisk"></i> 메뉴 명</label></th>
+													<td colspan="3"><input type="text" id="menuNm" name="menuNm" value=""/></td>
+												</tr>
+												<tr>
+													<th><label for="urlAddr"><i class="fas fa-asterisk"></i> 메뉴 URL</label></th>
+													<td colspan="3"><input type="text" id="urlAddr" name="urlAddr" value=""/></td>
+												</tr>
+												
+												<tr>
+													<th><label for="menuSortSn"><i class="fas fa-asterisk"></i> 메뉴 정렬 순번</label></th>
+													<td colspan="3"><input type="text" id="menuSortSn" name="menuSortSn" oninput="fnNumberFilterValue(this);" maxlength="3" value=""/></td>
+												</tr>
+												
+												<tr>
+													<th><label for="dtlPageYn">상세페이지 여부</label></th>
+													<td>
+														<select id="dtlPageYn" name="dtlPageYn">
+															<option value="">선택</option>
+															<option value="Y">Y</option>
+															<option value="N">N</option>
+														</select>
+													</td>
+												
+													<th><label for="singlPageYn">단일페이지 여부 <br/><span class="label_reference_span">메뉴목록 제외</span></label></th>
+													<td>
+														<select id="singlPageYn" name="singlPageYn">
+															<option value="">선택</option>
+															<option value="Y">Y</option>
+															<option value="N">N</option>
+														</select>
+													</td>
+												</tr>
+												<tr>
+													<th><label for="dspyYn">노출 여부</label></th>
+													<td>
+														<select id="dspyYn" name="dspyYn">
+															<option value="">선택</option>
+															<option value="Y">Y</option>
+															<option value="N">N</option>
+														</select>
+													</td>
+												
+													<th><label for="delYn">삭제 여부</label></th>
+													<td>
+														<select id="delYn" name="delYn">
+															<option value="">선택</option>
+															<option value="Y">Y</option>
+															<option value="N">N</option>
+														</select>
+													</td>
+												</tr>
+												<tr>
+													<th><label for="regUserId">등록자 아이디</label></th>
+													<td><input type="text" id="regUserId" name="regUserId" value="" readonly="readonly"/></td>
+												
+													<th><label for="regDt">등록 일자</label></th>
+													<td><input type="text" id="regDt" name="regDt" value="" readonly="readonly"/></td>
+												</tr>
+				                            </tbody>
+				                        </table>
+				                    </div>
+				                </div>
+				                <!--// view_wrap -->
+					           	</form> 
+					        </div>
+					    </div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+var codeObj;
+
+$(document).ready(function() {
+	fnInit();
+});
+
+function fnInit() {
+	// 메뉴 목록 조회
+	fnSearchMenuList("N");
+	
+	new CodeBinder()
+	.setSqlCode("authMngMenu.selectMenuSeCdList", "searchMenuSeCd", "select", "선택")
+	.load();
+}
+
+function fnSearchMenuList(refreshYn) {
+	
+	var searchMenuSeCd = $("#searchMenuSeCd option:selected").val();
+	
+	$.ajax({
+		url: "/json/authMngMenu/getMenuList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			menuSeCd : searchMenuSeCd
+		})
+		, success: function(data){
+			
+			console.log("data.list = ", data.list);
+			
+			if(refreshYn == "Y"){
+				// 데이터 reload 
+				fnBindCore("menuTree", data.list, null, null);	
+			}else{
+				// 초기 jstree 로드 시 
+				fnBindJstree("menuTree", data.list);
+			}
+			
+		}
+	});
+}
+</script>
+</html>
+					 

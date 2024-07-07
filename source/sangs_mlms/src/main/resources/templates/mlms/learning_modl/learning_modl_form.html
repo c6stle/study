@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+
+<div class="pop_header">
+	<p class="title">모듈 상세</p>
+	<button class="btn_ic btn_pop_close" onclick="fnExit('modal_mdl');">닫기</button>
+</div>
+<div class="pop_content">
+	<div class="tbl_top">
+		<p class="tit v2 margint20">학습 모듈 정보</p>
+	</div>
+	<form id="mdl_masterForm" name="mdl_masterForm">
+		<input type="hidden" id="mdl_moduleSn" name="mdl_moduleSn" th:value="${moduleInfo.moduleSn}" />
+		<input type="hidden" id="mdl_pmode" name="mdl_pmode" th:value="${moduleInfo.pmode}" />
+		<input type="hidden" id="mdl_org_moduleTyCd" name="mdl_org_moduleTyCd" th:value="${moduleInfo.moduleTyCd}" />
+		<input type="hidden" id="mdl_org_libTyCd" name="mdl_org_libTyCd" th:value="${moduleInfo.libTyCd}" />
+		<div class="search_wrap">
+			<div class="table_area">
+				<table class="search fixed" id="mdl_data_table">
+					<colgroup>
+						<col style="width:120px;">
+						<col style="width:auto;">
+						<col style="width:60px;">
+						<col style="width:120px;">
+						<col style="width:auto;">
+						<col style="width:60px;">
+						<col style="width:120px;">
+						<col style="width:auto;">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th scope="row"><label for="mdl_moduleTyCd">*모듈타입</label></th>
+							<td>
+								<div class="selectbox">
+									<select id="mdl_moduleTyCd" name="mdl_moduleTyCd">
+										<option th:if="${moduleInfo.pmode} == 'R'" value="" selected>선택</option>
+									</select>
+								</div>
+							</td>
+							<td></td>
+							<th scope="row"><label for="mdl_libTyCd">*라이브러리타입</label></th>
+							<td>
+								<div class="selectbox">
+									<select id="mdl_libTyCd" name="mdl_libTyCd">
+										<option th:if="${moduleInfo.pmode} == 'R'" value="" selected>선택</option>
+									</select>
+								</div>
+							</td>
+							<td></td>
+							<th scope="row"></th>
+							<td></td>
+						</tr>
+						
+						<tr>
+							<th scope="row"><label for="mdl_moduleNm">*모듈명</label></th>
+							<td><input type="text" class="in_w100" id="mdl_moduleNm" name="mdl_moduleNm" th:value="${moduleInfo.moduleNm}" /></td>
+							<td></td>
+							<th scope="row"><label for="mdl_modulePckageNm">*모듈패키지명</label></th>
+							<td><input type="text" class="in_w100" id="mdl_modulePckageNm" name="mdl_modulePckageNm" th:value="${moduleInfo.modulePckageNm}"/></td>
+							<td></td>
+							<th scope="row"><label for="mdl_moduleClassNm">*모듈클래스명</label></th>
+							<td><input type="text" class="in_w100" id="mdl_moduleClassNm" name="mdl_moduleClassNm" th:value="${moduleInfo.moduleClassNm}"/></td>
+						</tr>
+						
+						<tr>
+							<th scope="row"><label for="mdl_moduleDc">모듈 설명</label></th>
+							<td colspan="7"><input type="text" class="in_w100" id="mdl_moduleDc" name="mdl_moduleDc" /></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+		
+		<div class="tbl_top margint20">
+			<p class="tit v2" id="prm_data_table_title">학습 모듈 파라미터</p>
+			<div class="button_wrap">
+				<button class="btn sm" id="addBtn" onclick="fnClickAddBtn(); return false;">추가</button>
+				<button class="btn sm" id="dropBtn" onclick="fnClickDropBtn('mdl_tableChk'); return false;">삭제</button>
+			</div>
+		</div>
+		
+		<div style="overflow:auto; overflow-x:hidden; width:100%; min-height:200px; max-height:400px;" id="prm_table_div">
+			<div class="table_area">
+				<table class="list" id="prm_data_table">
+					<colgroup>
+						<col style="width:5%">
+						<col style="width:5%">
+						<col style="width:22%">
+						<col style="width:22%">
+						<col style="width:7%">
+						<col style="width:7%">
+						<col style="width:32%">
+					</colgroup>
+					<thead>
+						<tr>
+							<th></th>
+							<th>순번</th>
+							<th>*파라미터명</th>
+							<th>기본값</th>
+							<th>필수여부</th>
+							<th>사용여부</th>
+							<th>허용 범위 설명</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="moduleParamList : ${moduleParamList}">
+							<td>
+								<input type="checkbox" name="mdl_tableChk" value="update" />
+							</td>
+							<td th:text="${moduleParamListStat.count}">
+							</td>
+							<td>
+								<input type="text" style="width:100%" class="in_w100" name="mdl_paramtrNm" th:value="${moduleParamList.paramtrNm}" readonly/>
+							</td>
+							<td>
+								<input type="text" style="width:100%" class="in_w100" name="mdl_dfltValue" th:value="${moduleParamList.dfltValue}" />
+							</td>
+							<td>
+								<div class="selectbox">
+									<select id="mdl_esntlParamtrYn" name="mdl_esntlParamtrYn">
+										<option th:selected="${moduleParamList.esntlParamtrYn} == 'N'" value="N">N</option>
+										<option th:selected="${moduleParamList.esntlParamtrYn} == 'Y'" value="Y">Y</option>
+									</select>
+								</div> 
+							</td>
+							<td>
+								<div class="selectbox">
+									<select id="mdl_useYn" name="mdl_useYn">
+										<option th:selected="${moduleParamList.useYn} == 'N'" value="N">N</option>
+										<option th:selected="${moduleParamList.useYn} == 'Y'" value="Y">Y</option>
+									</select>
+								</div>
+							</td>
+							<td>
+								<input type="text" style="width:100%" class="in_w100" name="mdl_permScopeDc" th:value="${moduleParamList.permScopeDc}">
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</form>
+</div>
+<div class="pop_footer" style="text-align:center;">
+	<button class="btn bg_navy txt_white" style="display: inline-block;" onclick="fnSave(); return false;">저장</button>
+	<button class="btn bg_navy txt_white" style="display: inline-block;" onclick="fnDrop(); return false;">삭제</button>
+</div>	
+
+
+
+<script type="text/javascript">
+
+
+$(document).ready(function() {
+	
+	$("#mdl_masterForm")[0].reset();
+	
+	if ($("#mdl_pmode").val() == "R") {
+		$("#prm_data_table_title").hide();
+		$("#prm_data_table").hide();
+		$("#prmTableTitle").hide();
+		$("#addBtn").hide();
+		$("#dropBtn").hide();
+	}
+	
+	fnInit();
+	
+	$("#mdl_moduleTyCd").change(function() {
+		if ($("#mdl_pmode").val() == "R") {
+			if ($("#mdl_moduleTyCd option:selected").text() == "필터" || $("#mdl_moduleTyCd option:selected").text() == "프로세서") {
+				$("#mdl_libTyCd").val("CUSTOM").prop("selected", true);
+			}
+		}
+		fnApplySelectLabel();
+	});
+	
+	$(".selectbox").change(function() {
+		fnApplySelectLabel();
+	});
+	
+	
+	fnDenoteNoData("prm_data_table")
+	
+	
+});
+
+
+
+function fnDenoteNoData(tableId) {
+	
+	if($("#"+tableId).find("tbody tr").length == 0) {
+		var tempTdCnt = 7;
+		tempTdCnt = $("#"+tableId).find("thead tr th").length;
+		var noRowHtml = '<tr id="prm_data_no_cnt"><td colspan="'+tempTdCnt+'" style="text-align: center">조회된데이터가 없습니다.</td></tr>';	
+		$("#"+tableId).find("tbody").append(noRowHtml);
+	} else {
+		$("#"+tableId).find("tr").show();
+	}
+}
+
+
+
+
+function fnInit() {
+	//var show_loading_bar_flag = false;
+	
+	//fnStartMainLoading();
+	//.setLoadCallbackFunc("fnStopMainLoading()")
+	
+	new CodeBinder()
+	.setCommonCode("MODLTP", "mdl_moduleTyCd", "select", $("#mdl_org_moduleTyCd").val())
+	.setCommonCode("MODLIBTP", "mdl_libTyCd", "select", $("#mdl_org_libTyCd").val())
+	.load();
+	
+	
+	//var show_loading_bar_flag = true;
+}
+
+
+
+function fnSave() {
+	
+	if ($("#mdl_moduleTyCd").val() == "") {
+		alert("모듈타입는(은) 필수 입력 항목입니다.");
+		$("#mdl_moduleTyCd").focus();
+		return;
+	} 
+	if ($("#mdl_libTyCd").val() == "") {
+		alert("라이브러리타입는(은) 필수 입력 항목입니다.");
+		$("#mdl_libTyCd").focus();
+		return;
+	} 
+	if(!fnCheckValid("#mdl_moduleNm", "모듈명")) return;
+	if(!fnCheckValid("#mdl_modulePckageNm", "모듈패키지명")) return;
+	if(!fnCheckValid("#mdl_moduleClassNm", "모듈클래스명")) return;
+	
+	if(!confirm("저장하시겠습니까?"))
+		return ;
+
+	var dataList = new Array();
+	
+	if ($("#prm_data_table tbody tr").length > 0) {
+		
+		$("#prm_data_table tbody tr input[name=mdl_tableChk]").each(function() {
+			var dataObj = new Object();
+			
+			dataObj.iuId = $(this).val();
+			var tr = $(this).closest("tr");
+			
+			if (!(tr.find("input[name=mdl_paramtrNm]").val())) {
+				alert("파라미터명은 필수 입력 항목입니다.");
+				tr.find("input[name=mdl_paramtrNm]").focus();
+				return;
+			}
+			
+			dataObj.paramtrNm = tr.find("input[name=mdl_paramtrNm]").val();
+			dataObj.dfltValue = tr.find("input[name=mdl_dfltValue]").val();
+			dataObj.esntlParamtrYn = tr.find("select[name=mdl_esntlParamtrYn] option:selected").text();
+			dataObj.useYn = tr.find("select[name=mdl_useYn] option:selected").text();
+			dataObj.permScopeDc = tr.find("input[name=mdl_permScopeDc]").val();
+			
+			dataList[dataList.length] = dataObj;
+			
+		});	
+		
+	}
+	
+	
+	$.ajax({
+		url: "/json/learningModuleInfo/saveLearningModuleInfo"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			moduleSn: $("#mdl_moduleSn").val()
+			, moduleTyCd: $("#mdl_moduleTyCd").val()
+			, libTyCd: $("#mdl_libTyCd").val()
+			, moduleNm: $("#mdl_moduleNm").val()
+			, modulePckageNm: $("#mdl_modulePckageNm").val()
+			, moduleClassNm: $("#mdl_moduleClassNm").val()
+			, moduleDc: $("#mdl_moduleDc").val()
+			, pmode: $("#mdl_pmode").val()
+			, dataList: dataList
+		})
+		, success: function(data){
+			
+			if (Object.keys(data.moduleSnKnown).length > 0) {
+				$("#mdl_moduleSn").val(data.moduleSnKnown.moduleSn);
+			}
+			
+			$("#prm_data_table").show();
+			$("#prmTableTitle").hide();
+			$("#addBtn").show();
+			$("#dropBtn").show();
+			
+			$("#prm_data_table tbody tr input[name=mdl_tableChk]").each(function () {
+				var iuId = $(this).val();
+				var tr = $(this).closest("tr");
+				
+				if (iuId == "insert") {
+					$(this).val("update")
+					tr.find("input[name=mdl_paramtrNm]").attr("readonly", true);
+				}
+			});
+			
+			alert("저장되었습니다.");
+			
+			if ($("#mdl_pmode").val() == "M") {
+				location.reload();
+			}
+			
+			
+		}
+	});
+
+}
+
+
+function fnDrop() {
+	if(confirm("삭제하시겠습니까?")){
+		$.ajax({
+			url: "/json/learningModuleInfo/deleteLearningModuleInfo"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({
+				moduleSn: $("#mdl_moduleSn").val()
+			})
+			, success: function(data) {
+				alert("삭제되었습니다.");
+				location.reload();
+			}
+		});
+	}
+}
+
+
+
+
+
+function fnClickAddBtn(tableId) {
+	
+	if ($("#prm_data_no_cnt")) {
+		$("#prm_data_no_cnt").remove();
+	}
+	
+	var html = ""
+	
+	html += "<tr>";
+	html += "	<td><input type='checkbox' name='mdl_tableChk' value='insert' /></td>";
+	html += "	<td>" + ($("#prm_data_table tbody tr").length + 1) + "</td>";
+	html += "	<td><input type='text' class='in_w100' name='mdl_paramtrNm' /></td>";
+	html += "	<td><input type='text' class='in_w100' name='mdl_dfltValue' /></td>";
+	html += "	<td><div class='selectbox'><select name='mdl_esntlParamtrYn'><option>N</option><option>Y</option></select></div></td>";
+	html += "	<td><div class='selectbox'><select name='mdl_useYn'><option>Y</option><option>N</option></select></div></td>";
+	html += "	<td><input type='text' class='in_w100' name='mdl_permScopeDc' /></td>";
+	html += "</tr>";
+	
+	$("#prm_data_table tbody").append(html);
+	
+	$("#prm_table_div").scrollTop($("#prm_table_div")[0].scrollHeight);
+	
+	fnApplySelectLabel();
+	$(".selectbox").change(function() {
+		fnApplySelectLabel();
+	});
+	
+}
+
+
+function fnClickDropBtn(chkboxNm) {
+
+	if ($("input[name="+chkboxNm+"]:checked").length >= 1) {
+		if ($("input[name="+chkboxNm+"]:checked").val() == "update") {
+			alert("이미 등록된 파라미터는 삭제가 불가능합니다.");
+		} else {
+			var tr = $("input[name="+chkboxNm+"]:checked").parent().parent();
+			tr.remove();
+		}
+		fnDenoteNoData("prm_data_table");
+	} 
+	else {
+		alert("선택된 파라미터가 없습니다.");
+	}
+	
+}
+
+
+function fnExit(modalId) {
+	if ($("#mdl_pmode").val() == "R") {
+		location.reload();
+	} else {
+		fnCloseModal(modalId);
+	}
+}
+
+
+</script>
+</html>
+

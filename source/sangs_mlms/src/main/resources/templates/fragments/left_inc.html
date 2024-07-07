@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:fragment="left_inc">
+
+            <!-- lnb -->
+            <div id="lnb">
+                <!-- left_area -->
+                <div class="left_area">
+                    <!-- logo -->
+                    <h1 class="logo">
+                        <a href="/" title="메인페이지로 이동">
+                            <img src="/img/common/logo.png" alt="상상스토리" />
+                        </a>
+                    </h1>
+					<h1 class="logo2">
+                        <a href="/" title="메인페이지로 이동">
+                            <img src="/img/common/logo2.png" alt="상상스토리" />
+                        </a>
+                    </h1>
+                    <!--// logo -->
+                    <!-- btn_search_area -->
+                    <div class="btn_search_area">
+                        <ul id="leftSystemArea">
+                        
+                        </ul>
+                        <div class="lnb_search_area">
+                            <input type="text" placeholder="메뉴검색" name="left_inputMenuSearch" id="left_inputMenuSearch" style="height: 40px !important" />
+<!--
+                            <button class="lnb_search_btn" title="검색">검색</button>
+-->
+                        </div>
+                    </div>  
+                    <!--// btn_search_area -->
+                    <!-- lnb_menu -->
+                    <div class="lnb_menu" >
+						<ul class="one_depth" id="ul_leftMenuArea"></ul>
+					</div>
+                    <!--// lnb_menu -->
+                </div>
+                <!--// left_area -->
+                <a href="#none" class="btn_fold" title="메뉴접기"></a>
+            </div>
+            <!--// lnb -->
+	
+<script type="text/javascript">
+$(document).ready(function() {
+	// 왼쪽 메뉴 검색
+	$("#left_inputMenuSearch").on("keyup", function(event) {
+		fnLeftMenuSearch($(this).val());
+	});
+	
+	init();
+});
+
+var choiceMenuArr = [];
+
+function init(){
+	// left 메뉴 상단 메뉴 아이콘 draw
+	$.ajax({
+		url: "/json/commonCode/getCommonCodeList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			groupCmmnCd : 'MENUSECD'
+		})
+		, success: function(data){
+			
+			var html = '';
+			$.each(data.list, function(index, value) {
+				var code = value.code.toUpperCase();
+				
+				if(code.indexOf('CMMN') == -1 
+					&& code.indexOf('COMMON') == -1 
+					&& code.indexOf('BASIC') == -1
+					&& code.indexOf('DEFAULT') == -1)
+				{
+					html += '<li class="cl_leftSystem">';
+					html += '	<a href="#" onclick="fnLeftSystemChoice(this); return false;" title="'+code+'" data-choice-yn="N" data-menu-se-code="'+code+'">';
+					html += '		<span class="menu">'+value.codeNm+'</span>';
+					html += '	</a>';
+					html += '</li>';
+				} else {
+					choiceMenuArr.push(code);
+				}
+					
+			});
+			
+			$('#leftSystemArea').append(html); 
+			
+		}
+	});
+	
+	fnSearchMenuList();
+}
+
+function menuVariableReset(){
+	$("#ul_leftMenuArea").empty();	
+	leftinc_tempSn = 1;
+	leftinc_delArr = [];
+}
+
+function fnLeftSystemChoice(obj){
+	var choiceYn = $(obj).attr("data-choice-yn");
+	var menuSeCd = $(obj).attr("data-menu-se-code"); 
+	
+	if(choiceYn == "Y"){
+		$(obj).css('color', '#fff');
+		$(obj).attr("data-choice-yn", "N");
+		
+		for(let i = 0; i < choiceMenuArr.length; i++) {
+			if(choiceMenuArr[i] === menuSeCd)  {
+				choiceMenuArr.splice(i, 1);
+				i--;
+			}
+		}
+	} else {
+		$(obj).css('color', '#eec052');
+		$(obj).attr("data-choice-yn", "Y");
+		
+		choiceMenuArr.push(menuSeCd);
+	}
+	
+	$(".lnb_menu").find(".one_depth li").each(function() {
+		
+		if(choiceMenuArr.length == 1){
+			$(this).show();
+		} else {
+			if(typeof $(this).attr("data-menu-se-code") != 'undefined'){
+				var _menuSeCd = $(this).attr("data-menu-se-code");
+				
+				if(choiceMenuArr.indexOf(_menuSeCd) > -1)  {
+					//console.log("있어!! ", _menuSeCd, "|| choiceMenuArr.length = ", choiceMenuArr.length);
+					$(this).show();
+				} else {
+					//console.log("## 없어 ", _menuSeCd, "|| choiceMenuArr.length = ", choiceMenuArr.length);
+					$(this).hide();
+				}
+				
+			}
+		}
+	});
+	
+}
+
+function fnSearchMenuList(choiceMenuArr) {
+	 
+	$.ajax({
+		url: "/json/authMngMenu/getMngrLoginMenuTreeList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			choiceMenuArr : choiceMenuArr
+		})
+		, success: function(data){
+			// 메뉴목록, 메뉴목록 최대 깊이 값
+			console.log("data.list =", data.list);
+			console.log("maxDpCnt =", data.maxDpCnt);
+			
+			fnMenuDraw(data.list, data.maxDpCnt);
+			fnSetMenuEvent();
+			
+			fnSetLeftMenu2DepthIcon();
+		}
+	});
+}
+
+
+var leftinc_tempSn = 1;
+var leftinc_delArr = [];
+
+function fnMenuDraw(obj, maxDpCnt){
+	console.log(obj);
+	if(maxDpCnt < leftinc_tempSn){
+		//console.log("생성 완료");
+	} else {
+		
+		var html = '';
+		
+		$.each(obj, function(index, value) {
+			
+			var html2 = '';
+			var html3 = '';
+			
+			// 1Depth 생성
+			if(value.menuDpSn == 1 && leftinc_tempSn == 1){
+				html += '	<li class="" id="menu'+value.menuSn+'" data-menu-se-code="'+value.menuSeCd+'">';
+				html += '		<a href="#" class="menu01" title="'+value.menuNm+'" data-dtlPageYn="'+value.dtlPageYn+'"><span class="cl_leftmenu_depth1">'+value.menuNm+'</span></a>';
+				html += '		<ul class="two_depth" id="depth1_'+value.menuSn+'" data-dp='+value.menuDpSn+'></ul>';
+				html += '	</li>';	
+				
+				leftinc_delArr.push(value.menuSn);
+			}
+			
+			// 2Depth 생성
+			if(value.menuDpSn == 2 && leftinc_tempSn == 2){
+				if(value.urlAddr != "#" && value.urlAddr != ""){
+					html2 += '<li id="menu'+value.menuSn+'">';
+					html2 += '	<a href="#" onclick="fnClickMenu(\'' + value.urlAddr + '\')" title="'+value.menuNm+'" data-dtlPageYn="'+value.dtlPageYn+'"><span class="cl_leftmenu_depth2">'+value.menuNm+'</span></a>';
+					html2 += '</li>';
+				}else{
+					html2 += '<li>';
+					html2 += '	<a href="#" data-dtlPageYn="'+value.dtlPageYn+'">'+value.menuNm+'</a>';
+					html2 += '	<ul class="three_depth" id="depth2_'+value.menuSn+'" data-dp='+value.menuDpSn+'></ul>';
+					html2 += '</li>';
+				}
+				
+				leftinc_delArr.push(value.menuSn);
+				$("#depth1_"+value.upMenuSn).append(html2);
+			}
+			
+			// 3Depth 생성
+			if(value.menuDpSn == 3 && leftinc_tempSn == 3){
+				if(value.urlAddr != "#" && value.urlAddr != ""){
+					html3 += '<li>';
+					html3 += '	<a href="#" onclick="fnClickMenu(\'' + value.urlAddr + '\')" data-dtlPageYn="'+value.dtlPageYn+'"><span>'+value.menuNm+'</span></a>';
+					html3 += '</li>';
+				}else{
+					html3 += '<li>';
+					html3 += '	<a href="#" data-dtlPageYn="'+value.dtlPageYn+'"><span>'+value.menuNm+'</span></a>';
+					html3 += '</li>';
+				}	
+				
+				leftinc_delArr.push(value.menuSn);
+				$("#depth2_"+value.upMenuSn).append(html3);
+			}
+			
+		});
+		
+		// 부모 메뉴 그리기
+		if(leftinc_tempSn == 1){
+			$("#ul_leftMenuArea").append(html);	
+		}
+		
+		var newArr = [];
+		const filteredItems = obj.filter(obj => {
+			if(leftinc_delArr.indexOf(obj.menuSn) > -1) {
+			}else{
+				newArr.push(obj);
+			}
+		});
+		
+		leftinc_tempSn++;
+		return fnMenuDraw(newArr, maxDpCnt);
+	}
+}
+
+function fnSetMenuEvent() {
+
+	$('.lnb_menu ul li a').on('click',function(){
+		
+		//if($(this).next('ul').length > 0) {		// 하위 메뉴가 있을때
+		if($(this).attr("data-dtlPageYn") == "N") {
+			$(this).parent('li').toggleClass('on');
+			$(this).next('ul').slideToggle('fast').promise().done(fnSetMainFrameHeight);
+			
+			// 메뉴가 왼쪽으로 접혀 있을때 
+		 	if($(".left_area").hasClass("fold"))
+				$('.btn_fold').trigger("click");
+			
+			return false;	
+		} else {
+		 
+			$('.lnb_menu ul li').removeClass('on');
+			$('.lnb_menu ul li').attr("data-menuselected", "N");
+			
+			$(this).parent('li').attr("data-menuselected", "Y");
+			$(this).parent('li').toggleClass('on');	// 1뎁스 의 메뉴 선택처리
+			($(this).closest('ul')).closest("li").addClass("on");	// 상위 그룹 선택 처리
+			($(this).closest('ul')).closest("li").closest('ul').closest("li").addClass("on");	// 상위 그룹 선택 처리
+			
+			fnSetLeftMenu2DepthClear();
+			
+			return true;
+		}
+		return false; 
+	});
+}
+function fnSetLeftMenu2DepthClear() {
+	$('.lnb_menu ul li .two_depth').each(function(mi,mobj){
+		var chk = false;
+		$(mobj).find("li").each(function(si,sobj) {
+			console.log($(sobj).attr("data-menuselected"));
+			if($(sobj).attr("data-menuselected") == "Y")
+				chk = true;
+		})
+		if(!chk)
+			$(mobj).hide();
+	});
+}
+function fnSetLeftMenu2DepthIcon() {
+	$('.lnb_menu ul li .three_depth').each(function() {
+		if($(this).children("li").length > 0) 
+			$(this).closest("li").children("a").addClass("left_menu_2depth_icon");
+	});
+}
+
+// 
+ 
+function fnSetMainFrameHeight() {
+	setFrameHeight();	// main frame 에 있음
+}
+
+function fnGetSelectedMenuInfo(){
+	var rtnObj = null;
+	$("#ul_leftMenuArea li").each(function() {
+		if($(this).attr("data-menuselected") == "Y") {
+			rtnObj = new Object();
+			rtnObj.d2nm = $(this).find(" > a > span").text();
+			rtnObj.d1nm = $(this).closest("ul").closest("li").find(" > a > span").text();
+		}
+	});
+	return rtnObj;
+}
+
+// 왼쪽 메뉴 검색 
+function fnLeftMenuSearch(searchText) {
+	
+	if(searchText == "") {
+		$("#ul_leftMenuArea .two_depth li").show();
+	} else {
+		$("#ul_leftMenuArea .two_depth").hide();
+		$("#ul_leftMenuArea .two_depth li").hide();
+		
+		$("#ul_leftMenuArea .cl_leftmenu_depth2").each(function() {
+			if(($(this).text()).indexOf(searchText) > -1) {
+				$(this).closest("li").show();
+				$(this).closest(".two_depth").show();
+			}
+		});
+	}
+}
+
+// url 에 대한 메뉴 선택 처리
+function fnSelectLeftMenu(url) {
+	
+	$(".lnb_menu .two_depth li a").each(function() {
+		
+		var clickAttr = $(this).attr("onclick");
+		
+		if(clickAttr && clickAttr != undefined && clickAttr.indexOf("'" + url + "'") >= 0) {
+			// 선택 초기화 
+			$('.lnb_menu ul li').removeClass('on');
+			$('.lnb_menu ul li').attr("data-menuselected", "N");
+			$(".lnb_menu .two_depth").hide();
+			
+			//console.log(" AAA ", 	$(this).closest(".two_depth"));
+			
+			$(this).closest(".two_depth").show();
+			$(this).parent('li').toggleClass('on');	// 자신 의 메뉴 선택처리
+			$(this).parent('li').attr("data-menuselected", "Y");
+			($(this).closest('ul')).closest("li").addClass("on");	// 상위 그룹 선택 처리
+			
+		}
+	
+	});
+}
+
+</script>
+		
+
+</th:block>
+</html>	
+
+ 
+
+

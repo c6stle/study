@@ -1,0 +1,75 @@
+<html th:lang = "ko" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="domn_dbms_reg_inc">
+	<div class="pop_header">
+		<p class="title">DBMS 등록</p>
+		<button class="btn_ic btn_pop_close" id="closeModalBtn" onclick="fnCloseModal('regdbmsInfo_modal');">닫기</button>
+	</div>
+	<div class="pop_content">
+	    <div class="tbl_top margint20">
+   		</div>	
+			<div class="search_wrap marginb20">
+				<table class="search fixed">
+					<colgroup>
+						<col style="width: 30px;"/>
+						<col style="width: 150px;" />
+						<col style="width: 30px;" />
+					</colgroup>
+					<tbody>
+						<tr>
+							<th><label for="domnDbmsSn">DBMS</label></th>
+	    					<td>
+	    						<div class="selectbox">
+	    							<select id="domnDbmsSn" name="domnDbmsSn">
+	    								<option value="">선택</option>
+	    							</select>		
+	    						</div>
+	    					</td>
+							<td><button class="btn sm" id="regDbmsBtn" name="regDbmsBtn" onclick="fndomnRegDbmsBtn()" style="margin-left:7px;">등록</button></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+	</div>
+	<div class="pop_footer">
+	
+	</div>
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	fnInit();
+	
+});
+
+function fnInit() {
+	new CodeBinder().setSqlCode("cmmn_project.selectDbmsList", "domnDbmsSn", "select").load();
+}
+
+
+//DBMS 등록
+function fndomnRegDbmsBtn(){
+	var dbmsInfo = {dbmsSn :  $("#domnDbmsSn").val()};
+	
+	$.ajax({
+		url : "/json/project/saveProjectInfo"
+		, method : "POST"
+ 		, contentType : 'application/json'
+		, data : JSON.stringify({
+			dbmsInfo : dbmsInfo
+			, pmode : "M"
+		})
+		, success: function(data){
+			if(data.resultCd == "OK") {
+				alert("저장이 완료 되었습니다.");
+				fnLogout();
+			} else{
+				alert("실패하셨습니다.");
+			}
+		}
+		
+	});
+	
+}
+</script>
+</th:block>

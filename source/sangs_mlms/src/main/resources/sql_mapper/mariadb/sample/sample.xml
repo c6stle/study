@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sample">
+ 
+	<select id="selectDatasetList" resultType="sangsMap" parameterType="sangsMap">
+		select 
+			dataset_sn
+			, dataset_nm
+			, data_file_path
+			, data_row_cnt
+			, data_size_kb
+		from ml_dataset
+		where 1=1
+		<if test="datasetNm != null">
+			and dataset_nm like '%'|| #{datasetNm} ||'%'
+		</if>
+		order by dataset_sn 
+	</select>
+ 
+ 
+ 
+	<select id="selectTableList" resultType="sangsMap" parameterType="sangsMap">
+		SELECT TABLE_NAME, COLUMN_NAME, COLUMN_COMMENT, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_KEY
+		FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE 1=1 
+		ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION
+		limit 20 offset 0
+	</select>
+	
+ 
+	<sql id="where_selectTablePagingList">
+		AND TABLE_SCHEMA = 'ml_mngr_db'
+		<if test="tableName != '' and tableName != null ">
+			AND TABLE_NAME like concat('%',#{tableName}, '%')
+		</if>
+		<if test="columnName != '' and columnName != null ">
+			AND COLUMN_NAME like concat('%',#{columnName}, '%')
+		</if>
+		<if test="columnType != '' and columnType != null ">
+			AND COLUMN_TYPE like concat('%',#{columnType}, '%')
+		</if>
+	</sql>
+	
+	<select id="selectTablePagingList" resultType="sangsMap" parameterType="sangsMap">
+		SELECT TABLE_NAME, COLUMN_NAME, COLUMN_COMMENT, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_KEY
+		FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE 1=1 
+		<include refid="where_selectTablePagingList" />
+		ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION
+		limit #{pageSize} offset #{offset}
+	</select>
+	
+	
+	<select id="selectTablePagingListCnt" resultType="Integer" parameterType="sangsMap">
+		SELECT count(1)
+		FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE 1=1 
+		<include refid="where_selectTablePagingList" />
+	</select>
+ 
+	
+</mapper>  

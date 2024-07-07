@@ -1,0 +1,582 @@
+<html th:lang = "ko" xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="profl_schdul_mngr_inc">
+	<div class="pop_header">
+		<p class="title">스케쥴</p>
+		<button class="btn_ic btn_pop_close" onclick="fnCloseModal('schedulemngr_modal'); return false;">닫기</button>
+	</div>
+	
+	<div class="pop_content">
+		<div class="tbl_top right">
+			<div class="btn_wrap">
+				<input type="hidden" id="proflsn_modal" name="proflsn_modal" value=""/>
+				<input type="hidden" id="cronexprsnsecd_modal" name="cronexprsnsecd_modal"/>
+				<button class="btn sm" style="width:100px;" onclick="fnCronReset(); return false;">초기화</button>
+				<button class="btn sm" style="width:100px;" onclick="fnSearchNextSchedule(); return false;">실행계획 조회</button>
+				<button class="btn sm" style="width:100px;" onclick="fnSaveCronExprsnValue(); return false;">저장</button> 
+			</div>
+		</div>
+		<div>
+			<div class="card">
+				<table class="view" style="margin-bottom:0px;">
+					<colgroup>
+						<col style="width: 8%;">
+	   					<col style="width: 22%;">
+	   					<col style="width: 70%;">
+	 				</colgroup>
+					<tbody>
+						<tr>
+							<th rowspan="2">구분</th>
+							<th class="alignl">
+								<input type="radio" name="cronExprsnSeCdRadio" id="cronExprsnSeCdRadio_1" value="EXPRSN"/>
+								<label for="cronExprsnSeCdRadio_1" class="req">crontab expression</label>
+							</hd>
+							<td>
+								<input type="text" name="cronexprsnvalue_modal" id="cronexprsnvalue_modal" value=""/>
+							</td>
+						</tr>
+						<tr>
+							<th class="alignl">
+								<input type="radio" name="cronExprsnSeCdRadio" id="cronExprsnSeCdRadio_2" value="CHOICE"/>
+								<label for="cronExprsnSeCdRadio_2" class="req">일정설정</label>
+							</th>
+							<td></td>
+						</tr>
+						
+						<tr>
+							<th rowspan="2">월</th>
+							<th class="alignl">
+								<input type="radio" name="monthRadio" id="monthRadio_1" value="EVERY"/>
+								<label for="monthRadio_1" class="req">매월</label>
+							</th>
+							<td></td>
+						</tr>
+						<tr>
+							<th class="alignl">
+								<input type="radio" name="monthRadio" id="monthRadio_2" value="CHOICE"/>
+								<label for="monthRadio_2" class="req">지정월</label>
+							</th>
+							<td class="alignl">
+								<div id="monthChkBox_div">
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_1" value="1"/><label for="monthChkBox_1" class="req">1월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_2" value="2"/><label for="monthChkBox_2" class="req">2월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_3" value="3"/><label for="monthChkBox_3" class="req">3월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_4" value="4"/><label for="monthChkBox_4" class="req">4월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_5" value="5"/><label for="monthChkBox_5" class="req">5월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_6" value="6"/><label for="monthChkBox_6" class="req">6월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_7" value="7"/><label for="monthChkBox_7" class="req">7월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_8" value="8"/><label for="monthChkBox_8" class="req">8월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_9" value="9"/><label for="monthChkBox_9" class="req">9월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_10" value="10"/><label for="monthChkBox_10" class="req">10월</label>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_11" value="11"/><label for="monthChkBox_11" class="req">11월</label><br>
+									<input type="checkbox" name="monthChkBox" id="monthChkBox_12" value="12"/><label for="monthChkBox_12" class="req">12월</label>
+								</div>
+							</td>
+						</tr>
+						
+						<tr>
+							<th rowspan="2">일</th>
+							<th class="alignl">
+								<input type="radio" name="dayRadio" id="dayRadio_1" value="EVERY"/>
+								<label for="dayRadio_1" class="req">매일</label>
+							</th>
+							<td></td>
+						</tr>
+						<tr>
+							<th class="alignl">
+								<input type="radio" name="dayRadio" id="dayRadio_2" value="CHOICE"/>
+								<label for="dayRadio_2" class="req">지정일</label>
+							</th>
+							<td class="alignl">
+								<div id="dayChkBox_div">
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_1" value="1"/><label for="dayChkBox_1" class="req">1일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_2" value="2"/><label for="dayChkBox_2" class="req">2일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_3" value="3"/><label for="dayChkBox_3" class="req">3일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_4" value="4"/><label for="dayChkBox_4" class="req">4일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_5" value="5"/><label for="dayChkBox_5" class="req">5일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_6" value="6"/><label for="dayChkBox_6" class="req">6일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_7" value="7"/><label for="dayChkBox_7" class="req">7일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_8" value="8"/><label for="dayChkBox_8" class="req">8일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_9" value="9"/><label for="dayChkBox_9" class="req">9일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_10" value="10"/><label for="dayChkBox_10" class="req">10일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_11" value="11"/><label for="dayChkBox_11" class="req">11일</label><br>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_12" value="12"/><label for="dayChkBox_12" class="req">12일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_13" value="13"/><label for="dayChkBox_13" class="req">13일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_14" value="14"/><label for="dayChkBox_14" class="req">14일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_15" value="15"/><label for="dayChkBox_15" class="req">15일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_16" value="16"/><label for="dayChkBox_16" class="req">16일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_17" value="17"/><label for="dayChkBox_17" class="req">17일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_18" value="18"/><label for="dayChkBox_18" class="req">18일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_19" value="19"/><label for="dayChkBox_19" class="req">19일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_20" value="20"/><label for="dayChkBox_20" class="req">20일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_21" value="21"/><label for="dayChkBox_21" class="req">21일</label><br>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_22" value="22"/><label for="dayChkBox_22" class="req">22일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_23" value="23"/><label for="dayChkBox_23" class="req">23일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_24" value="24"/><label for="dayChkBox_24" class="req">24일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_25" value="25"/><label for="dayChkBox_25" class="req">25일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_26" value="26"/><label for="dayChkBox_26" class="req">26일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_27" value="27"/><label for="dayChkBox_27" class="req">27일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_28" value="28"/><label for="dayChkBox_28" class="req">28일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_29" value="29"/><label for="dayChkBox_29" class="req">29일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_30" value="30"/><label for="dayChkBox_30" class="req">30일</label>
+									<input type="checkbox" name="dayChkBox" id="dayChkBox_31" value="31"/><label for="dayChkBox_31" class="req">31일</label>
+								</div>
+							</td>
+						</tr>
+						
+						<tr>
+							<th rowspan="2">요일</th>
+							<th class="alignl">
+								<input type="radio" name="dayWeekRadio" id="dayWeekRadio_1" value="EVERY"/>
+								<label for="dayWeekRadio_1" class="req">매일</label>
+							</th>
+							<td></td>
+						</tr>
+						<tr>
+							<th class="alignl">
+								<input type="radio" name="dayWeekRadio" id="dayWeekRadio_2" value="CHOICE" />
+								<label for="dayWeekRadio_2" class="req">지정요일</label>
+							</th>
+							<td class="alignl">
+								<div id="dayWeekChkBox_div">
+									<input type="checkbox" name="dayWeekChkBox" id="dayWeekChkBox_sun" value="1"/><label for="dayWeekChkBox_sun" class="req">일</label>
+									<input type="checkbox" name="dayWeekChkBox" id="dayWeekChkBox_mon" value="2"/><label for="dayWeekChkBox_mon" class="req">월</label>
+									<input type="checkbox" name="dayWeekChkBox" id="dayWeekChkBox_tue" value="3"/><label for="dayWeekChkBox_tue" class="req">화</label>
+									<input type="checkbox" name="dayWeekChkBox" id="dayWeekChkBox_wed" value="4"/><label for="dayWeekChkBox_wed" class="req">수</label>
+									<input type="checkbox" name="dayWeekChkBox" id="dayWeekChkBox_thu" value="5"/><label for="dayWeekChkBox_thu" class="req">목</label>
+									<input type="checkbox" name="dayWeekChkBox" id="dayWeekChkBox_fri" value="6"/><label for="dayWeekChkBox_fri" class="req">금</label>
+									<input type="checkbox" name="dayWeekChkBox" id="dayWeekChkBox_sat" value="7"/><label for="dayWeekChkBox_sat" class="req">토</label>
+								</div>
+							</td>
+						</tr>
+						
+						<tr>
+							<th rowspan="2">시</th>
+							<th class="alignl">
+								<input type="radio" name="hourRadio" id="hourRadio_1" value="EVERY"/>
+								<label for="hourRadio_1" class="req">지정시</label>
+							</th>
+							<td>
+								<input type="text" style="width:60px;" name="hourinput_direct" id="hourinput_direct" value="0"/> 시
+							</td>
+						</tr>
+						<tr>
+							<th class="alignl">
+								<input type="radio" name="hourRadio" id="hourRadio_2" value="CHOICE"/>
+								<label for="hourRadio_2" class="req">주기</label>
+							</th>
+							<td>
+								<input type="text" style="width:60px;" name="hourinput_start" id="hourinput_start" value="0"/> 시에 시작
+								<input type="text" style="width:60px;" name="hourinput_cycle" id="hourinput_cycle" value="0"/> 시간 주기 
+							</td>
+						</tr>
+						
+						<tr>
+							<th rowspan="2">분</th>
+							<th class="alignl">
+								<input type="radio" name="minuteRadio" id="minuteRadio_1" value="EVERY"/>
+								<label for="minuteRadio_1" class="req">지정분</label>
+							</th>
+							<td>
+								<input type="text" style="width:60px;" name="minuteinput_direct" id="minuteinput_direct" value="0"/> 분
+							</td>
+						</tr>
+						<tr>
+							<th class="alignl">
+								<input type="radio" name="minuteRadio" id="minuteRadio_2" value="CHOICE"/>
+								<label for="minuteRadio_2" class="req">주기</label>
+							</th>
+							<td>
+								<input type="text" style="width:60px;" name="minuteinput_start" id="minuteinput_start" value="0"/> 분에 시작
+								<input type="text" style="width:60px;" name="minuteinput_cycle" id="minuteinput_cycle" value="0"/> 분 주기 
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+	</div><!-- pop_content -->
+	
+	<div class="pop_footer" style="text-align:center;padding:15px;">
+	</div>
+
+
+<script type="text/javascript">
+
+// 표현식 유효성체크(service에서 한번 더 체크 함)
+function fnValidateCronExprsn() {
+	var exprsn = $("#cronexprsnvalue_modal").val();
+	
+	if(exprsn == "")
+		return true;
+	
+	var exprsnList = exprsn.split(" ");
+	
+	if (exprsnList.length != 5) {
+		alert("표현식이 올바르지 않습니다.");
+		$("#cronexprsnvalue_modal").val("");
+		$("#cronexprsnvalue_modal").focus();
+		return false;
+	}
+	
+	for (var i=0; i<exprsnList.length; i++) {
+		if (exprsnList[i] === "") {
+			alert("표현식이 올바르지 않습니다.");
+			$("#cronexprsnvalue_modal").val("");
+			$("#cronexprsnvalue_modal").focus();
+			return false;
+		}
+	}
+	
+	var special_reg = /[|\\\\!<\"'.;@#$%^&_})({:>]/gi;
+	var hangle_reg = /[ㄱ-ㅎㅏ-ㅣ가-힣]/g;
+	var english_reg = /[a-zA-Z]/g;
+	
+	if (special_reg.test(exprsn) || hangle_reg.test(exprsn) || english_reg.test(exprsn)) {
+		alert('사용할 수 없는 문자가 포함되어있습니다.');
+		$("#cronexprsnvalue_modal").val("");
+		$("#cronexprsnvalue_modal").focus();
+		return false;
+	}
+	return true;
+}
+
+
+
+
+// 스케쥴 입력방식에 따른 하위버튼 On/Off
+function fnChangeOnOffOption() {
+	if ($("#cronexprsnsecd_modal").val() == "CHOICE") {
+		$("#cronExprsnSeCdRadio_2").prop("checked", true);
+	} else {
+		$("#cronExprsnSeCdRadio_1").prop("checked", true);
+	}
+	fnApplyOnOffOption();
+	$("input[name='cronExprsnSeCdRadio']").on("change", function(){
+		fnApplyOnOffOption();
+	});
+}
+function fnApplyOnOffOption() {
+	if (!fnValidateCronExprsn()) {
+		$("#cronexprsnvalue_modal").val("");
+	}
+		
+	var type = $("input[name='cronExprsnSeCdRadio']:checked").val();
+	
+	if (type == "CHOICE") {
+		$("#cronexprsnvalue_modal").prop("readonly", true);
+		
+		$("input[name='monthRadio']").prop("disabled", false);
+		$("input[name='dayRadio']").prop("disabled", false);
+		$("input[name='dayWeekRadio']").prop("disabled", false);
+		$("input[name='hourRadio']").prop("disabled", false);
+		$("input[name='minuteRadio']").prop("disabled", false);
+		fnSetUpOption();
+	} else {
+		$("#cronexprsnvalue_modal").prop("readonly", false);
+		
+		$("input[name='monthRadio']").prop("disabled", true);
+		$("input[name='dayRadio']").prop("disabled", true);
+		$("input[name='dayWeekRadio']").prop("disabled", true);
+		$("input[name='hourRadio']").prop("disabled", true);
+		$("input[name='minuteRadio']").prop("disabled", true);
+	}
+	
+	fnOnOffChkBox("month", 3);
+	fnOnOffChkBox("day", 2);
+	fnOnOffChkBox("dayWeek", 4);
+	fnOnOffInputBox("hour", 1);
+	fnOnOffInputBox("minute", 0);
+}
+
+
+
+// 라디오버튼에 따른 하위체크박스, 인풋박스 disabled 처리
+function fnChangeRadio(radioName, no) {
+	$("input[name='"+radioName+"Radio']").on("change", function(){
+		if (radioName == "hour" || radioName == "minute") {
+			fnOnOffInputBox(radioName, no);
+		} else {
+			fnOnOffChkBox(radioName, no);
+			
+			// 하위옵션이 체크박스인것 중 라디오버튼 value every이면 초기화
+			if ($("input[name='"+radioName+"Radio']:checked").val() != "CHOICE") {
+				fnInitializeExp(radioName, no);
+			}
+		}
+	});
+}
+function fnOnOffChkBox(radioName, no) {
+	if ($("input[name='"+radioName+"Radio']:checked").val() == "CHOICE" && $("input[name='cronExprsnSeCdRadio']:checked").val() == "CHOICE") {
+		$("#"+radioName+"ChkBox_div input").prop("disabled", false);
+		fnApplyChkBoxExprsn(radioName, no);
+	} else {
+		$("#"+radioName+"ChkBox_div input").prop("disabled", true);
+		//fnInitializeExp(radioName, no);    // 표현식 직접입력 재선택시 초기화
+	}
+}
+function fnOnOffInputBox(radioName, no) {
+	if ($("input[name='"+radioName+"Radio']:checked").val() == "CHOICE" && $("input[name='cronExprsnSeCdRadio']:checked").val() == "CHOICE") {
+		$("#"+radioName+"input_direct").prop("readonly", true);
+		$("#"+radioName+"input_start").prop("readonly", false);
+		$("#"+radioName+"input_cycle").prop("readonly", false);
+		fnApplyInputBoxExprsn(radioName, no);
+	} else if ($("input[name='"+radioName+"Radio']:checked").val() == "EVERY" && $("input[name='cronExprsnSeCdRadio']:checked").val() == "CHOICE") {
+		$("#"+radioName+"input_direct").prop("readonly", false);
+		$("#"+radioName+"input_start").prop("readonly", true);
+		$("#"+radioName+"input_cycle").prop("readonly", true);
+		fnApplyInputBoxExprsn(radioName, no);
+	} else {
+		$("#"+radioName+"input_direct").prop("readonly", true);
+		$("#"+radioName+"input_start").prop("readonly", true);
+		$("#"+radioName+"input_cycle").prop("readonly", true);
+		//fnInitializeExp(radioName, no);    // 표현식 직접입력 재선택시 초기화
+	}
+}
+
+
+
+
+//체크박스 check 여부에 따른 표현식 변경
+function fnChangeChkBox(radioName, no) {
+	$("#"+radioName+"ChkBox_div input").on("change", function () {
+		fnApplyChkBoxExprsn(radioName, no);
+	});
+}
+function fnApplyChkBoxExprsn(radioName, no) {
+	var list = new Array();
+	$("input[name='"+radioName+"ChkBox']:checked").each(function(){
+		list.push($(this).val()); 
+	});
+	
+	var exprsn = $("#cronexprsnvalue_modal").val();
+	var exprsnList = exprsn.split(" ");
+	if (list.length == 0) {
+		if (no == 4) {
+			exprsnList[no] = "?";
+		} else {
+			exprsnList[no] = "*";
+		}
+	} else {
+		exprsnList[no] = list.join(",");
+	}
+	exprsn = exprsnList.join(" ");
+	$("#cronexprsnvalue_modal").val(exprsn);
+}
+// 인풋박스 값에 따른 표현식 변경
+function fnChangeInputBox(radioName, no) {
+	$("#"+radioName+"input_direct, #"+radioName+"input_start, #"+radioName+"input_cycle").keyup(function() {
+		fnApplyInputBoxExprsn(radioName, no);
+	});
+}
+function fnApplyInputBoxExprsn(radioName, no) {
+	var exprsn = $("#cronexprsnvalue_modal").val();
+	var exprsnList = exprsn.split(" ");
+	
+	if ($("input[name='"+radioName+"Radio']:checked").val() == "EVERY") {
+		exprsnList[no] = $("#"+radioName+"input_direct").val();
+	} else {
+		var cycleExp = $("#"+radioName+"input_start").val() + "/" + $("#"+radioName+"input_cycle").val();
+		exprsnList[no] = cycleExp;	
+	}
+	exprsn = exprsnList.join(" ");
+	$("#cronexprsnvalue_modal").val(exprsn);
+}
+
+
+
+
+
+
+// 표현식 셋업
+function fnSetUpOption() {
+	var exprsn = $("#cronexprsnvalue_modal").val();
+	if (exprsn == "" || exprsn == null) {
+		exprsn = "0 0 * * ?";
+		$("#cronexprsnvalue_modal").val(exprsn);
+	}
+	console.log("스케쥴러 crontab expression : " + exprsn);
+
+	var exprsnList = exprsn.split(" ");
+	
+	if (exprsnList.length != 5) {
+		alert("cron 표현식이 올바르지 않습니다.");
+		$("#cronexprsnvalue_modal").val("");
+		return;
+	}
+	
+	//console.log(exprsnList);
+	var minute = exprsnList[0];
+	var hour = exprsnList[1];
+	var day = exprsnList[2];
+	var month = exprsnList[3];
+	var dayWeek = exprsnList[4];
+	
+	fnSetUpChkBox("month", month);
+	fnSetUpChkBox("day", day);
+	fnSetUpChkBox("dayWeek", dayWeek);
+	fnSetUpInputBox("hour", hour);
+	fnSetUpInputBox("minute", minute);
+}
+// setup 함수
+function fnSetUpChkBox(radioName, value) {
+	$("#"+radioName+"ChkBox_div input[name='"+radioName+"ChkBox']").each(function() {
+		$(this).prop("checked", false);
+	});
+	
+	var valueList = new Array();
+	if (value == "*" || value == "?") {
+		$("#"+radioName+"Radio_1").prop("checked", true);
+	} else {
+		$("#"+radioName+"Radio_2").prop("checked", true);
+	}
+	if (value.indexOf(",") > -1) {
+		valueList = value.split(",");
+	} else {
+		valueList.push(value);
+	}
+	for (var i=0; i<valueList.length; i++) {
+		var chkValue = valueList[i];
+		if (chkValue.toString().indexOf("-") > -1) {
+			var minMaxList = chkValue.split("-");
+			for (var j=minMaxList[0]; j<=minMaxList[1]; j++) {
+				valueList.push(j.toString());
+			}
+			valueList.splice(chkValue, i);
+		}
+	}
+	$("#"+radioName+"ChkBox_div input[name='"+radioName+"ChkBox']").each(function() {
+		if (valueList.includes($(this).val())) {
+			$(this).prop("checked", true);
+		}
+	});
+}
+function fnSetUpInputBox(radioName, value) {
+	var valueList = new Array();
+	
+	if (value.indexOf("/") > -1) {
+		$("#"+radioName+"Radio_2").prop("checked", true);
+		valueList = value.split("/");
+		$("#"+radioName+"input_start").val(valueList[0]);
+		$("#"+radioName+"input_cycle").val(valueList[1]);
+		$("#"+radioName+"input_direct").val(0);
+	} else {
+		$("#"+radioName+"Radio_1").prop("checked", true);
+		$("#"+radioName+"input_direct").val(value);
+		$("#"+radioName+"input_start").val(0);
+		$("#"+radioName+"input_cycle").val(0);
+	}
+}
+
+
+
+
+
+//표현식 초기화
+function fnInitializeExp(radioName, no) {
+	var exprsn = $("#cronexprsnvalue_modal").val();
+	var exprsnList = exprsn.split(" "); 
+	if (no == null) {
+		// 초기화
+		$("#"+radioName+"Radio_1").prop("checked", true);
+		fnChangeRadio(radioName, no);
+		
+	} else if (no >= 4) {
+		exprsnList[no] = "?";
+		exprsn = exprsnList.join(" ");
+	} else if (no >= 2) {
+		exprsnList[no] = "*";
+		exprsn = exprsnList.join(" ");
+	} else {
+		exprsnList[no] = "0";
+		exprsn = exprsnList.join(" ");
+	}
+	$("#cronexprsnvalue_modal").val(exprsn);
+}
+
+
+
+
+
+// 실행계획 조회 버튼
+function fnSearchNextSchedule() {
+	
+	if($("#cronexprsnvalue_modal").val() == "") {
+		alert("표현식이 입력되지 않았습니다.");
+		return;
+		
+	}
+	
+	if(!fnValidateCronExprsn())
+		return;
+	
+	$.ajax({
+		url: '/json/profileMng/getNextSchedule'
+		, method: 'POST'
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			cronExprsnValue: $("#cronexprsnvalue_modal").val()
+		})
+		, success: function(data) {
+			
+			if (data.resultCd = "OK") {
+				var scheduleText = "다음 실행 예정 일 : ";
+				for (i=0; i<data.nextScheduleList.length; i++) {
+					if (i==0) {
+						scheduleText += data.nextScheduleList[i] + "\n";
+					} else {
+						scheduleText += "                        : " + data.nextScheduleList[i] + "\n";
+					}
+				}
+				alert(scheduleText);
+			}
+		}
+	});
+}
+
+
+
+//cron 수정(저장)
+function fnSaveCronExprsnValue() {
+	
+	if(!fnValidateCronExprsn())
+		return;
+	
+	var flag = confirm("저장하시겠습니까?")
+	if (flag) {
+		$.ajax({
+			url: '/json/profileMng/saveCronExprsnValue'
+			, method : 'POST'
+			, contentType: 'application/json'
+			, async: false
+			, data: JSON.stringify({
+				proflSn: $("#proflsn_modal").val()
+				, cronExprsnSeCd: $("input[name='cronExprsnSeCdRadio']:checked").val()
+				, cronExprsnValue: $("#cronexprsnvalue_modal").val()
+			}) 
+			, success: function(data){
+				if (data.resultCd == "OK") {
+					alert("저장되었습니다.");
+					fnCloseModal("schedulemngr_modal");
+					fnSearchProfileList();
+					$("#dtlview_cronexprsnvalue").text($("#cronexprsnvalue_modal").val());
+				}
+			}
+		});
+	}
+}
+
+
+function fnCronReset() {
+	$("#cronExprsnSeCdRadio_1").trigger("click");	
+	$("#cronexprsnvalue_modal").val("");
+}
+
+
+
+</script>
+
+</th:block>
+
+</html>

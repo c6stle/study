@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="ct_collect_data_mng">
+
+
+	<!-- 수집데이터 항목(컬럼) 미정의(기본) 목록 조회 -->
+
+	<select id="selectMetaMngCollectDataDefaultOutputList" parameterType="map" resultType="SangsMap">
+		<!-- SELECT
+		      DMMY_NUMBER API_RCPTN_SN
+		    , DMMY_CHARST API_RCPTN_NM
+		    , DMMY_CHARST API_RCPTN_ENG_NM
+		    , DMMY_CHARST COL_NM
+		FROM SFT_DMMYTBL WHERE DMMY_SE_CODE = 'COL'
+		ORDER BY DMMY_NUMBER -->
+		SELECT
+			CD AS API_RCPTN_SN
+			, CD_NM AS API_RCPTN_NM
+			, CD_NM AS API_RCPTN_ENG_NM
+			, CD_NM AS COL_NM
+		FROM EGOV_CMNCDDTLCODE
+		WHERE CD_ID = 'COL'
+			AND USE_YN = 'Y'
+		ORDER BY SORT_NO
+	</select>
+
+	<!-- 수집데이터 항목(컬럼) 목록 조회 -->
+	<select id="selectMetaMngCollectDataOutputList" parameterType="map" resultType="SangsMap">
+		SELECT
+		      NVL(T1.API_RCPTN_SN, T2.CD) API_RCPTN_SN
+		    , NVL(T1.RCPTN_NM, T2.CD_NM) API_RCPTN_NM
+		    , NVL(T1.RCPTN_ENG_NM, T2.CD_NM) API_RCPTN_ENG_NM
+		    , T2.CD_NM AS COL_NM
+		FROM
+		    (
+		        SELECT API_RCPTN_SN, RCPTN_NM, RCPTN_ENG_NM
+		        FROM CT_API_META_RCPTN
+		        WHERE API_CD = #{apiCd}
+		        AND USE_YN = 'Y'
+		    ) T1,
+		    (
+		        SELECT CD, CD_NM
+		        FROM EGOV_CMNCDDTLCODE WHERE CD_ID = 'COL'
+		    ) T2
+		WHERE
+		    T1.API_RCPTN_SN = T2.CD
+		ORDER BY
+			T2.CD_NM
+
+	</select>
+
+	<!-- 수집데이터 목록 조회 -->
+	<select id="selectMetaMngCollectDataList" parameterType="map" resultType="SangsMap">
+		<if test="listType == null or listType != 'EXCEL' "> SELECT * FROM ( SELECT FORMAT(@rownum2 := @rownum2 + 1, 0) AS ROW_NUM, RN, API_CD, LOG_YMD, LOG_SN, DATA_SN ${cols} FROM ( </if>
+		SELECT
+			<if test='listType == "EXCEL"'>FORMAT</if>(@rownum := @rownum+1<if test='listType == "EXCEL"'>, 0</if>) AS RN
+			, API_CD
+			, LOG_YMD
+			, LOG_SN
+			, DATA_SN
+			${cols}
+		FROM
+			${apiStrgTblNm}, (SELECT @rownum :=0) AS R
+		WHERE 1=1
+			AND	API_CD = #{apiCd}
+		    <include refid="selectMetaMngCollectDataList_whereSearch" />
+		ORDER BY
+		    LOG_SN DESC
+		<if test="listType == null or listType != 'EXCEL' "> ) T999, (SELECT @rownum2 :=0) AS R2 ) T1000 WHERE RN BETWEEN #{start_row} AND #{end_row}  </if>
+	</select>
+
+	<!-- 수집데이터 목록 카운트조회 -->
+	<select id="selectMetaMngCollectDataListCnt" parameterType="map" resultType="Integer">
+		SELECT
+			COUNT(*) AS cnt
+		FROM
+			${apiStrgTblNm}
+		WHERE 1=1
+			AND API_CD = #{apiCd}
+		    <include refid="selectMetaMngCollectDataList_whereSearch" />
+	</select>
+
+
+	<!-- 수집데이터 목록 검색 조건 -->
+	<sql id="selectMetaMngCollectDataList_whereSearch">
+		<if test="logYmd != null and logYmd != '' ">
+			AND LOG_YMD = #{logYmd}
+		</if>
+
+		<if test="logSn != null and logSn != '' ">
+			AND LOG_SN = #{logSn}
+		</if>
+
+		<if test="colNm != null and colNm != '' and colValue != null and colValue != '' ">
+			AND ${colNm} LIKE CONCAT('%', #{colValue}, '%')
+		</if>
+		<if test="logBeginYmd != null and logBeginYmd != '' and logEndYmd != null and logEndYmd != '' ">
+			AND LOG_YMD BETWEEN #{logBeginYmd} AND #{logEndYmd}
+		</if>
+	</sql>
+
+	<!-- 수집 데이터 등록 -->
+	<insert id="insertMetaMngCollectDataInfo" parameterType="map">
+		INSERT INTO ${apiStrgTblNm} (
+			  API_CD
+			, LOG_YMD
+			, LOG_SN
+			, DATA_SN
+			<foreach collection="colList" item="item" separator="," open=",">${item}</foreach>
+		) VALUES (
+			  #{apiCd}
+			, #{logYmd}
+			, #{logSn}
+			, #{dataSn}
+			<foreach collection="dataList" item="item" separator="," open=",">#{item}</foreach>
+		)
+	</insert>
+
+	<!-- 수집 데이터 한줄정보 -->
+	<select id="selectMetaMngCollectDataInfo" parameterType="map" resultType="SangsMap">
+		SELECT
+			API_CD, LOG_YMD, LOG_SN, DATA_SN
+			${cols}
+		FROM
+			${apiStrgTblNm}
+		WHERE 1=1
+			AND LOG_YMD = #{logYmd}
+			AND LOG_SN = #{logSn}
+			AND DATA_SN = #{dataSn}
+	</select>
+
+	<!-- 수집 데이터 한줄정보 수정 -->
+	<update id="updateMetaMngCollectDataInfo" parameterType="map">
+		UPDATE
+			${apiStrgTblNm}
+		SET
+			DATA_SN = #{dataSn}
+			<foreach collection="colList" item="item" separator="," open="," index="i">${item} = '${dataList[i]}'</foreach>
+		WHERE 1=1
+			AND LOG_YMD = #{logYmd}
+			AND LOG_SN = #{logSn}
+			AND DATA_SN = #{dataSn}
+	</update>
+
+	<!-- 수집 데이터 한줄정보 삭제 -->
+	<delete id="deleteMetaMngCollectDataInfo" parameterType="map">
+		DELETE
+		FROM
+			${apiStrgTblNm}
+		WHERE 1=1
+			AND LOG_YMD = #{logYmd}
+			AND LOG_SN = #{logSn}
+			AND DATA_SN = #{dataSn}
+	</delete>
+
+	<!-- 수집 데이터 로그단위 데이터 삭제 -->
+	<delete id="deleteMetaMngCollectLogDataInfo" parameterType="map">
+		DELETE
+		FROM
+			${apiStrgTblNm}
+		WHERE 1=1
+			AND LOG_YMD = #{logYmd}
+			AND LOG_SN = #{logSn}
+	</delete>
+
+
+</mapper>

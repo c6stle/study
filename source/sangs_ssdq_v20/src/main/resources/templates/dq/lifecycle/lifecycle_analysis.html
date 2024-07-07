@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+<body>
+	
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+				<div class="page_info_area">
+					<div class="left">
+                        <div class="location_area">
+                            <a href="#" class="bookmark active" title="즐겨찾기"></a>
+                        </div>
+                        <div class="title_area">
+                            <p>Lifecycle 항목관리</p>
+                            <a href="#" class="reload_btn" title="새로고침">새로고침</a>
+                            <a href="#" class="help_btn" title="도움말">도움말</a>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="button_area" >
+                        	<button class="btn" title="분석시작" onclick="fnExecuteLifecycleAnalysis(); return false;">분석시작</button>
+                        </div>
+                    </div>
+                </div>
+				
+				
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width="5%" />
+									<col width="25%" />
+									<col width="auto" />
+									<col width="5%" />
+									<col width="25%" />
+									<col width="auto" />
+									<col width="5%" />
+									<col width="25%" />
+									<col width="auto" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th>DBMS 명</th>
+										<td><input type="text" class="in_w100" name="dbmsNm" id="dbmsNm" readonly="readonly" /></td>
+										<td></td>
+										<th class="dbmsDatabaseNm">스키마 명</th>
+										<td class="dbmsDatabaseNm"><input class="in_w100" type="text" name="dbmsDatabaseNm" id="dbmsDatabaseNm" readonly/></td>
+										<td class="dbmsDatabaseNm"></td>
+										<th>테이블 수</th>
+										<td><input class="in_w100" type="text" name="tableCnt" id="tableCnt" readonly/></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+					
+
+					<div class="division20">
+						<div class="card">
+							<table class="list fixed" id="tb_tabledata_table">
+								<colgroup>
+									<col style="width: 20%;">
+									<col style="width: auto;">
+									<col style="width: auto;">
+									<col style="width: auto;">
+									<col style="width: 20%;">
+									<col style="width: 20%;">
+									<col style="width: 20%;">
+								</colgroup>
+								<thead>
+									<tr>
+										<th>테이블명</th>
+										<th>Row수</th>
+										<th>Index수</th>
+										<th>PK컬럼수</th>
+										<th>테이블설명</th>
+										<th>기준컬럼</th>
+										<th>적용항목</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="fwk_templete_row">
+										<td class="alignl">#{dbmsTableNm}
+											<input type="hidden" name="tableNm" value="#{dbmsTableNm}"/>
+										</td>	
+										<td>#fn{fnFormatNumber(#{numRows})}</td>
+										<td>#{pkCnt}</td>
+										<td>#{indexCnt}</td>
+										<td class="alignl">#{comments}</td>
+										<td class="columnlist"></td>
+										<td class="fieldlist"></td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- card -->
+					</div><!-- division20 -->
+					
+					
+				</div><!-- content_area -->
+				
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+	
+	
+	
+<div class="popup layer" id="analysissettings_modal" style="width:600px; height :200px;">
+ 	<div class="pop_header">
+		<p class="title">분석설정등록</p>
+		<button class="btn_ic btn_pop_close" id="closeModalBtn" onclick="fnCloseModal('analysissettings_modal');">닫기</button>
+	</div>
+	<div class="pop_content">
+		<div class="card">
+			<table class="view">
+				<colgroup>
+					<col width="20%" />
+					<col width="60%" />
+					<col width="20%" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th>* 분석명</th>
+						<td>
+							<input type="text" name="analysisSaveNm" id="analysisSaveNm"  placeholder="100자리 이내로 입력" maxlength="100"/>
+						</td>
+						<td>
+							<button class="btn sm" title="저장" name="saveBtn" onclick="fnSaveBtn(); return false;">저장</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="pop_footer">
+	
+	</div>
+</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+<script type="text/javascript">
+
+$(document).ready(function() {
+	
+	isMongoDbFileCheck();
+	
+	var chk = isSessionConChk();
+	
+	if(chk){
+		
+		var dbmsNm = fnGetMyDbmsNm();
+		
+		var dbmsDatabaseNm = "";
+		
+		if(dbmsNm != "VoltDB"){
+			$(".dbmsDatabaseNm").show();
+			dbmsDatabaseNm = fnGetMyDbmsDatabaseNm();
+			$("#dbmsDatabaseNm").val(dbmsDatabaseNm);
+		} else {
+			$(".dbmsDatabaseNm").hide();
+		}
+		
+		isCsvFileCheck(dbmsNm);
+		
+		$("#dbmsNm").val(dbmsNm);
+		
+		
+		fnGetTableList();
+	}
+
+});
+
+// 테이블 목록 조회
+function fnGetTableList(){
+
+	$.ajax({
+		url : '/dq/analysis/getAnalysisTableList'
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({})
+		, success : function(data) {
+			$("#tableCnt").val(fnFormatNumber(data.tableCnt));
+			fnBindTableValue("tb_tabledata_table", data.tableList);
+			fnGetTableColumnList();
+		}
+	});
+}
+
+// 컬럼목록 selelctbox 만들기
+function fnGetTableColumnList(){
+
+	$.ajax({
+		url : '/dq/analysis/getAnalysisTableColumnList'
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			onlyColumnDateType : "Y"
+		})
+		, success : function(data) {
+			var tTableNm = "";
+			var cTableNm = "";
+			var cColumnNm = "";
+			var cColumnId = "";
+			var cDataType = "";
+			$("#tb_tabledata_table tbody tr.fwk_data_row").each(function(index){
+				tTableNm = $(this).find("input[name=tableNm]").val();
+				var selectbox = '';
+				var selectboxId = "columnListSelectbox"+index;
+				selectbox += '<div class="selectbox">';
+				selectbox += '<select name="'+selectboxId+'" id="'+selectboxId+'"/>';
+				selectbox += '<option value="">선택</option>';
+				selectbox += '</select>';
+				selectbox += '</div>';
+				
+				$(this).find(".columnlist").append(selectbox);
+				
+				//fnApplySelectLabelDisp(selectboxId);
+				var option = '';
+				$.each(data.columnList, function(){
+					cTableNm = this.dbmsTableNm;
+					cColumnNm = this.columnName;
+					cDataType = this.dataType.toUpperCase();
+					if(tTableNm == cTableNm){
+						option +='<option value="'+cColumnNm+'" data-extval="'+cDataType+'">'+cColumnNm+'</option>';
+						
+					}
+				});
+				$(this).find("#"+selectboxId).append(option);
+				//fnApplySelectIdLabel(selectboxId);
+			});
+			
+			//fnApplySelectIdLabel();
+			fnGetLifecycleMngList();
+		}
+	});
+}
+
+// Lifecycle 항목 관리 목록 조회
+function fnGetLifecycleMngList(){
+	
+	$.ajax({
+		url: '/dq/lifecycle/getLifecycleMngList'
+		, method : "POST"
+		, contentType : 'application/json'
+		, data: JSON.stringify({
+			excelYn : "Y" 
+		})
+		, success: function(data){
+
+			$("#tb_tabledata_table tbody tr.fwk_data_row").each(function(index){
+				var selectbox ='';	
+				var selectboxId = "fieldNmSelectbox"+index;
+				selectbox += '<div class="selectbox">';
+				selectbox += '<select name="'+selectboxId+'" id="'+selectboxId+'"/>';
+				selectbox += '<option value="">선택</option>';
+				selectbox += '</select>';
+				selectbox += '</div>';
+				$(this).find(".fieldlist").append(selectbox);
+				
+				//fnApplySelectLabelDisp(selectboxId);
+				var option = '';
+				$.each(data.list, function(){
+					var fieldNm = this.fieldNm;
+					var ruleSn= this.ruleSn;
+					option +='<option value="'+ruleSn+'">'+fieldNm+'</option>';
+						
+				});
+				$(this).find("#"+selectboxId).append(option);
+				//fnApplySelectIdLabel(selectboxId);
+			});
+			
+			//fnApplySelectLabel();
+		}
+	});
+}
+
+function fnExecuteLifecycleAnalysis(){
+	fnShowModal("analysissettings_modal");
+	$("#analysisSaveNm").val("Lifecycle분석");
+}
+
+function fnSaveBtn(){
+	
+	var arr = [];
+	var isChkValueNull = false;
+	var nullValueColumnNm = "";
+	$("#tb_tabledata_table tbody tr.fwk_data_row").each(function(i){
+		var data = {};
+		var dbmsTableNm = $(this).find("input[name=tableNm]").val();
+		var columnNm =$("#columnListSelectbox"+i+" :selected").val();
+		var columnDataType =$("#columnListSelectbox"+i+" :selected").data("extval");
+		var ruleSn = $("#fieldNmSelectbox"+i+" :selected").val();
+		
+		if(columnNm == "" && ruleSn !=""){
+			nullValueColumnNm = "기준컬럼";
+			isChkValueNull = true;
+		}
+		
+		if(columnNm != "" && ruleSn ==""){
+			nullValueColumnNm = "적용항목";
+			isChkValueNull = true;
+		}
+		
+		if(!isChkValueNull){
+			if(columnNm != "" && ruleSn !="") {
+				data.dbmsTableNm = dbmsTableNm
+				data.columnNm = columnNm;
+				data.ruleSn = ruleSn;
+				data.columnDataType = columnDataType;
+				arr.push(data);
+			}
+		} else {
+			alert("선택하지 않은 "+nullValueColumnNm+"이 있습니다.");
+			return false;
+		}
+	});
+	
+	
+	if(!isChkValueNull){
+		if(arr.length > 0){
+			$.ajax({
+				url: '/dq/lifecycle/executeLifecycleAnalysis'
+				, method : "POST"
+				, contentType : 'application/json'
+				, data: JSON.stringify({
+					analysisSaveNm : $("#analysisSaveNm").val()
+					, analysisList : arr
+					, analysisListCnt : arr.length
+				})
+				, success: function(data){
+					//show_loading_bar_flag = false;
+					if (data.resultCd == "OK") {
+						fnCloseModal('analysissettings_modal');
+						parent.fnClickMenu('/dq/lifecycle/lifecycleResultList');
+					}
+				} 
+			});
+			
+		} else {
+			alert("항목을 하나 이상 선택해 주세요.");
+		}
+	}
+}
+
+</script>
+</body>
+</html>

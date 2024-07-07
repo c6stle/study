@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+<style type="text/css">
+#dv_guide ul {margin-top: 50px}
+#dv_guide ul li {text-align: left; margin: 10px}	
+</style>
+
+
+<script type="text/javascript">
+function fnSearch() {
+	$.ajax({
+		url: "/view/sample/testList",
+		success: function(data){
+			$("#dv_data_area").html(data);
+		}, 
+		error : function(data) {
+			
+		}
+	});
+}
+</script>
+
+<body>
+<div class="content">
+<div id="dv_guide"> 
+	<h2 >view controller</h2>
+	<ul>
+		<li>
+			공통 View Controller은  Service Class 처리 후  MVC View Resolver 를 통해 view 페이지로 이동하게 된다. 
+			<br/>
+			의미 없는 Controller를 생략하기 위한 Controller입니다.
+			<br/>
+			<br/>
+			형식 : /view/[서비스ID]/[메서드ID]
+			<br/>
+			<br/>
+			서비스ID : Service Class 의 ID 값 -> 서비스클래스의 첫번째 글자를 소문자로 하고 클래스명의 Service부분을 제거한 ID 값 예) SampleService -> sample, UserMngrService -> userMngr <br/>
+			메서드ID : 메서드명 
+		</li>
+		<li>
+			예) /view/sample/testList
+		</li>
+		<li>
+			
+			URL : <a href="#" onclick="fnSearch(); return false;">/view/sample/testList</a>
+		</li>
+		<li>
+			/view/sample/testList -> SangsCommonOpenController ->  SampleService.class의 매서드 testList 호출 ->  SangsCommonOpenController 에서 View Resolver 호출 -> sample/testList.html 파일 혹은(SangsConstants.FORWARD_VIEW로 정의한 경로:sample/test_list)
+		</li>
+		<li>
+			Service Class 의 반환 Map 에 key 값을 SangsConstants.FORWARD_VIEW으로 value 값을 view 경로를 셋팅하면 서비스 호출 후 해당 경로의 view 로 이동한다.<br/>
+			예) rtnMap.put(SangsConstants.FORWARD_VIEW, "sample/test_list"); 
+		</li>
+	</ul>
+	<div id="dv_data_area"></div>
+</div>
+</div>
+</body>
+</html>
+					 

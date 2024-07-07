@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+<head>
+<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+<body>
+	
+	<div id="wrap">
+		<div class="container">
+			<div id="content">
+				<div class="page_info_area">
+					<div class="left">
+                        <div class="location_area">
+                            <a href="#" class="bookmark active" title="즐겨찾기"></a>
+                        </div>
+                        <div class="title_area">
+                            <p>Lifecycle 항목관리</p>
+                            <a href="#" class="reload_btn" title="새로고침">새로고침</a>
+                            <a href="#" class="help_btn" title="도움말">도움말</a>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="button_area" >
+							<!--
+                        	<button class="btn" title="일괄등록" onclick="fnBundleRegBtnModal(); return false;">엑셀업로드</button>
+							-->
+                        	<button class="btn" title="신규등록" onclick="fnRegBtn('R', ''); return false;">신규등록</button>
+                        	<button class="btn" title="조회" onclick="fnSearch(); return false;">조회</button>
+                        </div>
+                    </div>
+                </div>
+				
+				
+				<div class="content_area">
+					<div class="division20">
+						<div class="search_wrap">
+							<table class="search fixed">
+								<colgroup>
+									<col width="5%" />
+									<col width="25%" />
+									<col width="auto" />
+									<col width="5%" />
+									<col width="25%" />
+									<col width="auto" />
+									<col width="5%" />
+									<col width="25%" />
+									<col width="auto" />
+								</colgroup>
+								<tbody>
+									<tr>
+										<th><label for="anlsTyCdSearchText">분류</label></th>
+										<td><input class="in_w100" type="text" name="anlsTyCdSearchText" id="anlsTyCdSearchText" /></td>
+										<td></td>
+										<th><label for="fieldNmSearchText">항목명</label></th>
+										<td><input class="in_w100" type="text" name="fieldNmSearchText" id="fieldNmSearchText" /></td>
+										<td></td>
+										<th><label>사용여부</label></th>
+										<td>
+											<div class="selectbox">
+												<select id="selectBoxUseYn" name="selectBoxUseYn">
+													<option value="">전체</option>
+													<option value="Y">사용</option>
+													<option value="N">미사용</option>
+												</select>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- search_wrap -->
+					</div><!-- division20 -->
+					
+
+					<div class="division20">
+						<div class="card">
+								<table class="list fixed" id="tb_data_table">
+									<colgroup>
+										<col style="width: 10%;">
+										<col style="width: 10%;">
+										<col style="width: 20%;">
+										<col style="width: 20%;">
+										<col style="width: 20%;">
+										<col style="width: 10%;">
+										<col style="width: 10%;">
+									</colgroup>
+									<thead>
+										<tr>
+											<th>NO</th>
+											<th>분류</th>
+											<th>항목명</th>
+											<th>기간</th>
+											<th>설명</th>
+											<th>사용여부</th>
+											<th>수정</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="fwk_templete_row">
+											<td>
+												#{FWK_TR_NO}
+												<input type="hidden" name="ruleSn" value="#{ruleSn}"/>
+											</td>	
+											<td>#{anlsTyCd}</td>
+											<td>#{fieldNm}</td>
+											<td>#{pdValue} #{pdClCd}</td>
+											<td>#{rmCn}</td>
+											<td>#fn{fnGetUseYnNm('#{useYn}')}</td>
+											<td><button class="btn sm" name="modBtn" onclick="fnRegBtn('M', '#{ruleSn}'); return false;">수정</button></td>
+										</tr>
+									</tbody>
+								</table>
+							<div class="pagination_area marginb25" id="dv_paging"></div>
+						</div><!-- card -->
+					</div><!-- division20 -->
+					
+					
+				</div><!-- content_area -->
+				
+			</div><!-- content -->
+		</div><!-- container -->
+	</div><!-- wrap -->
+	
+	
+<div class="popup layer" id="reglifecycle_modal" style="width:600px; height :450px;">
+ 	<div class="pop_header">
+		<p class="title">지표 등록</p>
+		<button class="btn_ic btn_pop_close" id="closeModalBtn" onclick="fnCloseModal('reglifecycle_modal');">닫기</button>
+	</div>
+	<div class="pop_content">
+	    <div class="tbl_top right">
+	    	<div class="btn_wrap">
+	    	
+	    		<input type="hidden" name="ruleSnHide" id="ruleSnHide" />
+	    		<input type="hidden" name="pmodeHide" id="pmodeHide" />
+	    		
+				<button class="btn sm" title="저장" name="saveBtn" onclick="fnSaveBtn(); return false;">저장</button>
+			</div>
+   		</div>	
+		<div class="card">
+			<table class="view">
+				<colgroup>
+					<col width="20%" />
+					<col width="40%" />
+					<col width="auto" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th><label for="">* 분류</label></th>
+						<td colspan="2">
+								<select class="chg" name="regAnlsTyCd" id="regAnlsTyCd">
+								 	<option value="YYYYMMDD" selected>YYYYMMDD</option>
+									<option value="YYYYMM">YYYYMM</option>
+									<option value="YYMMDD">YYMMDD</option>
+								</select>
+						</td>
+					</tr>
+					<tr>
+						
+						<th>* 기간</th>
+						<td>
+							<input type="text" class="chg" name="regPdValue" id="regPdValue" maxlength="2" oninput="fnPdValueCheck(this)" placeholder="2자리 이내로 입력" />
+						</td>
+						<td>
+							<input type="radio" class="chg" name="pdValue" id="pdvalue_m" value="M" checked/>
+							<label for="pdvalue_m">개월</label>
+							<input type="radio" class="chg" name="pdValue" id="pdvalue_y" value="Y"/>
+							<label for="pdvalue_y">년</label>
+						</td>
+					</tr>
+					<tr>
+						<th>* 항목명</th>
+						<td colspan="2">
+							<input type="text" class="chg" name="regFieldNm" id="regFieldNm" readonly/>
+						</td>
+					</tr>
+					<tr>
+						<th>* 사용 여부</th>
+						<td colspan="2">
+							<div>
+								<input type="radio" name="useYn" id="useyn_y" value="Y" checked/>
+								<label for="useyn_y">Y</label>
+								<input type="radio" name="useYn" id="useyn_n" value="N"/>
+								<label for="useyn_n">N</label>
+							</div>
+						</td>
+					<tr>
+					<tr>
+						<th>설명</th>
+						<td colspan="2"><textarea type="text" name="regRmCn" id="regRmCn" style="height: 80px; overflow:auto; padding: 10px;" maxlength="200" placeholder="200자 이내로 입력해주세요"></textarea></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="pop_footer">
+	
+	</div>
+ </div>
+	
+	
+	
+	
+	
+	
+	
+<div class="popup layer" id="bundlelifecycle_modal" style="height :700px;">
+ 	<div class="pop_header">
+		<p class="title">엑셀업로드</p>
+		<button class="btn_ic btn_pop_close" id="closeModalBtn" onclick="fnCloseModal('bundlelifecycle_modal');">닫기</button>
+	</div>
+	<div class="pop_content">
+	    <div class="tbl_top right">
+	    	<div class="btn_wrap">
+				<button class="btn sm pad0" title="양식다운로드" name="saveBtn" onclick="fnLifecycleExcelFormDown(); return false;">양식다운로드</button>
+			</div>
+   		</div>	
+		<div class="search_wrap">
+			<table class="search fixed">
+				<colgroup>
+					<col style="width: auto;">
+				</colgroup>
+				<tbody>
+					<tr>
+						<td style="border-right: none">
+							<div class="file_append"  style="display: flex; align-items: center;">
+							<form id="fileUploadForm" name="fileUploadForm">
+								<label class="btn sm" title="파일선택" for="selFile">파일선택</label>
+								<input class="btn" type="file"  name="file" id="selFile" accept=".xls,.xlsx" style="display: none;"/>
+								<input type="hidden" name="basePathId" value="meta.upload.base_path" />
+								<input type="hidden" name="subDir" id="subDir"/>
+								<input type="hidden" name="savedFileNm" id="savedFileNm" />
+							</form>
+							<p class="txt_filename" style="margin-left: 10px;">선택된 파일 없음</p>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	
+		<div class="card">
+			<div class="tbl_wrap" style="height:400px;"> 
+				<table class="list fixed" id="tb_filedata_table">
+					<colgroup>
+						<col width="10%;">
+						<col width="20%;">
+						<col width="10%;">
+						<col width="10%;">
+						<col width="20%;">
+						<col width="20%;">
+						<col width="20%;">
+					</colgroup>
+					<thead>
+						<tr>
+							<th>NO</th>
+							<th>분류</th>
+							<th>기간</th>
+							<th>기간구분</th>
+							<th>항목명</th>
+							<th>설명</th>
+							<th>오류</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="fwk_templete_row">
+							<td>
+								#{EXCEL_ROW_NO}
+							</td>	
+							<td>#{anlsTyCd}</td>
+							<td>#{pdValue}</td>
+							<td>#{pdClCd}</td>
+							<td>#{fieldNm}</td>
+							<td>#{rmCn}</td>
+							<td class="errorInfo">#{errorInfo}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div><!-- card -->
+		
+			<div class="btn_wrap">
+				<button class="btn sm" title="저장(승인)" id="uploadFileRequestBtn" onclick="fnUploadFileRequestBtn(); return false;">저장(승인)</button>
+			</div>
+		
+	</div>
+	<div class="pop_footer">
+	</div>
+ </div>	
+	
+	
+	
+<script type="text/javascript">
+
+$(document).ready(function() {
+	isMongoDbFileCheck();
+	
+	// DBMS 체크
+	if(!isDbmsChk())
+		return;
+		
+	//var chk = isSessionConChk();
+	
+	//if(chk){
+		
+		var dbmsNm = fnGetMyDbmsNm();
+		isCsvFileCheck(dbmsNm);
+		fnSearch();
+			
+		
+		$("#fieldNmSearchText, #anlsTyCdSearchText").on("keyup", function(event) {
+			if(event.keyCode == 13)
+				fnSearch();
+		});
+		
+		$(".chg").on('change', function(){
+			
+			anlsTyCd = $("#regAnlsTyCd option:selected").val();
+			pdValue = $("#regPdValue").val();
+	        pdClCd = $("input[name=pdValue]:checked").val();
+	        
+	        $("#regFieldNm").val(anlsTyCd+"_"+pdValue+pdClCd);
+	    });
+		
+		
+	    $("#selFile").on("click", function(){
+	    	$("#selFile").val("");
+	    });
+		// 파일 선택
+		$("#selFile").on("change", function(){
+			if ($(this).val() != "") {
+				var filePath = $(this).val();
+				var fileName = $(this)[0].files[0].name;
+				$(".txt_filename").text(fileName);
+	
+				fnGetMetaConstantsVal("UPLOAD_WRD_TEMP_PATH", function(data) {
+					$("#fileUploadForm").find("input[name=subDir]").val(data.value);
+					fnUploadFileBtn();
+				});
+			}
+		});
+	//}
+	
+	
+});
+
+
+// Lifecycle 항목 관리 목록 조회
+function fnSearch(pageNum){
+	if(!pageNum) 
+		pageNum = 1;
+	
+	$.ajax({
+		url: '/dq/lifecycle/getLifecycleMngList'
+		, method : "POST"
+		, contentType : 'application/json'
+		, data: JSON.stringify({
+			pageNum : pageNum 
+			, fieldNm : fnUnderbarChgVar($("#fieldNmSearchText").val())
+			, anlsTyCd : fnUnderbarChgVar($("#anlsTyCdSearchText").val())
+			, useYn : $("#selectBoxUseYn").val()
+		})
+		, success: function(data){
+			var list = data.list;
+			fnBindTableValue("tb_data_table", list);
+			fnSetPaging("dv_paging", data.pagingInfo);
+		}
+	});
+}
+
+// 신규등록, 수정버튼
+function fnRegBtn(pmode, ruleSn){
+	
+	fnShowModal("reglifecycle_modal");
+	
+	$("#ruleSnHide").val(ruleSn);
+	$("#pmodeHide").val(pmode);
+	
+	if(pmode == "R"){
+		// 등록 초기세팅
+		
+		var anlsTyCd = $("#regAnlsTyCd option:selected").val();	//분류
+		var pdClCd = $("input[name=pdValue]:checked").val();	// 기간 radio박스
+		var fieldNm = anlsTyCd + "_" + pdClCd;
+
+		$("#regPdValue").val("");	// 기간
+		$("#regFieldNm").val(fieldNm);
+		$("#regRmCn").val("");
+		
+	} else {
+		
+		
+		$.ajax({
+			url: "/dq/lifecycle/getLifecycleMngInfo"
+			, method : "POST"
+			, contentType : 'application/json'
+			, data : JSON.stringify({
+				ruleSn : ruleSn
+			})
+			, success: function(data){
+				var info = data.info;
+				$("#regAnlsTyCd").val(info.anlsTyCd);//분류
+				$("input[name=pdValue][value='"+info.pdClCd+"']").prop("checked", true);	// 기간 radio박스
+				$("#regPdValue").val(info.pdValue);	// 기간
+				$("#regFieldNm").val(info.fieldNm); // 항목명
+				$("input[name=useYn][value='"+info.useYn+"']").prop("checked", true);
+				$("#regRmCn").val(info.rmCn);		// 설명
+				
+			}
+		});
+	}
+	
+}
+
+// 저장
+function fnSaveBtn(){
+	
+	if (!fnCheckValid("#regPdValue", "기간"))
+		return;
+	
+	
+	if(!confirm("저장 하시겠습니까?")){
+		return;
+	}
+	
+	
+	var data = {};
+	data.ruleSn = $("#ruleSnHide").val();
+	data.pmode = $("#pmodeHide").val();
+	data.fieldNm = $("#regFieldNm").val();
+	data.pdClCd = $("input[name=pdValue]:checked").val();
+	data.useYn = $("input[name=useYn]:checked").val();
+	data.rmCn = $("#regRmCn").val();
+	data.anlsTyCd = $("#regAnlsTyCd").val();
+	data.pdValue = $("#regPdValue").val();
+	
+	var pagingNo ="";
+	$("#dv_paging .on a").each(function(){
+		pagingNo = $(this).text();
+	});
+	
+	$.ajax({
+		url: "/dq/lifecycle/saveLifecycleMngInfo"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify(data)
+		, success: function(data){
+			if(data.resultCd == "OK"){
+				alert("저장되었습니다.");
+				fnCloseModal('reglifecycle_modal');
+				fnSearch(pagingNo);
+			} else {
+				alert("실패하셨습니다." + data.errorInfo);
+			}
+		}
+	});
+	
+}
+
+// 일괄등록
+function fnBundleRegBtnModal(){
+	fnShowModal("bundlelifecycle_modal");
+	
+	$("#selFile").val("");
+	$(".txt_filename").text("선택된 파일 없음")
+	$("#subDir").val("");
+	$("#savedFileNm").val("");
+	$('#tb_filedata_table tbody .fwk_data_row').remove();
+}
+
+
+//업로드 버튼
+function fnUploadFileBtn() {
+	if ($("#subDir").val() == "") {
+		alert("선택한 파일이없습니다.");
+		return;
+	}
+	fnCommSingleFileUpload("fileUploadForm", function(data) {
+
+		if (data.resultCd == "OK") {
+
+			var orgFileNm = data.orgFileNm;
+			var savedFileNm = data.savedFileNm;
+			var subDir = data.subDir;
+			
+			$("#orgFileNm").val(orgFileNm);
+			$("#savedFileNm").val(savedFileNm);
+			$("#subDir").val(subDir);
+			
+			$.ajax({
+				url : "/dq/lifecycle/getLifcycleMngBundleList"
+				, method : "POST"
+				, contentType : 'application/json'
+				, data : JSON.stringify({
+					savedFileNm : savedFileNm
+					, subDir : subDir
+				})
+				, success : function(data) {
+					fnBindTableValue("tb_filedata_table", data.list);
+					
+					$("#tb_filedata_table tbody tr.fwk_data_row").each(function(){
+						if($(this).find(".errorInfo").text() != ""){
+							$(this).find("td").css("background-color", "#FFD2D2");
+						}
+					});				
+					
+				}
+			});
+
+		} else {
+			alert("업로드중 에러가 발생하였습니다.");
+		}
+
+	});
+
+}
+
+
+// 양식다운로드
+function fnLifecycleExcelFormDown() {
+	
+	var paramObj = {};
+	fnCommFileDownByUrl("/exceldown/lifecycle/getLifcycleMngExcelFormDown", "라이프사이클", JSON.stringify(paramObj));
+
+}
+
+
+
+// 파일 저장
+function fnUploadFileRequestBtn() {
+	var errorInfo = "";
+	$("#tb_filedata_table .fwk_data_row .errorInfo").each(function(){
+		if ($(this).text() != "") {
+			errorInfo = $(this).text()
+		}
+	});
+	
+	var rowCnt = 0;
+	$("#tb_filedata_table .fwk_data_row").each(function(){
+		rowCnt++;
+	});
+	
+	if(rowCnt == 0){
+		alert("저장할 데이터가 없습니다.");
+		return;
+	}
+	if (errorInfo != "") {
+		alert("오류가 있는경우 등록 요청 할 수 없습니다.");
+		return;
+	}
+	
+	
+	var savedFileNm = $("#savedFileNm").val();
+	var subDir = $("#subDir").val();
+	
+	if(savedFileNm == "" || subDir ==""){
+		alert("선택한 파일이없습니다.");
+		return;
+	}
+	
+ 	$.ajax({
+		url : "/dq/lifecycle/saveLifcycleMngBundleList"
+		, method : "POST"
+		, contentType : 'application/json'
+		, data : JSON.stringify({
+			savedFileNm : savedFileNm
+			, subDir : subDir
+		})
+		, success : function(data) {
+			if (data.resultCd == "OK") {
+				alert("저장 되었습니다.");
+			} else {
+				alert("실패하셨습니다.");
+			}
+			location.reload();
+		}
+	});
+	
+}
+
+
+function fnPdValueCheck(obj){
+	$(obj).val(obj.value.replace(/[^0-9]/g,""));
+		
+	if($(obj).val().substr(0, 1) == "0"){
+		$(obj).val($(obj).val().substr(1, 1));
+	}
+}
+
+
+</script>
+</body>
+</html>

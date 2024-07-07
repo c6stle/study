@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PostgreSQL.AnalysisMapper">
+	
+	<!-- 테이블 row 데이터 목록 조회 -->
+	<select id="selectTableRowDataList" resultType="sangsMap" parameterType="map">
+		select *
+		from (
+			select
+				*, (row_number() over()) as rnum
+			from ${dbmsDatabaseNm}.${dbmsTableNm} 
+			) t1
+		where t1.rnum <![CDATA[<=]]> ${rowCnt}
+	</select>
+	
+	<!-- 테이블 row 데이터 count 조회 -->
+	<select id="selectTableRowDataCnt" resultType="Integer" parameterType="map">
+		select count(*) from ${dbmsDatabaseNm}.${dbmsTableNm}
+	</select>
+	
+	
+	<!-- 테이블 구조 분석 목록 조회 -->
+	<select id="selectAnalysisTableList" resultType="sangsMap" parameterType="map">
+
+		select
+			upper(t1.relname) as dbms_table_nm
+			, (
+				select count(*) 
+				from INFORMATION_SCHEMA.TABLE_CONSTRAINTS t01
+					, INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE t02 
+				where 1 = 1
+				and t01.table_name = t1.relname
+				and t01.table_catalog = t02.table_catalog
+				and t01.table_schema = t02.table_schema
+				and t01.table_name = t02.table_name
+				and t01.constraint_name = t02.constraint_name
+				and t01.constraint_type = 'PRIMARY KEY'
+			) as pk_cnt
+			, (select count(*) from PG_INDEXES t01 where t01.tablename= t1.relname) as index_cnt
+			, OBJ_DESCRIPTION(t1.oid) as comments
+		from
+			PG_CATALOG.PG_CLASS t1
+			inner join PG_CATALOG.PG_NAMESPACE t2 on t1.relnamespace= t2.oid 
+		where t1.relkind = 'r'
+		and upper(t2.nspname) = upper(#{dbmsDatabaseNm})
+		order by t1.relname
+
+	</select>
+	
+	
+	<!-- 컬럼 구조 분석 목록 조회 -->
+	<select id="selectAnalysisTableColumnList" resultType="sangsMap" parameterType="map">
+	 	
+		select 
+			t1.table_schema as dbms_database_nm
+			, upper(t1.table_name) as dbms_table_nm
+			, t1.column_name  as column_name
+			, t1.udt_name as data_type
+			, t1.character_maximum_length as data_length
+			, t1.numeric_precision as data_precision
+			, t1.is_nullable as nullable
+			, t1.numeric_scale as data_scale
+			, t1.column_default as data_default
+			, (
+				select t02.description
+				from pg_stat_all_tables t01
+					, pg_description t02
+					, pg_attribute t03
+				where t01.relid=t02.objoid
+				and t02.objoid=t03.attrelid
+				and t02.objsubid=t03.attnum
+				and t01.schemaname= t1.table_schema
+				and t03.attname = t1.column_name
+			) as comments
+		from information_schema.columns t1
+		where UPPER(t1.table_schema) = UPPER(#{dbmsDatabaseNm})
+		<if test="dbmsTableNm != '' and dbmsTableNm != null ">
+			and upper(t1.table_name) = upper(#{dbmsTableNm})
+		</if>
+		order by t1.table_name, t1.ordinal_position
+			
+	</select>
+	
+	<!-- 컬럼별 최댓값 and 최솟값 조회 -->
+	<select id="selectAnalysisColumnsMaxAndMinValue" resultType="sangsMap" parameterType="map">
+		select
+			"${columnNm}"
+		from ${dbmsDatabaseNm}.${dbmsTableNm}
+	</select>
+	
+	
+	<!-- 컬럼별 데이터 조회(limit) -->
+	<select id="selectAnalysisColumnValueWithLimit" resultType="map" parameterType="map">
+		select
+			"${columnName}" as col_val
+		from ${dbmsDatabaseNm}.${dbmsTableNm}
+		<if test="limitCount != '' and limitCount != null">
+		limit ${limitCount}
+		</if>
+	</select>
+	
+	
+	<!-- 사용자정의 SQL -->
+	<select id="selectUserCheckSql" resultType="Integer" parameterType="map">
+		select 
+			count(*)
+		from ${dbmsDatabaseNm}.${dbmsTableNm}
+		where ${whereValue}
+	</select>
+	
+	
+	<!-- 라이프사이클 분석 컬럼 MtchgCnt -->
+	<select id="selectLifecycleAnalysisMtchgCnt" parameterType="map" resultType="Integer">
+		select 
+			count(*)
+		from
+			(
+			select 
+				"${columnNm}"
+			from ${dbmsDatabaseNm}.${dbmsTableNm}
+			where trim(cast("${columnNm}" as text)) != ''
+			and "${columnNm}" is not null
+			) t1
+		${whereParam}<![CDATA[>=]]>#{chkDate}
+	</select>
+	
+	<!-- 라이프사이클 분석 컬럼 missCnt -->
+	<select id="selectLifecycleAnalysisMissCnt" parameterType="map" resultType="Integer">
+		select 
+			count(*)
+		from
+			(
+			select 
+				"${columnNm}"
+			from ${dbmsDatabaseNm}.${dbmsTableNm}
+			where trim(cast("${columnNm}" as text)) != ''
+			and "${columnNm}" is not null
+			) t1
+		${whereParam}<![CDATA[<]]>#{chkDate}
+	</select>
+	
+	
+	<!-- 테이블 row 데이터 count 조회 -->
+	<select id="selectDgnssDataRowCnt" resultType="Integer" parameterType="map">
+		select count(*) from ${schemaNm}.${tblNm}
+		where 1 = 1
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>
+	</select>
+	
+		
+	<!-- 진단 Unique Count 결과 목록 -->
+	<select id="selectDgnssUniqueCnt" resultType="Integer" parameterType="map">
+		select count(*) as cnt 
+		from(
+			select count(*) 
+			from ${schemaNm}.${tblNm}
+			where 1 = 1
+			<if test="dataCndValue != '' and dataCndValue != null">
+				<include refid="where_datacndvalue"/>
+			</if>
+			group by "${colNm}"
+			having count(*) = 1
+		) t1
+	</select>
+	
+	<!-- 진단 Duplicate Count 결과 목록 -->
+	<select id="selectDgnssDuplicateCnt" resultType="Integer" parameterType="map">
+		select coalesce(sum(t1.cnt), 0)
+		from (
+			select 
+				"${colNm}"
+				, count(*) as cnt
+			from
+				${schemaNm}.${tblNm}
+			where
+				"${colNm}" is not null
+				<if test="dataCndValue != '' and dataCndValue != null">
+					<include refid="where_datacndvalue"/>
+				</if>
+			group by "${colNm}"
+			having count(*) > 1 
+		) t1
+	</select>
+	
+	<!-- 진단 Distinct Count 결과 목록 -->
+	<select id="selectDgnssDistinctCnt" resultType="Integer" parameterType="map">
+		select count(*) as cnt 
+		from (
+			select
+				distinct "${colNm}"
+			from ${schemaNm}.${tblNm}
+			where 1 = 1
+			<if test="dataCndValue != '' and dataCndValue != null">
+				<include refid="where_datacndvalue"/>
+			</if>
+		) t1
+	</select>
+	
+	<!-- 진단 NULL Count 결과 목록 -->
+	<select id="selectDgnssNullCnt" resultType="Integer" parameterType="map">
+		select count(*) as cnt
+		from ${schemaNm}.${tblNm}
+		where "${colNm}" is null
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+	
+	<!-- 진단 Blank Count 결과 목록 -->
+	<select id="selectDgnssBlankCnt" resultType="Integer" parameterType="map">
+		select count(*)	as cnt
+		from ${schemaNm}.${tblNm}
+		where trim(cast("${colNm}" as text)) = ''
+		and "${colNm}" is not null
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+	
+	<!-- 진단 빈도 결과 목록 -->
+	<select id="selectDgnssFqResultList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.data_value
+			, t1.data_cnt 
+		from (
+			select
+				(row_number() over()) as rnum
+				, t01.*
+			from (
+				select
+					 substring("${colNm}"::text,1,50) as data_value
+					 , count(*) as data_cnt
+				from ${schemaNm}.${tblNm}
+				where 1 = 1
+				<if test="dataCndValue != '' and dataCndValue != null">
+					<include refid="where_datacndvalue"/>
+				</if>				
+				group by "${colNm}"
+				order by data_cnt desc
+			) t01
+		) t1
+		where t1.rnum between 1 and 10	
+	</select>
+	
+	<!-- 컬럼 초과 데이터 목록 조회 -->
+	<select id="selectDgnssColExcessDataList" resultType="sangsMap" parameterType="map">
+		select "${colNm}"
+			<foreach item="pkColNm" open="," separator="," collection="pkColNmArr">"${pkColNm}"</foreach>
+		from
+			(
+			select 
+				*
+			from (
+				select
+					(row_number() over()) as rnum
+					, t001.*
+				from
+					${schemaNm}.${tblNm} t001
+				where 1 = 1
+				<if test='nullDataDgnssYn == "N"'>
+				and t001."${colNm}" is not null
+				</if>
+				<if test="dataCndValue != '' and dataCndValue != null">
+					<include refid="where_datacndvalue"/>
+				</if>			
+				) t01
+			order by t01.rnum
+			) t1
+		where t1.rnum between ${startRow} and ${endRow}
+	</select>
+	
+	<!-- 컬럼 데이터 목록 조회 -->
+	<select id="selectDgnssColDataList" resultType="sangsMap" parameterType="map">
+		select "${colNm}"
+		<foreach item="pkColNm" open="," separator="," collection="pkColNmArr">"${pkColNm}"</foreach>
+		from ${schemaNm}.${tblNm}
+		where 1 = 1
+		<if test='nullDataDgnssYn == "N"'>
+		and "${colNm}" is not null
+		</if>
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>
+	</select>
+	
+	<!-- 사용자 정의 SQL 일치 목록 -->
+	<select id="selectDgnssUserDfnSqlMtchList" resultType="sangsMap" parameterType="map">
+		${ruleExprsnValue}
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>
+	</select>
+	
+	<!-- 사용자 정의 SQL 불일치 목록-->
+	<select id="selectDgnssUserDfnSqlDisMtchList" resultType="sangsMap" parameterType="map">
+		select "${colNm}"
+		<foreach item="pkColNm" open="," separator="," collection="pkColNmArr">"${pkColNm}"</foreach>
+		from ${schemaNm}.${tblNm}
+		where "${colNm}" not in (
+			${ruleExprsnValue}
+		)
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>
+	</select>
+	
+	
+	<!-- 숫자 일치 범주 -->
+	<select id="selectDgnssNumberCtgryMtchList" resultType="sangsMap" parameterType="map">
+		select
+			"${colNm}"
+		from ${schemaNm}.${tblNm}
+		where "${colNm}" between ${bgngValue} and ${endValue}
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+	
+	<!-- 숫자 불일치 범주 -->
+	<select id="selectDgnssNumberCtgryDisMtchList" resultType="sangsMap" parameterType="map">
+		select
+			"${colNm}"
+			<foreach item="pkColNm" open="," separator="," collection="pkColNmArr">"${pkColNm}"</foreach>
+		from ${schemaNm}.${tblNm}
+		where "${colNm}" not between ${bgngValue} and ${endValue}
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+
+
+	<!-- 문자 일치 범주 -->
+	<select id="selectDgnssChrctrCtgryMtchList" resultType="sangsMap" parameterType="map">
+		select
+			"${colNm}"
+		from ${schemaNm}.${tblNm}
+		where "${colNm}" between #{bgngValue} and #{endValue}
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+	
+	<!-- 문자 불일치 범주 -->
+	<select id="selectDgnssChrctrCtgryDisMtchList" resultType="sangsMap" parameterType="map">
+		select
+			"${colNm}"
+			<foreach item="pkColNm" open="," separator="," collection="pkColNmArr">"${pkColNm}"</foreach>
+		from ${schemaNm}.${tblNm}
+		where "${colNm}" not between #{bgngValue} and #{endValue}
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+	
+	
+	<!-- 날짜 일치 범주 -->
+	<select id="selectDgnssDateCtgryMtchList" resultType="sangsMap" parameterType="map">
+		select
+			"${colNm}"
+		from ${schemaNm}.${tblNm}
+		where to_char(cast("${colNm}" as date),'YYYY-MM-DD') between #{bgngValue} and #{endValue}
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+	
+	<!-- 날짜 불일치 범주 -->
+	<select id="selectDgnssDateCtgryDisMtchList" resultType="sangsMap" parameterType="map">
+		select
+			"${colNm}"
+			<foreach item="pkColNm" open="," separator="," collection="pkColNmArr">"${pkColNm}"</foreach>
+		from ${schemaNm}.${tblNm}
+		where to_char(cast("${colNm}" as date),'YYYY-MM-DD') not between #{bgngValue} and #{endValue}
+		<if test="dataCndValue != '' and dataCndValue != null">
+			<include refid="where_datacndvalue"/>
+		</if>		
+	</select>
+	
+<!-- 날짜 범주 
+	<select id="selectDgnssDateCtgryCnt" resultType="sangsMap" parameterType="map">
+		select
+			count(*)
+		from ${schemaNm}.${tblNm}
+		where to_char(cast(${colNm} as date),'YYYY-MM-DD') <![CDATA[>=]]> #{bgngValue} and to_char(cast(${colNm} as date),'YYYY-MM-DD') <![CDATA[<=]]> #{endValue} 
+	</select> -->
+	
+	
+	<!-- pk 목록 조회 -->
+	<select id="sealectPkColList" resultType="sangsMap" parameterType="map">
+		select
+			t2.column_name as column_name
+		from
+			information_schema.table_constraints t1
+		     , information_schema.constraint_column_usage t2
+		where 1 = 1
+		and upper(t1.table_name) = upper(#{tblNm})
+		and t1.constraint_type = 'PRIMARY KEY'
+		and t1.table_catalog = t2.table_catalog
+		and t1.table_schema = t2.table_schema
+		and t1.table_name = t2.table_name
+		and t1.constraint_name = t2.constraint_name
+	</select>
+	
+	<sql id="where_datacndvalue">
+	 	and ${dataCndValue}
+	</sql>
+	
+</mapper>

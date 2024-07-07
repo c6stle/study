@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mlms_learning_module">
+  
+	
+	<!-- 학습 모듈 목록 조회  -->
+	<select id="selectLearningModuleAllList" resultType="sangsMap" parameterType="map">
+		select 
+			module_sn
+			, module_ty_cd
+			, lib_ty_cd
+			, module_class_nm
+			, module_pckage_nm
+			, module_nm
+			, module_dc
+		from ML_LRN_MODULE
+		where del_yn = 'N'
+		order by case when module_ty_cd = 'FILTER' then 10 when module_ty_cd = 'PROCESSOR' then 20 when module_ty_cd = 'MODELER' then 30 else 90 end
+	</select>
+	
+	
+	<!-- 학습 모듈 파라미터 목록 조회 --> 
+	<select id="selectLearningModuleParamAllList" resultType="sangsMap" parameterType="map">
+		select 
+			module_sn
+			, paramtr_nm
+			, dflt_value
+			, esntl_paramtr_yn
+			, perm_scope_dc
+			, use_yn
+		from ML_LRN_MODULE_PARAMTR
+		where 1=1
+		<if test="moduleSn != '' and moduleSn != null ">
+			and module_sn = #{moduleSn}
+		</if>
+		<if test="useYn != '' and useYn != null ">
+			and use_yn = #{useYn}
+		</if>
+		order by module_sn, paramtr_nm
+	</select>
+	
+	
+	
+	<!-- 학습 모듈 목록 조회 -->
+	<sql id="where_selectLearningModuleList">
+		<if test="moduleTyCd != '' and moduleTyCd != null ">
+			and t1.module_ty_cd = #{moduleTyCd}
+		</if>
+		<if test="libTyCd != '' and libTyCd != null ">
+			and t1.lib_ty_cd = #{libTyCd}
+		</if>
+		<if test="moduleNm != '' and moduleNm != null ">
+			and t1.module_nm like concat('%', #{moduleNm}, '%')
+		</if>
+	</sql>
+	
+	<select id="selectLearningModuleList" resultType="sangsMap" parameterType="map">
+		select 
+			t1.module_sn
+			, fn_get_cmmn_code_nm('MODLTP', t1.module_ty_cd) as module_ty_cd_nm
+            , fn_get_cmmn_code_nm('MODLIBTP', t1.lib_ty_cd) as lib_ty_cd_nm
+			, t1.module_class_nm
+			, t1.module_pckage_nm
+			, t1.module_nm
+			, (select count(*) 
+				from ML_LRN_MODULE_PARAMTR t2
+				where t1.module_sn = t2.module_sn
+				) as paramtr_cnt
+			, (select count(*) 
+				from ML_LRN_MODULE_PARAMTR t2
+				where t1.module_sn = t2.module_sn 
+					and t2.esntl_paramtr_yn = 'Y' 
+				) as essntl_paramtr_cnt 
+			, t1.module_dc
+		from ML_LRN_MODULE t1
+		where del_yn = 'N'
+			<include refid="where_selectLearningModuleList" />
+		order by module_sn desc
+		limit #{pageSize} offset #{offset}
+	</select>
+	
+	<!-- 학습 모듈 카운트 조회 -->
+	<select id="selectLearningModuleListCnt" resultType="Integer" parameterType="map">
+		select
+			count(*) as count
+		from ML_LRN_MODULE t1
+		where del_yn = 'N'
+		<include refid="where_selectLearningModuleList" />
+	</select>
+	 
+
+	 <!-- 학습 모듈 정보 조회  -->
+	 <select id="selectLearningModuleInfo" resultType="sangsMap" parameterType="map">
+	 	select 
+			fn_get_cmmn_code_nm('MODLTP', module_ty_cd) as module_ty_cd_nm
+			, fn_get_cmmn_code_nm('MODLIBTP', lib_ty_cd) as lib_ty_cd_nm
+			, module_ty_cd
+			, lib_ty_cd
+			, module_nm
+			, module_pckage_nm
+			, module_class_nm
+			, module_dc
+			, module_sn
+		from ML_LRN_MODULE
+		where module_sn = #{moduleSn}
+	 </select>
+	 
+	 
+	 <!-- 모듈 신규 등록시 순번 채번 -->
+	 <select id="selectNextModuleSn" resultType="sangsMap" parameterType="map">
+	 	select
+	 		(ifnull(max(module_sn), 0) + 1) as module_sn
+	 	from ML_LRN_MODULE
+	 </select>
+	 
+	 
+	 
+	 <!-- 학습 모듈 정보 등록  -->
+	 <insert id="insertLearningModuleInfo" parameterType="map">
+	 	insert into ML_LRN_MODULE (
+			module_sn
+			, module_ty_cd
+			, lib_ty_cd 
+			, module_class_nm 
+			, module_pckage_nm 
+			, module_nm
+			<if test="moduleDc != '' and moduleDc != null ">
+				, module_dc
+			</if>
+			, del_yn
+			, REG_USER_ID
+			, REG_DT
+			, CHG_USER_ID
+			, CHG_DT)
+		values (
+			#{moduleSn}
+			, #{moduleTyCd}
+			, #{libTyCd}
+			, #{moduleClassNm}
+			, #{modulePckageNm}
+			, #{moduleNm}
+			<if test="moduleDc != '' and moduleDc != null ">
+				, #{moduleDc}
+			</if>
+			, #{delYn}
+			, #{regUserId}
+			, now()
+			, #{regUserId}
+			, now())
+	 </insert>
+	 
+	 
+	 
+	 
+	 <!-- 학습 모듈 파라미터 정보 등록  -->
+	 <insert id="insertLearningModuleParamInfo" parameterType="map">
+	 	insert into ML_LRN_MODULE_PARAMTR (
+			module_sn
+			, paramtr_nm
+			, dflt_value
+			, esntl_paramtr_yn
+			, perm_scope_dc
+			, use_yn
+			, REG_USER_ID
+			, REG_DT
+			, CHG_USER_ID
+			, CHG_DT)
+		values (
+			#{moduleSn}
+			, #{paramtrNm}
+			, #{dfltValue}
+			, #{esntlParamtrYn}
+			, #{permScopeDc}
+			, #{useYn}
+			, #{regUserId}
+			, now()
+			, #{regUserId}
+			, now())
+	 </insert>
+	 
+	 
+	 
+	 
+	 
+	 <sql id="where_updateLearningModuleInfo">
+ 		module_ty_cd = #{moduleTyCd}
+ 		, lib_ty_cd = #{libTyCd}
+ 		, module_nm = #{moduleNm}
+ 		, module_class_nm = #{moduleClassNm}
+ 		, module_pckage_nm = #{modulePckageNm}
+ 		, module_dc = #{moduleDc}
+ 		, CHG_USER_ID = #{chgUserId}
+ 		, CHG_DT = now()
+	 	<if test="delYn != '' and delYn != null">
+	 		, del_yn = #{delYn}
+	 	</if>
+	 </sql>
+	 <!-- 학습 모듈 갱신 -->
+	 <update id="updateLearningModuleInfo" parameterType="map">
+	 	update ML_LRN_MODULE set
+			<include refid="where_updateLearningModuleInfo" />
+	 	where module_sn = #{moduleSn}
+	 </update>
+	 
+	 
+	 <!-- 학습 모듈 파라미터 갱신 -->
+	 <update id="updateLearningModuleParamInfo" parameterType="map">
+	 	update ML_LRN_MODULE_PARAMTR set 
+	 		dflt_value = #{dfltValue}
+	 		, esntl_paramtr_yn = #{esntlParamtrYn}
+	 		, perm_scope_dc = #{permScopeDc}
+	 		, use_yn = #{useYn}
+	 		, CHG_USER_ID = #{chgUserId}
+	 		, CHG_DT = now()
+	 	where module_sn = #{moduleSn}
+	 		and paramtr_nm = #{paramtrNm}
+	 </update>
+	
+	
+	
+	<sql id="where_selectLearningModuleParamList">
+		<if test="moduleNm != '' and moduleNm != null ">
+			and t1.module_nm like concat('%', #{moduleNm}, '%')
+		</if>
+		<if test="moduleClassNm != '' and moduleClassNm != null ">
+			and t1.module_class_nm like concat('%', #{moduleClassNm}, '%')
+		</if>
+		<if test="paramtrNm != '' and paramtrNm != null ">
+			and t2.paramtr_nm like concat('%', #{paramtrNm}, '%')
+		</if>
+	</sql>
+	<!-- 학습 모듈 파라미터 목록 조회 -->
+	<select id="selectLearningModuleParamList" resultType="sangsMap" parameterType="map">
+		select
+			fn_get_cmmn_code_nm('MODLTP', t1.module_ty_cd) as module_ty_cd_nm
+			, t2.module_sn
+			, t1.module_ty_cd
+			, t1.module_nm
+			, t1.module_pckage_nm
+			, t1.module_class_nm
+			, t2.paramtr_nm
+			, t2.dflt_value
+			, t2.esntl_paramtr_yn
+			, t2.use_yn
+			, t2.perm_scope_dc
+		from ML_LRN_MODULE t1
+			, ML_LRN_MODULE_PARAMTR t2
+		where t1.module_sn = t2.module_sn
+			and t1.del_yn = 'N'
+			<include refid="where_selectLearningModuleParamList" />
+		order by module_sn desc
+		limit #{pageSize} offset #{offset}
+	</select>
+	
+	
+	<!-- 학습 모듈 파라미터 목록 카운트 조회 -->
+	<select id="selectLearningModuleParamSearchListCnt" resultType="Integer" parameterType="map">
+		select
+			count(*) as count
+		from ML_LRN_MODULE t1
+			, ML_LRN_MODULE_PARAMTR t2
+		where t1.module_sn = t2.module_sn
+		<include refid="where_selectLearningModuleParamList" />
+	</select>
+	
+
+</mapper>
+

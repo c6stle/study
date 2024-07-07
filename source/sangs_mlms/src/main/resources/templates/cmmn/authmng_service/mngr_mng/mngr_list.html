@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+
+<div id="wrap">
+	<div class="container">
+		<div id="content">
+			<!-- page_info_area -->
+			<div class="page_info_area">
+				<div class="left">
+					<div class="location_area">
+						<a href="#" class="bookmark active" title="즐겨찾기"></a>
+						<ul>
+							<li>홈</li>
+							<li>환경설정</li>
+						</ul>
+					</div>
+					<div class="title_area">
+						<p>사용자 관리</p>
+						<a href="#" class="reload_btn" title="새로고침" onclick="location.reload(true); return false;">새로고침</a> 
+						<a href="#" class="help_btn" title="도움말">도움말</a>
+					</div>
+				</div>
+				<div class="right">
+					<div class="button_area">
+						<!-- 
+			            <button class="btn" title="조회">조회</button>
+			             -->
+						<button class="btn" onclick="fnSearch(); return false;">조회</button> 
+						<button class="btn" onclick="fnCreateMngrModal(); return false;">신규 등록</button>
+					</div>
+				</div>
+			</div>
+			<!--// page_info_area -->
+			
+			<!-- content_area -->
+			<div class="content_area">
+				<!-- division20 -->
+				<div class="division20">
+					<div class="search_wrap">
+						<table class="search fixed">
+							<colgroup>
+								<col style="width: 100px;" />
+								<col style="width: auto;" />
+								<col style="width: 60px;" />
+								<col style="width: 100px" />
+								<col style="width: auto;" />
+								<col style="width: 60px;" />
+								<col style="width: 200px;" />
+								<col style="width: auto;" />
+							</colgroup>
+							<tbody>
+								<tr>
+									<th scope="row"><label for="authrtCd">권한 구분</label></th>
+									<td>
+										<div class="selectbox">
+											<select id="authrtCd" name="authrtCd">
+												<option value="">전체</option>
+											</select>
+											<label>전체</label>
+										</div>
+									</td>
+									<td></td>
+									<th scope="row"><label for="useYn">사용여부</label></th>
+									<td>
+										<div class="selectbox">
+											<select id="useYn" name="useYn">
+												<option value="">전체</option>
+												<option value="Y">Y</option>
+												<option value="N">N</option>
+											</select>
+											<label>전체</label>
+										</div>
+									</td>
+									<td></td>
+									<th scope="row">
+										<div class="selectbox">
+											<select id="selectSearch" name="selectSearch">
+												<option value="">조회 조건</option>
+												<option value="userId">관리자 아이디</option>
+												<option value="userNm">관리자 명</option>
+												<option value="regUserId">등록자 아이디</option>
+											</select>
+											<label>조회 조건</label>
+										</div>
+									</th>
+									<td>
+										<input type="text" class="in_w95 float_right" id="searchText" name="searchText" placeholder="검색어를 입력하세요." /> 
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<!--// division20 -->
+			
+				<!-- division -->
+				<div class="division20">
+					<div class="row marginb25">
+						<div class="left" data-width="0">
+							<!-- table_area -->
+							<div class="table_area marginb25">
+								<table class="list" id="tb_user_table">
+									<colgroup>
+										<col style="width: 5%" />
+										<col style="width: 20%" />
+										<col style="width: auto" />
+										<col style="width: 15%" />
+										<col style="width: 9%" />
+										<col style="width: 18%" />
+										<col style="width: 18%" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col">번호</th>
+											<th scope="col">권한 명</th>
+											<th scope="col">관리자 아이디</th>
+											<th scope="col">관리자 명</th>
+											<th scope="col">사용여부</th>
+											<th scope="col">등록 일</th>
+											<th scope="col">최근 수정 일</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="fwk_templete_row">
+											<input type="hidden" name="userId" value="#{userId}" />
+											<td>#{rn}</td>
+											<td>#{authrtNm}</td>
+											<td>#{userId}</td>
+											<td>#{userNm}</td>
+											<td>#{useYn}</td>
+											<td>#{regDt}</td>
+											<td>#{chgDt}</td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="marginb25"></div>
+								<!-- pagination_area -->
+								<div class="pagination_area marginb25" id="dv_paging"></div>
+								<!--// pagination_area -->
+							</div>
+							<!--// table_area -->
+				
+						</div>
+						<div class="right" data-width="600">
+							<form method="POST" id="userForm" name="userForm">	
+								<!-- view_wrap -->
+								<div class="view_wrap">		
+									<div class="tbl_top fx_none">
+										<p class="tit v2 margin0">
+											<span>관리자 정보</span>
+										</p>
+										<div class="btn_wrap">
+											<button class="btn sm" onclick="fnUserInfoSave('M'); return false;">저장</button>
+	                                    </div>
+	                                </div>
+									<!-- table_area -->		
+									<div class="table_area">
+										<table id="userInfoTable" class="view">
+											<colgroup>
+												<col style="width: 25%" />
+												<col style="width: 25%" />
+												<col style="width: 25%" />
+												<col style="width: 25%" />
+											</colgroup>
+											<tbody>
+												<tr>
+													<th>관리자 권한</th>
+													<td colspan="3" id="authrtCd" name="authrtCd"></td>
+												</tr>
+												<tr>
+													<th>관리자 아이디</th>
+													<td id="userId" name="userId"></td>
+													<th>관리자 명</th>
+													<td colspan="3" id="userNm"><input type="text" name="userNm" class=""></td>
+												</tr>
+												<tr>
+													<th>관리자 패스워드</th>
+													<td colspan="3" id="userPassword" name="userPassword"><button class="btn sm" onclick="fnUserResetPassword(); return false;">초기화</button></td>
+												</tr>
+												<tr>
+													<th>사용 여부</th>
+													<td id="useYn">
+														<select name="useYn">
+															<option value="Y">Y</option>
+															<option value="N">N</option>
+														</select>
+													</td>
+												</tr>
+												<tr>
+													<th>등록 일</th>
+													<td colspan="3" id="regDt" name="regDt"></td>
+												</tr>
+												<tr>
+													<th>로그인 실패 횟수</th>
+													<td id="lgnFailrCnt" name="lgnFailrCnt"></td>
+													<th>마지막 로그인 일</th>
+													<td id="lastLgnDt" name="lastLgnDt"></td>
+												</tr>
+												<!-- 20210909 수정 - 날짜 예시 -->
+											</tbody>
+										</table>
+									</div>
+									<!-- //table_area -->		
+									<div class="marginb30"></div>
+									
+									<div id="userAttrbInfoDiv" style="display: none;">
+										<div class="tbl_top fx_none">
+											<p class="tit v2 margin0">
+												<span>사용자 속성 정보</span>
+											</p>
+											<div class="btn_wrap">
+		                                    </div>
+		                                </div>
+										<table class="view">
+											<colgroup>
+												<col style="width: 25%" />
+												<col style="width: 75%" />
+											</colgroup>
+											<tbody id="userAttrbInfoTbody"></tbody>
+										</table>
+									</div>
+								</div>
+								<!--// view_wrap -->
+							</form>
+						</div>				
+					</div>
+				</div>
+				<!-- //division -->
+			</div>
+			<!--// content_area -->
+		</div>
+	</div>
+</div>
+<!-- 관리자 추가 모달 -->
+<div class="popup layer" id="modalCreateUser" style="width: 40%;">
+	<div class="pop_header">
+    	<p class="title">관리자 추가</p>
+        <button class="btn_ic btn_pop_close" onclick="fnCloseModal('modalCreateUser');">닫기</button>
+    </div>
+    <form method="POST" id="createUserForm" name="createUserForm">
+    <input type="hidden" id="isUserChk" name="isUserChk" value="Y"/>
+    <div class="pop_content">
+		<div class="tbl_top right padt10">
+       		<div class="btn_wrap">
+           		<button class="btn sm" onclick="fnUserInfoSave('C'); return false;">등록</button> 
+            </div>
+       	</div>	
+		<div class="table_area">
+			<table class="view" id="createUserTable">
+				<colgroup>
+					<col style="width: 25%;">
+	      			<col style="width: auto;">
+	  			</colgroup>
+	    		<tbody>
+	   				<tr>
+	   					<th>관리자 권한</th>
+	           			<td>
+	   						<select id="createAuthrtCd" name="authrtCd"> 
+	   							<option value="">선택</option>
+	       					</select>
+	           			</td>
+	   				</tr>
+	   				<tr>
+						<th><span id="isUserChkText">관리자 아이디</span></th>
+           				<td>
+       						<input type="text" id="newUserId" name="userId"/>
+               			</td>
+					</tr>
+	   				<tr>
+	         			<th>관리자 패스워드</th>
+             			<td>
+            				<input type="password" id="newUserPassword" name="userPassword" class="in_w100"/>
+               			</td>
+	   				</tr>
+	   				<tr>
+	         			<th>관리자 명</th>
+             			<td>
+       						<input type="text" id="newUserName" name="userNm"/>
+               			</td>
+	   				</tr>
+	   				<tr>
+	         			<th>사용 여부</th>
+             			<td>
+            				<select id="newUserYn" name="useYn">
+            					<option value="Y">Y</option>
+								<option value="N">N</option>
+            				</select>
+               			</td>
+	   				</tr>
+	     		</tbody>
+	   		</table>
+		</div>
+	</div>
+	</form>
+	<div class="pop_footer"></div>
+</div>
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	$("#searchText").on("keyup", function(event) {
+		if(event.keyCode == 13) 
+			fnSearch();
+	});
+	
+	$("input[name='userId']").on("change", function(event) {
+		var userId = $("#createUserForm").find($("input[name='userId']")).val();
+		$.ajax({
+			url: "/json/authMngMngr/getMngrIdChkInfo"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({
+				userId: userId
+			})
+			, success: function(data){
+				if(data.mngrCnt > 0){
+					alert("중복된 사용자 아이디 입니다.");
+					$("#isUserChkText").css("color", "red");
+					$("#isUserChk").val("Y");
+					$("#createUserForm").find($("input[name='userId']")).val("");
+					return false;
+				} else {
+					alert("등록 가능한 아이디 입니다.");
+					$("#isUserChkText").css("color", "blue");
+					$("#isUserChk").val("N");
+				}
+			}
+		});
+	});
+	
+	//수정버튼 hidden
+	//$("#modifyBtn").hide();
+	
+	fnInit();
+	
+});
+
+
+function fnInit() {
+	
+	//권한 구분
+	new CodeBinder()
+	.setSqlCode("authMngAuth.selectAuthorList", "authrtCd", "select")
+	.load();
+	fnSearch();
+	
+}
+
+function fnSearch(pageNum) {
+	if(!pageNum) 
+		pageNum = 1;
+	
+	$.ajax({
+		url: "/json/authMngMngr/getCmmnMngrList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum: pageNum
+			, authrtCd: $("#authrtCd").val()
+			, useYn: $("#useYn").val()
+			, selectSearch: $("#selectSearch").val()
+			, searchText: $("#searchText").val()
+		})
+		, success: function(data){
+			console.log(data);
+			fnBindTableValue("tb_user_table", data.list, data.pagingInfo);
+			
+			fnSetPaging("dv_paging", data.pagingInfo); 
+			
+ 			fnSelectTrEvent("#tb_user_table tbody tr", function(rtnObj) {
+ 				var userId = fnSelectTrHiddenValue("tb_user_table", "userId");
+				fnViewDetail(userId);
+			})
+		}
+	});
+	
+	parent.setFrameHeight();
+}
+ 
+function fnViewDetail(userId) {
+	
+	$.ajax({
+		url: "/json/authMngMngr/getCmmnMngrInfo"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			userId : userId
+		})
+		, success: function(data){
+			var userInfo = data.userInfo;
+			
+			//사용자 정보 세팅
+			var userRow = $("#userInfoTable").find("td");
+			$.each(userRow, function(key, value) {
+				var tName = typeof $(value).attr("name") == 'undefined' ? $(value).children().attr("name") : $(value).attr("name");
+				var cLength = $(value).children().length;
+				
+				$.each(userInfo, function(infoKey, infoValue) {
+					// table 값 세팅
+					if(tName.toLowerCase().indexOf(infoKey.toLowerCase()) > -1){
+						if(cLength == 0){
+							if(infoKey.toLowerCase().indexOf('authrtcd') > -1){
+								$('td[name='+tName+']').text(infoValue+"("+userInfo.authrtNm+")");
+							}else{
+								if(infoKey == 'lgnFailrCnt'){
+									$("#"+infoKey).empty();
+									
+									if(userInfo.mngrLoginFailCtlDefaultCnt <= infoValue){
+										var btn = '<button class="btn sm" onclick="fnPasswordReSetFailCnt(); return false;">'+ infoValue +'회 초기화</button>';
+										$('td[name='+tName+']').append(btn);
+									}else{
+										$('td[name='+tName+']').text(infoValue);
+									}
+								}else{
+									$('td[name='+tName+']').text(infoValue);
+								}
+							}
+						}else{
+							if(infoKey.toLowerCase().indexOf('authrtcd') > -1){
+								$('input[name='+tName+']').val(infoValue+"("+userInfo.authrtNm+")");
+							}else{
+								if(infoKey == 'lgnFailrCnt'){
+									$("#"+infoKey).empty();
+									
+									if(userInfo.mngrLoginFailCtlDefaultCnt <= infoValue){
+										var btn = '<button class="btn sm" onclick="fnPasswordReSetFailCnt(); return false;">'+ infoValue +'회 초기화</button>';
+										$('td[name='+tName+']').append(btn);
+									}else{
+										$('td[name='+tName+']').text(infoValue);
+									}
+								}else{
+									$('input[name='+tName+']').val(infoValue);
+								}
+								
+								$('input[name='+tName+']').val(infoValue);
+							}
+						}
+					}
+				});	
+			});
+		}
+	});
+}
+
+
+function fnPasswordReSetFailCnt(){
+	var userId = fnSelectTrHiddenValue("tb_user_table", "userId");
+	
+	if(userId == null){
+		alert("선택된 항목이 없습니다.");
+		return;
+	}
+	
+	if(confirm("초기화 하시겠습니까?")){
+		$.ajax({
+			url: "/json/authMngMngr/modMngrResetPasswordFailCntExec"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({
+				userId : userId
+			})
+			, success: function(data){
+				
+				if(data.resultCd == "OK") {
+					
+					alert('로그인 실패 횟수 초기화 되었습니다.');
+					fnViewDetail(userId);
+				}
+			}
+			, error : function(data) {
+				console.log(data);
+			}
+		});
+	}
+
+}
+
+//사용자 패스워드 변경 모달 호출 
+function fnUserResetPassword() {
+	var userId = fnSelectTrHiddenValue("tb_user_table", "userId");
+	
+	if(userId == null){
+		alert("선택된 항목이 없습니다.");
+		return;
+	}
+	
+	/*
+		패스워드 암호화 : SHA-512
+		로그인 실패 횟수 : 0 
+		패스워드 만료일자 : now() + 1 year
+	*/
+	if(confirm("초기화 하시겠습니까?")){
+		$.ajax({
+			url: "/json/authMngMngr/modMngrResetPasswordExec"
+			, method : "POST"
+			, contentType: 'application/json'
+			, data: JSON.stringify({
+				userId : userId
+			})
+			, success: function(data){
+				
+				if(data.resultCd == "OK") {
+					
+					alert('"'+data.resetPassword+ '"'+ "로 패스워드가 초기화 되었습니다.");
+					fnSearch(1);
+				}
+			}
+			, error : function(data) {
+				console.log(data);
+			}
+		});
+	}
+}
+
+
+function fnUserInfoSave(pmode){
+	
+	if("C" == pmode){
+		// 사용자 등록 
+		var createUserForm = $("#createUserTable").find("td").children();
+		var params = [];
+		var obj = {};
+		$.each(createUserForm, function(key, value) {
+			console.log(key, "||", $(value).attr('name'));
+			var name = $(value).attr('name');
+			var type = $(value).attr('type');
+			var val = "";
+			// 속성 별 선택 값 세팅
+			if(type == 'selectbox'){
+				val = $("input[name="+name+"] option:selected").val();
+			} else if (type == 'radio' || type == 'checkbox') {
+				val = $("input[name="+name+"]:checked").val();
+			} else {
+				val = $(value).val();
+			}
+			obj[name] = val;
+		});
+
+		if(confirm("저장하시겠습니까?")){
+			
+			$.ajax({
+				url: "/json/authMngMngr/saveMngrExecInfo"
+				, method : "POST"
+				, contentType: 'application/json'
+				, data: JSON.stringify({
+					userInfo : obj
+					, pmode : pmode
+				})
+				, success: function(data){
+					if(data.resultCd == "OK") {
+						alert("저장되었습니다.");
+						fnSearch(1);
+						fnCloseModal('modalCreateUser');
+					}
+				}
+				, error : function(data) {
+					console.log(data);
+				}
+			});
+		}
+	
+	}else{
+		// 사용자 수정 	
+		var userId = fnSelectTrHiddenValue("tb_user_table", "userId");
+	
+		if(userId == null){
+			alert("선택된 항목이 없습니다.");
+			return;
+		}
+		
+		var params = [];
+		var infoObj = {};
+	
+		$.each($("#userForm").find("tr").find("td"), function(key, value) {
+			var tgId = $(value).attr('id');
+			var tgVal = ""; // 
+			var tgAttrbSn = $(value).children().attr('data-attrbSn'); 
+			var tgType = $(value).children().attr('type');
+			
+			// 속성 별 선택 값 세팅
+			if(tgType == 'selectbox'){
+				tgVal = $("input[name="+tgId+"] option:selected").val();
+			} else if (tgType == 'radio' || tgType == 'checkbox') {
+				tgVal = $("input[name="+tgId+"]:checked").val();
+			} else {
+				tgVal = $(value).children().val();
+			}
+			
+			// input태그가 없을 경우
+			if(typeof tgVal == 'undefined'){
+				tgVal = $(value).text();
+			}
+			
+			// 속성 순번이 없을 경우 
+			if(typeof tgAttrbSn == 'undefined'){
+				infoObj[tgId] = tgVal;
+			}
+		});
+		
+		if(confirm("저장하시겠습니까?")){
+			$.ajax({
+				url: "/json/authMngMngr/saveMngrExecInfo"
+				, method : "POST"
+				, contentType: 'application/json'
+				, data: JSON.stringify({
+					userInfo : infoObj
+					, pmode : pmode
+				})
+				, success: function(data){
+					if(data.resultCd == "OK") {
+						alert("저장되었습니다.");
+						fnSearch(1);
+					}
+				}
+				, error : function(data) {
+					console.log(data);
+				}
+			});
+		}
+	}
+}
+
+
+//신규 둥록 (관리자 신규 등록) 모달 호출 
+function fnCreateMngrModal() {
+	$("#createUserForm")[0].reset();
+	$("#createAuthrtCd").empty();
+	$("#isUserChkText").css("color", "");
+	
+	//권한 구분
+	new CodeBinder()
+	.setSqlCode("authMngAuth.selectAuthorList", "createAuthrtCd", "select")
+	.load();
+	
+	fnShowModal("modalCreateUser");
+}
+
+</script>
+
+</html>
+					 

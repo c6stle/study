@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<th:block th:replace="fragments/head_inc :: head_inc" />
+
+<div class="content"> 
+	<div class="grid-view" >
+		<table class="items" id="training_basic_info" style="width:100%;" border="1">		
+			<colgroup>
+				<col width="13.3%" />
+				<col width="20%" />
+				<col width="13.3%" />
+				<col width="20%" />
+				<col width="13.3%" />
+				<col width="20%" />
+			</colgroup>
+			<tbody>
+				<tr>
+					<td>학습명</td>
+					<td id="learningNM"></td>
+					<td>정확도</td>
+					<td id="accuracyRate"></td>
+					<td>정밀도/재현율/F1</td>
+					<td id="otherScore"></td>
+				</tr>
+				<tr>
+					<td>훈련데이터</td>
+					<td id="trainingDataCnt"></td>
+					<td>테스트데이터</td>
+					<td id="testDataCnt"></td>
+					<td>수행일시(아이디)</td>
+					<td id="trainingBeginDt"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	
+	<br><br>
+	
+	
+	<div>		
+		<div id="dv_trainUniqCharts" style="float:left; width:30%; height:400px;"></div>
+			
+		<div id="dv_trainTargetCharts" style="float:left; width:30%; height:400px;"></div>
+			
+		<div id="dv_trainBoxPlot" style="float:left; width:40%; height:500px;"></div>
+	</div>							
+	
+	
+	<br><br>
+	
+	
+	<div>
+		<div id="dv_featureImportance" style="float:left; width:70%; height:500px;"></div>
+		
+		<div id="dv_featureImportancePie" style="float:left; width:30%; height:500px;"></div>
+	</div>
+	
+	
+	<br><br>
+	
+	
+	<div>
+		<div id="dv_testUniqCharts" style="float:left; width:30%; height:400px;"></div>
+		
+		<div id="dv_testTargetCharts" style="float:left; width:30%; height:400px;"></div>
+		
+		<div id="dv_testBoxPlot" style="float:left; width:40%; height:500px;"></div>
+	</div>
+	
+	
+	<br><br>
+	
+	
+	<div>
+		<div id="dv_truePredictRate" style="float:left; width:70%; height:400px;"></div>
+		
+		<div></div>
+	</div>
+	
+	
+	<div class="content"> 
+		<div class="grid-view" id="tableBody" style="overflow:scroll; width:100%; height:600px">
+		
+		</div>	
+	</div>
+	
+	
+</div>
+		
+
+<script type="text/javascript" th:inline="javascript">
+
+
+$(document).ready(function() {
+	
+	$.ajax({
+		url : "/json/dataset/getDatasetInfo"
+		, method : 'POST'
+		, contentType : 'application/json'
+		, data : JSON.stringify({learningExecSn : [[${paramMap.learningExecSn}]]})
+		, success : function(data){
+			// console.log(data);
+			$("#learningNM").text(data.info.learningNm);
+			$("#accuracyRate").text(data.info.accuracyRate + " %");
+			// $("#otherScore").text(data.info.otherScore);
+			$("#trainingDataCnt").text(data.info.trainingDataColumnCnt + " cols x " + data.info.trainingDataRowCnt + " rows");
+			$("#testDataCnt").text(data.info.testDataColumnCnt + " cols x " + data.info.testDataRowCnt + " rows");
+			$("#trainingBeginDt").text(data.info.trainingBeginDt + " (" + data.info.registerId + ")");
+
+			// 훈련데이터 분석 차트 그리기
+			drawDatasetCharts(data.info);
+			fnDrawFeatureImportance("dv_featureImportance", data.resultinfo);
+			fnDrawFeatureImportancePie("dv_featureImportancePie", data.resultinfo);
+		}
+	});
+});
+
+
+function drawDatasetCharts(data) {
+	
+	$.ajax({
+		url : "/json/dataset/getResultAnalysisInfo"
+		, method : 'POST'
+		, contentType : 'application/json'
+		, data : JSON.stringify(data)
+		, success: function(data){
+			
+			try {
+				var trainUniqObj = data.trainDatasetMap.BY_FEATURE_UNIQUE;
+				// case 1. label 과  value 를 각각 배열로 만들기
+				/* var trainUniqLabList = new Array();
+				var trainUniqValList = new Array();
+				
+				for(key in trainUniqObj) {
+					// console.log(key + ":" + featUniqObj[key] );
+					trainUniqLabList[trainUniqLabList.length] = key;
+					trainUniqValList[trainUniqValList.length] = trainUniqObj[key];
+				} */
+				// case 2. label 과 value를 object 안에 넣은 배열로 만들기
+				var trainUniqObjList = new Array(); 
+				
+				for(key in trainUniqObj) {
+					var obj = new Object();
+					obj.name = key;
+					obj.value = trainUniqObj[key];
+					trainUniqObjList[trainUniqObjList.length] = obj;
+				}
+				
+				fnDrawUPieChart("dv_trainUniqCharts", trainUniqObjList);
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!");
+			}
+			
+			
+			try {
+				var trainTargetObj = data.trainDatasetMap.BY_LABEL;
+				var trainTargetObjList = new Array(); 
+				
+				for(key in trainTargetObj) {
+					var obj = new Object();
+					obj.name = key;
+					obj.value = trainTargetObj[key];
+					trainTargetObjList[trainTargetObjList.length] = obj;
+				}
+				
+				fnDrawRPieChart("dv_trainTargetCharts", trainTargetObjList);
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!");
+			}
+			
+			
+			try {
+				var trainBoxObj = data.trainDatasetMap.BY_FEATURE_CONTENTS;
+				var trainBoxLabList = new Array();
+				var trainBoxValList = new Array();
+				
+				for(key in trainBoxObj) {
+					trainBoxLabList[trainBoxLabList.length] = key;
+					trainBoxValList[trainBoxValList.length] = trainBoxObj[key];
+				}
+				
+				fnDrawBoxPlot("dv_trainBoxPlot", trainBoxLabList, trainBoxValList)
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!");
+			}
+			
+			
+			<!--!!!!!!!!!!!!!!!!!!!!!testdata!!!!!!!!!!!!!!!!!!!!!! -->
+			try {
+				var testUniqObj = data.testDatasetMap.BY_FEATURE_UNIQUE;
+				var testUniqObjList = new Array(); 
+				
+				for(key in testUniqObj) {
+					var obj = new Object();
+					obj.name = key;
+					obj.value = testUniqObj[key];
+					testUniqObjList[testUniqObjList.length] = obj;
+				}
+				
+				fnDrawUPieChart("dv_testUniqCharts", testUniqObjList);
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!");
+			}
+			
+			
+			try {
+				var testTargetObj = data.testDatasetMap.BY_LABEL;
+				
+				var testTargetObjList = new Array(); 
+
+				for(key in testTargetObj) {
+					var obj = new Object();
+					obj.name = key;
+					obj.value = testTargetObj[key];
+					testTargetObjList[testTargetObjList.length] = obj;
+				}
+				
+				fnDrawRPieChart("dv_testTargetCharts", testTargetObjList);
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!");
+			}
+			
+			
+			try {
+				var testBoxObj = data.testDatasetMap.BY_FEATURE_CONTENTS;
+				var testBoxLabList = new Array();
+				var testBoxValList = new Array();
+				
+				for(key in testBoxObj) {
+					testBoxLabList[testBoxLabList.length] = key;
+					testBoxValList[testBoxValList.length] = testBoxObj[key];
+				}
+				
+				fnDrawBoxPlot("dv_testBoxPlot", testBoxLabList, testBoxValList)
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!"); 
+			}
+			
+			
+			<!--!!!!!!!!!!!!!!!!!!!!!resultdata!!!!!!!!!!!!!!!!!!!!!! -->
+			try {
+				var table = '<table class="items">';
+	        	
+	        	table += '<thead>';
+	        	table += '<tr>';
+	        	for (var header = 0; header < data.resultDatasetMap.headerList.length; header++){
+	        		table += '<td>';
+	        		table += data.resultDatasetMap.headerList[header];
+	        		table += '</td>';
+	        	}
+	        	table += '</tr>';
+	        	table += '</thead>';
+	        	table += '<tbody>';
+	        	
+	        	for (var row = 0; row < data.resultDatasetMap.bodyList.length; row++) {
+	        		table += '<tr>';
+	        		var bodyListRow = data.resultDatasetMap.bodyList[row];
+	        		for (key in data.resultDatasetMap.headerList) {
+	        			var bodykey = data.resultDatasetMap.headerList[key]
+	        			table += '<td>';
+	        			// console.log(bodyListRow)
+	        			table += bodyListRow[bodykey]
+	        			table += '</td>';
+	        		}
+	        		table += '</tr>';
+	        	}
+	        	
+	        	table += '</tbody>';
+	        	table += '</table>';
+	        	
+	        	$("#tableBody").append(table);
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!");
+			}
+			
+			
+			try{
+				var testLabList = new Array();
+				var testValList = new Array();
+				var resultLabList = new Array();
+				var resultValList = new Array();
+				
+				for (key in data.testDatasetMap.BY_LABEL) {
+					
+					testLabList[resultValList.length] = key;
+					testValList[resultValList.length] = data.testDatasetMap.BY_LABEL[key];
+					
+					resultLabList[resultValList.length] = key;
+					resultValList[resultValList.length] = data.testDatasetMap.BY_LABEL[key] - data.resultDatasetMap.BY_LABEL[key];
+					
+				}
+				
+				fnDrawAccuracyChart("dv_truePredictRate", testLabList, testValList, resultLabList, resultValList);
+				
+			} catch (e) {
+				console.log("!!!!", e.name, e.message, "!!!!");
+			}
+			
+		}, 
+		error : function(data) {
+			alert(data);
+		}
+	});
+}
+
+
+function fnDrawUPieChart(id, dataList) {
+	var option;
+	option = {title: {text: 'Feature Unique Count', subtext: '', left: 'center'}
+		, tooltip: {trigger: 'item'}
+		, legend: {orient: 'vertical', left: 'left'}
+		, series: [{name: 'Feature Unique Count'
+			, type: 'pie'
+			, radius: '50%'
+			, data: dataList
+			, emphasis: {itemStyle: {shadowBlur: 10
+				, shadowOffsetX: 0
+				, shadowColor: 'rgba(0, 0, 0, 0.5)'
+				}
+			}
+		}]
+	};
+
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);	
+	
+}
+
+
+function fnDrawRPieChart(id, dataList) {
+	var option;
+	option = {title: {text: 'Label(target) Rate', subtext: '', left: 'center'}
+		, tooltip: {trigger: 'item'}
+		, legend: {orient: 'vertical', left: 'left'}
+		, series: [{name: 'Target Count'
+			, type: 'pie'
+			, radius: '50%'
+			, data: dataList
+			, emphasis: {itemStyle: {shadowBlur: 10
+				, shadowOffsetX: 0
+				, shadowColor: 'rgba(0, 0, 0, 0.5)'
+				}
+			}
+		}]
+	};
+
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);	
+	
+}
+
+
+function fnDrawBoxPlot(id, label, data) {
+	var option;
+	
+	option = {title: [{text: 'Feature Boxplot'
+				,left: 'center'}
+			, {text: 'upper: Q3 + 1.5 * IQR \nlower: Q1 - 1.5 * IQR'
+				, borderColor: '#999'
+				, borderWidth: 1
+				, textStyle: {fontWeight: 'normal'
+					, fontSize: 14
+					, lineHeight: 20}
+				, left: '10%'
+				, top: '90%'
+				}
+			]
+		, dataset: [{source: data}
+			, {transform: {type: 'boxplot'
+				, config: {itemNameFormatter: label}}
+			}
+			, {fromDatasetIndex: 1
+				, fromTransformResult: 1}
+		]
+		, tooltip: {trigger: 'item', axisPointer: {type: 'shadow'}}
+		, grid: {left: '10%', right: '10%', bottom: '15%'}
+		, xAxis: {type: 'category'
+			, axisLabel: {show:true}
+			, boundaryGap: true
+			, nameGap: 10
+			, splitArea: {show: false}
+			, splitLine: {show: false}
+			}
+		, yAxis: {type: 'value'
+			, name: 'Score'
+			, splitArea: {show: true}}
+		, series: [{name: 'boxplot', type: 'boxplot', datasetIndex: 1}
+			, {name: 'outlier', type: 'scatter', datasetIndex: 2}
+		]
+	};
+	
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);
+}
+
+
+function fnDrawFeatureImportance(id, data){
+	
+	var label = new Array();
+	var value = new Array();
+	
+	for (row = 0; row < data.length; row++) {
+		var dataRow = data[row];
+		// console.log(dataRow);
+		label[label.length] = dataRow["resultAttrbNm"];
+		value[value.length] = dataRow["resultAttrbRate"];
+	}
+	
+	var option;
+	
+	option = {title: {text: 'Feature Importance', left: 'center'}
+		, xAxis: {type: 'value'}
+		, yAxis: {type: 'category'
+			, data: label}
+		, series: [{data: value
+			, type: 'bar'
+			, showBackground: true
+			, backgroundStyle: {color: 'rgba(180, 180, 180, 0.2)'}
+		}]
+	};
+	
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);
+}
+
+
+function fnDrawFeatureImportancePie(id, data) {
+	var option;
+	
+	var dataListObj = new Array();
+	for (row = 0; row < data.length; row++) {
+		var obj = new Object();
+		var dataRow = data[row];
+		obj.name = dataRow["resultAttrbNm"]
+		obj.value = dataRow["resultAttrbRate"]
+		dataListObj[dataListObj.length] = obj;
+	}
+	option = {title: {text: 'Feature Importance', subtext: '', left: 'center'}
+		, tooltip: {trigger: 'item'}
+		, legend: {orient: 'vertical', left: 'left'}
+		, series: [{name: 'Importance Value'
+			, type: 'pie'
+			, radius: '50%'
+			, data: dataListObj
+			, emphasis: {itemStyle: {shadowBlur: 10
+				, shadowOffsetX: 0
+				, shadowColor: 'rgba(0, 0, 0, 0.5)'
+				}
+			}
+		}]
+	};
+
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);	
+}
+
+
+function fnDrawAccuracyChart(id, testLabList, testValList, resultLabList, resultValList) {
+	var option;
+	
+	option = {title: {text: 'Accuracy'
+			, subtext: 'Target Classification Accuracy'}
+		, tooltip: {trigger: 'axis'
+			, axisPointer: {type: 'shadow'}}
+		, legend: {data: ['Total Test', 'Correct Result']}
+		, grid: {left: '3%'
+			, right: '4%'
+			, bottom: '3%'
+			, containLabel: true}
+		, xAxis: {type: 'value'
+			, boundaryGap: [0, 0.01]}
+		, yAxis: {type: 'category'
+			, data: testLabList}
+		, series: [{name: 'Total Test Target'
+				, type: 'bar'
+				, data: testValList}
+			, {name: 'Correct Target Count'
+				, type: 'bar'
+				, data: resultValList
+			}
+		]
+	};
+	
+	var chartDom = document.getElementById(id);
+	var myChart = echarts.init(chartDom);
+	option && myChart.setOption(option);
+}
+
+</script>					
+					
+					
+</html>
+					 

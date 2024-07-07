@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ct_collect_info">
+
+	<!-- 메타목록관리 리스트 조회 -->
+	<select id="selectMetaList" parameterType="map" resultType="SangsMap">
+
+		SELECT
+			*
+		FROM (
+			SELECT T999.*, FORMAT(@rownum2 := @rownum2+1, 0) AS ROWNUM
+			FROM (
+				SELECT
+				      T900.*
+				    , CASE WHEN ADDR_CNT  > 0  THEN 'Y' ELSE 'N' END ADDR_YN
+				    , CASE WHEN RCPTN_CNT > 0  THEN 'Y' ELSE 'N' END RCPTN_YN
+				    <!-- , IF(DATA_CNT>0, 'Y', 'N') DATA_AT -->
+				FROM (
+					SELECT
+				          T1.API_CD
+				          , T2.API_GROUP_CD
+				          , T2.API_GROUP_NM
+				          , T1.API_NM
+				          , (SELECT CD_NM FROM EGOV_CMNCDDTLCODE WHERE CD_ID ='APIDATATY' AND CD = T1.CMMN_API_DATA_TY_CD) AS CMMN_API_DATA_TY_NM
+				          , (SELECT CD_NM FROM EGOV_CMNCDDTLCODE WHERE CD_ID ='APISVCTY' AND CD =  T1.CMMN_API_SRVC_TY_CD) AS CMMN_API_SRVC_TY_NM
+				          , API_TRSMRCV_STRT_YN
+				          , (SELECT COUNT(1) FROM CT_API_META_ADDR WHERE API_CD=T1.API_CD) ADDR_CNT
+				          , (SELECT COUNT(1) FROM CT_API_META_RCPTN WHERE API_CD=T1.API_CD) RCPTN_CNT
+  				          , (SELECT CD_NM FROM EGOV_CMNCDDTLCODE WHERE CD_ID ='APICOLCTTY' AND CD = T1.CMMN_API_CLCT_TY_CD) AS CMMN_API_CLCT_TY_NM
+				          <!-- , (SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = #{dataDBSchemaId} AND TABLE_NAME = T1.API_STORGE_ID) DATA_CNT -->
+				          <!-- , (SELECT TABLE_ROWS FROM DB_CLASS WHERE TABLE_SCHEMA = #{dataDBSchemaId} AND TABLE_NAME = T1.API_STORGE_ID) DATA_CNT -->
+				          , (@rownum := @rownum+1) AS RN
+				      FROM
+				          CT_API_META_INF T1, CT_API_GROUP T2, (SELECT @rownum :=0) AS R
+				      WHERE
+				          T1.API_GROUP_CD = T2.API_GROUP_CD
+						  <include refid="selectMetaList_whereSearch" />
+				) T900, (SELECT @rownum2 :=0) AS T901
+			) T999
+			WHERE 1=1
+			<if test="addrYn != null and addrYn != '' ">
+				AND ADDR_YN = #{addrYn}
+			</if>
+			<if test="rcptnYn != null and rcptnYn != '' ">
+		    	AND RCPTN_YN = #{rcptnYn}
+		    </if>
+		    <!--
+		    <if test="dataAt != null and dataAt  != '' ">
+		    	AND DATA_AT = #{dataAt}
+		    </if>
+		     -->
+	    ) T1000 WHERE rn BETWEEN #{startRow} AND #{endRow}
+	    ORDER BY API_NM
+
+	</select>
+
+	<!-- 메타목록관리 리스트 카운트조회 -->
+	<select id="selectMetaListCnt" parameterType="map" resultType="Integer">
+		SELECT
+			COUNT(*) AS cnt
+		FROM (
+			SELECT
+				T900.*
+				, CASE WHEN ADDR_CNT  > 0  THEN 'Y' ELSE 'N' END ADDR_YN
+				, CASE WHEN RCPTN_CNT > 0  THEN 'Y' ELSE 'N' END RCPTN_YN
+			    <!-- , IF(DATA_CNT>0, 'Y', 'N') DATA_AT -->
+			FROM (
+				  SELECT
+					(SELECT COUNT(1) FROM CT_API_META_ADDR WHERE API_CD=T1.API_CD) ADDR_CNT
+					, (SELECT COUNT(1) FROM CT_API_META_RCPTN WHERE API_CD=T1.API_CD) RCPTN_CNT
+			          <!-- , (SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = #{dataDBSchemaId} AND TABLE_NAME = T1.API_STORGE_ID) DATA_CNT -->
+			          <!-- , (SELECT TABLE_ROWS FROM DB_CLASS WHERE TABLE_SCHEMA = #{dataDBSchemaId} AND TABLE_NAME = T1.API_STORGE_ID) DATA_CNT -->
+			      FROM
+			          CT_API_META_INF T1
+			      WHERE 1=1
+					<include refid="selectMetaList_whereSearch" />
+			) T900
+		) T999
+		WHERE 1=1
+		<if test="addrYn != null and addrYn != '' ">
+			AND ADDR_YN = #{addrYn}
+		</if>
+		<if test="rcptnYn != null and rcptnYn != '' ">
+	    	AND RCPTN_YN = #{rcptnYn}
+	    </if>
+		<if test="dataAt != null and dataAt  != '' ">
+			<!-- AND DATA_AT = #{dataAt} -->
+		</if>
+	</select>
+
+	<!-- 메타목록관리 카테고리 조회 -->
+	<sql id="selectMetaList_whereSearch">
+		<if test="apiGroupCd != null and apiGroupCd != '' ">
+			AND T1.API_GROUP_CD = #{apiGroupCd}
+		</if>
+		<if test="apiNm != null and apiNm != '' ">
+	    	AND T1.API_NM LIKE CONCAT('%', #{apiNm}, '%')
+	    </if>
+	    <if test="apiDataTyCd != null and apiDataTyCd != '' ">
+	   		AND T1.CMMN_API_DATA_TY_CD = #{apiDataTyCd}
+	    </if>
+	    <if test="apiSvcTyCd != null and apiSvcTyCd != '' ">
+	    	AND T1.CMMN_API_SRVC_TY_CD = #{apiSvcTyCd}
+	    </if>
+	    <if test="apiTrsmrcvStrtYn != null and apiTrsmrcvStrtYn != '' ">
+	    	AND T1.API_TRSMRCV_STRT_YN = #{apiTrsmrcvStrtYn}
+	    </if>
+	    <if test="apiColctTyCd != null and apiColctTyCd != '' ">
+	    	AND T1.CMMN_API_CLCT_TY_CD = #{apiColctTyCd}
+	    </if>
+	</sql>
+
+	<!-- 메타그룹 조회(콤보용) -->
+	<select id="selectMetaGroupListForCombo" parameterType="map" resultType="SangsMap" >
+		SELECT
+			API_GROUP_CD AS CODE
+		    , API_GROUP_NM AS CODE_NM
+		FROM CT_API_GROUP
+		WHERE USE_YN = 'Y'
+	</select>
+
+	<!-- 메타 정보 조회 -->
+	<select id="selectMetaMngInfoInfo" parameterType="map" resultType="SangsMap">
+		SELECT
+		      T1.API_CD
+		    , T1.API_GROUP_CD
+		    , T1.API_NM
+		    , T1.API_STRG_TBL_NM
+		    , T1.API_CN
+		    , T1.API_CERT_NM
+		    , T1.API_CERT_VALUE
+		    , T1.CMMN_API_DATA_TY_CD
+		    , T1.CMMN_API_SRVC_TY_CD
+		    , T1.API_TRSMRCV_STRT_YN
+		    , T1.CMMN_API_CLCT_TY_CD
+		    , T1.API_PROGRM_EXC_NM
+		    , T1.API_PROGRM_CALL_NM
+		    , T1.API_META_INFO_NM
+		    , T1.API_TRSMRCV_RESULT_CD_NM
+		    , T1.API_TRSMRCV_RESULT_CN_NM
+		    , T1.API_META_DATA_NM
+		    , T1.USE_YN
+		    , (SELECT COUNT(*) FROM CT_API_META_RCPTN WHERE API_CD = T1.API_CD AND USE_YN = 'Y') RCPTN_CNT
+		    , T2.API_GROUP_NM
+		    , (SELECT SUM(RSPNS_RESULT_CNT) FROM CT_API_CLCT_LOG WHERE API_CD = T1.API_CD) RSPNS_RESULT_CNT
+		FROM
+		    CT_API_META_INF T1, CT_API_GROUP T2
+		WHERE
+		    T1.API_GROUP_CD = T2.API_GROUP_CD AND T1.API_CD = #{apiCd}
+	</select>
+
+	<!-- 메타정보(등록시) 메타코드 기본제공 -->
+	<select id="selectMetaMngApiCodeInfo" parameterType="map" resultType="SangsMap">
+		SELECT
+			T1.API_CD
+		FROM (
+			SELECT
+				(@rownum := @rownum+1) AS RN
+				, T0.API_CD
+		    FROM CT_API_META_INF T0, (SELECT @rownum :=0) AS R
+		    ORDER BY API_CD DESC
+		) T1
+		WHERE RN = 1
+	</select>
+
+
+	<!-- 메타정보 메타코드등록 여부 조회 (중복체크용) -->
+	<select id="selectMetaMngCntByCodeInfo" parameterType="map" resultType="Integer">
+		SELECT
+			COUNT(1) AS CNT
+		FROM CT_API_META_INF
+		WHERE API_CD = #{apiCd}
+	</select>
+
+	<!-- 메타정보 서비스구분 코드 프로그램명 조회 (ajax) -->
+    <select id="selectCmmnCodeDetailInfo" parameterType="map" resultType="SangsMap">
+		SELECT
+			CD_DC
+		FROM EGOV_CMNCDDTLCODE
+		WHERE CD = #{code}
+	</select>
+
+	<!-- 메타정보 신규 등록 -->
+	<insert id="insertMetaMngInfoInfo" parameterType="map" >
+		INSERT INTO CT_API_META_INF
+		(
+		      API_CD
+		    , API_GROUP_CD
+		    , API_NM
+		    , API_CN
+		    , API_CERT_NM
+		    , API_CERT_VALUE
+		    , CMMN_API_DATA_TY_CD
+		    , CMMN_API_SRVC_TY_CD
+		    , API_TRSMRCV_STRT_YN
+		    , CMMN_API_CLCT_TY_CD
+		    , API_PROGRM_EXC_NM
+		    <if test= "apiProgrmCallNm != null and apiProgrmCallNm !='' ">
+		    , API_PROGRM_CALL_NM
+		    </if>
+		    , API_META_INFO_NM
+		    , API_TRSMRCV_RESULT_CD_NM
+		    , API_TRSMRCV_RESULT_CN_NM
+		    , API_META_DATA_NM
+		    , API_STRG_TBL_NM
+		    , USE_YN
+		) VALUES (
+		      #{apiCd}
+		    , #{apiGroupCd}
+		    , #{apiNm}
+		    , #{apiCn}
+		    , #{apiCertNm}
+		    , #{apiCertValue}
+		    , #{cmmnApiDataTyCd}
+		    , #{cmmnApiSrvcTyCd}
+		    <!-- , #{apiTrsmrcvStrtYn} -->
+		    ,'N'
+		    <!-- , #{cmmnApiClctTyCd} -->
+		    , 'CS00'
+		    , #{apiProgrmExcNm}
+		    <if test= "apiProgrmCallNm != null and apiProgrmCallNm !='' ">
+		    , #{apiProgrmCallNm}
+		    </if>
+		    , #{apiMetaInfoNm}
+		    , #{apiTrsmrcvResultCdNm}
+		    , #{apiTrsmrcvResultCnNm}
+		    , #{apiMetaDataNm}
+		    , #{apiStrgTblNm}
+		    , #{useYn}
+		)
+	</insert>
+
+	<!-- 메타정보 수정 -->
+	<update id="updateMetaMngInfoInfo" parameterType="map" >
+		UPDATE CT_API_META_INF SET
+		  	API_GROUP_CD = #{apiGroupCd}
+			<if test= "apiNm != null and apiNm !='' ">
+			, API_NM = #{apiNm}
+			</if>
+			<if test= "apiCn != null and apiCn !='' ">
+			, API_CN = #{apiCn}
+			</if>
+		    <if test= "apiCertNm != null and apiCertNm !='' ">
+			, API_CERT_NM = #{apiCertNm}
+			</if>
+		    <if test= "apiCertValue != null and apiCertValue !='' ">
+			, API_CERT_VALUE = #{apiCertValue}
+			</if>
+		    <if test= "cmmnApiDataTyCd != null and cmmnApiDataTyCd !='' ">
+			, CMMN_API_DATA_TY_CD = #{cmmnApiDataTyCd}
+			</if>
+		    <if test= "cmmnApiSrvcTyCd != null and cmmnApiSrvcTyCd !='' ">
+			, CMMN_API_SRVC_TY_CD = #{cmmnApiSrvcTyCd}
+			</if>
+		    <if test= "apiProgrmExcNm != null and apiProgrmExcNm !='' ">
+			, API_PROGRM_EXC_NM = #{apiProgrmExcNm}
+			</if>
+		    <if test= "apiProgrmCallNm != null and apiProgrmCallNm !='' ">
+			, API_PROGRM_CALL_NM = #{apiProgrmCallNm}
+			</if>
+			<if test= "apiMetaInfoNm != null and apiMetaInfoNm !='' ">
+			, API_META_INFO_NM = #{apiMetaInfoNm}
+			</if>
+		    <if test= "apiTrsmrcvResultCdNm != null and apiTrsmrcvResultCdNm !='' ">
+			, API_TRSMRCV_RESULT_CD_NM = #{apiTrsmrcvResultCdNm}
+			</if>
+		    <if test= "apiTrsmrcvResultCnNm != null and apiTrsmrcvResultCnNm !='' ">
+			, API_TRSMRCV_RESULT_CN_NM = #{apiTrsmrcvResultCnNm}
+			</if>
+			<if test= "apiMetaDataNm != null and apiMetaDataNm !='' ">
+			, API_META_DATA_NM = #{apiMetaDataNm}
+			</if>
+		    <if test= "apiStrgTblNm != null and apiStrgTblNm !='' ">
+			, API_STRG_TBL_NM = #{apiStrgTblNm}
+			</if>
+			<if test= "useYn != null and useYn !='' ">
+			, USE_YN = #{useYn}
+			</if>
+
+		WHERE API_CD = #{apiCd}
+	</update>
+
+
+	<!-- 메타 > 수집설정 정보 수정 -->
+	<update id="updateMetaMngCollectInfo" parameterType="map" >
+		UPDATE CT_API_META_INF SET
+		    API_TRSMRCV_STRT_YN = #{apiTrsmrcvStrtYn}
+		    , CMMN_API_CLCT_TY_CD = #{cmmnApiClctTyCd}
+		WHERE API_CD = #{apiCd}
+	</update>
+
+
+	<!-- 메타별 저장소 테이블 생성 -->
+	<!--  Cubrid DB전용 update id="createMetaMngDataTable" parameterType="map" >
+		CREATE TABLE ${apiStorgeId} (
+			API_CODE VARCHAR(90) NOT NULL,
+			LOG_YMD CHAR(24) NOT NULL,
+			LOG_SN INTEGER NOT NULL,
+			DATA_SN INTEGER NOT NULL,
+			D01 VARCHAR2(65535), D02 VARCHAR2(65535), D03 VARCHAR2(65535), D04 VARCHAR2(65535), D05 VARCHAR2(65535), D06 VARCHAR2(65535), D07 VARCHAR2(65535), D08 VARCHAR2(65535), D09 VARCHAR2(65535), D10 VARCHAR2(65535),
+			D11 VARCHAR2(65535), D12 VARCHAR2(65535), D13 VARCHAR2(65535), D14 VARCHAR2(65535), D15 VARCHAR2(65535), D16 VARCHAR2(65535), D17 VARCHAR2(65535), D18 VARCHAR2(65535), D19 VARCHAR2(65535), D20 VARCHAR2(65535),
+			D21 VARCHAR2(65535), D22 VARCHAR2(65535), D23 VARCHAR2(65535), D24 VARCHAR2(65535), D25 VARCHAR2(65535), D26 VARCHAR2(65535), D27 VARCHAR2(65535), D28 VARCHAR2(65535), D29 VARCHAR2(65535), D30 VARCHAR2(65535),
+			D31 VARCHAR2(65535), D32 VARCHAR2(65535), D33 VARCHAR2(65535), D34 VARCHAR2(65535), D35 VARCHAR2(65535), D36 VARCHAR2(65535), D37 VARCHAR2(65535), D38 VARCHAR2(65535), D39 VARCHAR2(65535), D40 VARCHAR2(65535),
+
+			CONSTRAINT [primary] PRIMARY KEY(API_CODE,LOG_YMD,LOG_SN,DATA_SN)
+		)
+	</update-->
+	<update id="createMetaMngDataTable" parameterType="map" >
+		CREATE TABLE ${apiStrgTblNm} (
+			API_CD VARCHAR(15) NOT NULL,
+			LOG_YMD VARCHAR(24) NOT NULL,
+			LOG_SN VARCHAR(15) NOT NULL,
+			DATA_SN VARCHAR(15) NOT NULL,
+			D01 TEXT, D02 TEXT, D03 TEXT, D04 TEXT, D05 TEXT, D06 TEXT, D07 TEXT, D08 TEXT, D09 TEXT, D10 TEXT,
+			D11 TEXT, D12 TEXT, D13 TEXT, D14 TEXT, D15 TEXT, D16 TEXT, D17 TEXT, D18 TEXT, D19 TEXT, D20 TEXT,
+			D21 TEXT, D22 TEXT, D23 TEXT, D24 TEXT, D25 TEXT, D26 TEXT, D27 TEXT, D28 TEXT, D29 TEXT, D30 TEXT,
+			D31 TEXT, D32 TEXT, D33 TEXT, D34 TEXT, D35 TEXT, D36 TEXT, D37 TEXT, D38 TEXT, D39 TEXT, D40 TEXT,
+			D41 TEXT, D42 TEXT, D43 TEXT, D44 TEXT, D45 TEXT, D46 TEXT, D47 TEXT, D48 TEXT, D49 TEXT, D50 TEXT,
+			D51 TEXT, D52 TEXT, D53 TEXT, D54 TEXT, D55 TEXT, D56 TEXT, D57 TEXT, D58 TEXT, D59 TEXT, D60 TEXT,
+			D61 TEXT, D62 TEXT, D63 TEXT, D64 TEXT, D65 TEXT, D66 TEXT, D67 TEXT, D68 TEXT, D69 TEXT, D70 TEXT,
+			CONSTRAINT PK_${apiStrgTblNm} PRIMARY KEY(API_CD,LOG_YMD,LOG_SN,DATA_SN)
+		)
+	</update>
+
+	<!-- 메타별 저장소 테이블 존재 여부 확인 : MARIA DB용-->
+	<select id="selectMetaMngDataTableCnt" resultType="int" parameterType="map" >
+		SELECT
+			COUNT(*) AS CNT
+		<!-- FROM INFORMATION_SCHEMA.TABLES -->
+		<!-- WHERE TABLE_SCHEMA = #{dataSchemaId} AND TABLE_NAME = #{apiStorgeId} -->
+		<!-- WHERE OWNER = #{dataSchemaId} AND TABLE_NAME = #{apiStrgTblNm} -->
+		FROM INFORMATION_SCHEMA.TABLES
+		WHERE TABLE_SCHEMA = #{dataSchemaId} AND TABLE_NAME = #{apiStrgTblNm}
+
+	</select>
+
+
+	<select id="selectCommonCodeListForCollector" resultType="sangsMap" parameterType="map">
+		SELECT
+			CD AS CODE
+			, CD_NM AS CODE_NM
+			, CD_DC AS CODE_DC
+			, USE_YN
+		FROM EGOV_CMNCDDTLCODE
+		WHERE CD_ID = #{cdId}
+			AND USE_YN = 'Y'
+		ORDER BY SORT_NO
+	</select>
+
+</mapper>

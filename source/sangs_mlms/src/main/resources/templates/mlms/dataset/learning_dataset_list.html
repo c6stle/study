@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorator="layout/mainLayout">
+
+<head>
+	<th:block th:replace="fragments/head_inc :: head_inc" />
+</head>
+
+<body id="body">
+    <div id="wrap">
+		<div class="container">
+			<div id="content">
+                <div class="page_info_area">
+                    <div class="left">
+                        <div class="location_area">
+                            <a href="#" class="bookmark active" title="즐겨찾기"></a>
+                            <ul>
+                                <li>홈</li>
+                                <li>데이터관리</li>
+								<li>학습데이터셋 관리</li>
+                            </ul>
+                        </div>
+                        <div class="title_area">
+                            <p>학습데이터셋 관리</p>
+                            <a href="#" class="reload_btn" title="새로고침">새로고침</a>
+                            <a href="#" class="help_btn" title="도움말">도움말</a>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="button_area">
+                        	<button class="btn" title="조회" onclick="fnSearch(); return false;">조회</button>
+                            <button class="btn" title="신규등록" onclick="fnLrnDataRegist(); return false;">신규등록</button>
+                        </div>
+                    </div>
+                </div>
+                
+				<div class="content_area">
+                    <div class="division20">
+                        <div class="search_wrap">
+                            <table class="search fixed">
+                            	<colgroup>
+	                            	<col style="width:100px;" />
+	                                <col style="width:auto;" />
+	                                <col style="width:60px;" />
+	                                <col style="width:100px" />
+	                                <col style="width:auto;" />
+	                                <col style="width:60px;" />
+	                                <col style="width:100px" />
+	                                <col style="width:auto;" />
+	                            </colgroup>
+	                            <tbody>
+	                            	<tr>
+	                            		<th scope="row"><label for="datasetTyCd">데이터구분</label></th>
+	                            		<td>
+	                            			<div class="selectbox">
+	                            				<select id="datasetTyCd" name="datasetTyCd">
+	                            					<option value="">선택</option>
+	                            				</select>
+	                            			</div>
+	                            		</td>
+	                            		<td></td>
+	                            		<th scope="row"><label for="lrnDatasetNm">학습데이터셋명</label></th>
+	                            		<td><input type="text" class="in_w100" id="lrnDatasetNm" name="lrnDatasetNm" /></td>
+	                            		<td></td>
+	                            		<th scope="row"><label for="dataOrginlFlpth">파일명</label></th>
+	                            		<td><input type="text" class="in_w100" id="dataOrginlFlpth" name="dataOrginlFlpth" /></td>
+	                            	</tr>
+	                            </tbody>
+                            </table>
+                		</div>
+                	</div>
+                	
+                	<div class="division">
+                		<div class="table_area marginb25">
+                            <table class="list fixed" id="tb_data_table">
+                            	<colgroup>
+                            		<col width="60px;" />
+									<col width="120px;" />
+									<col width="auto;" />
+									<col width="auto;" />
+									<col width="80px;" />
+									<col width="80px;" />
+									<col width="80px;" />
+									<col width="100px;" />
+									<col width="60px;" />
+									<col width="100px" />
+									<col width="80px" />
+									<col width="110px" />
+                            	</colgroup>
+                            	<thead>
+	                            	<tr>
+									<th>순번</th>
+									<th>데이터구분</th>
+									<th>학습데이터셋명</th>
+									<th>파일명</th>
+									<th>컬럼수</th>
+									<th>데이터수</th>
+									<th>데이터크기</th>
+									<th>Target<br>컬럼명</th>
+									<th>제외<br>행 수</th>
+									<th>등록일시</th>
+									<th>등록자 <br>아이디</th>
+									<th>상세보기</th>
+									</tr>
+                            	</thead>
+                            	<tbody>
+									<tr class="fwk_templete_row">
+										<td>#{FWK_TR_NO_DESC}</td>
+										<td>#{datasetTyCdNm}</td>
+										<td class="alignl"><a href="#" onclick="fnOpenLrnDataDetail('#{lrnDatasetSn}'); return false;">#{lrnDatasetNm}</a></td>
+										<td class="alignl">#{dataOrginlFlpth}</td>
+										<td class="alignr">#fn{fnFormatNumber(#{dataColCnt})}</td>
+										<td class="alignr">#fn{fnFormatNumber(#{dataRowCnt})}</td>
+										<td class="alignr">#fn{fnFormatNumber(#{dataKbSize})}KB</td>
+										<td>#{hderValue}</td>
+										<td>#{exclRowCnt}</td>
+										<td>#fn{replaceAll('#{regDt}',' ', '<br/>')}</td>
+										<td>#{regUserId}</td>
+										<td>
+											<button class="btn sm" onclick="fnViewDatasetPop('L', '#{lrnDatasetSn}');">상세보기</button>
+										</td>
+									</tr>
+                            	</tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="pagination_area marginb25" id="dv_paging"></div>
+                        
+                	</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 학습데이터 신규등록 레이어 팝업창 -->
+    <div class="popup layer" id="modal_reg">
+    	<div class="pop_header">
+    		<p class="title">신규등록</p>
+    		<button class="btn_ic btn_pop_close" onclick="fnExit('modal_reg');">닫기</button>
+    	</div>
+    	<div class="pop_content">
+    		<div class="division margint20">
+    			<div class="search_wrap">
+	    			<table class="search fixed">
+		    			<colgroup>
+	   						<col width="110px;" />
+	   						<col width="auto;" />
+	   						<col width="60px;" />
+	   						<col width="140px;" />
+	   					</colgroup>
+	    				<tbody>
+	    					<tr>
+	    						<th scope="row"><label for="reg_searchKey">원천데이터셋명</label></th>
+	    						<td>
+	    							<input type="text" class="in_w100" id="reg_searchKey" name="reg_searchKey" />
+	    						</td>
+	    						<td></td>
+	    						<td>
+	    							<button class="btn" onclick="fnSrcDataSearch();">조회</button>
+	    						</td>
+	    					</tr>
+	    				</tbody>
+	    			</table>
+    			</div>
+    		</div>
+    		
+    		<div class="division margint10">
+    			<div class="table_area marginb25" style="max-height:600px; overflow-y:scroll;overflow-x:hidden;">
+    				<table class="list fixed" id="reg_data_table">
+    					<colgroup>
+    						<col width="auto;" />
+    						<col width="auto;" />
+    						<col width="60px;" />
+    						<col width="80px;" />
+    						<col width="80px;" />
+    						<col width="120px;" />
+    					</colgroup>
+    					<thead>
+	    					<tr>
+	    						<th>원천데이터셋명</th>
+	    						<th>데이터셋경로</th>
+	    						<th>컬럼수</th>
+	    						<th>데이터수</th>
+	    						<th>데이터크기</th>
+	    						<th></th>
+	    					</tr>
+    					</thead>
+    					<tbody>
+    						<tr class="fwk_templete_row">
+    							<td class="alignl"><a href="#" onclick="fnOpenNewDataDetail('#{datasetSn}'); return false;">#{datasetNm}</a></td>
+    							<td class="alignl">#{dataOrginlFlpth}</td>
+    							<td class="alignr">#fn{fnFormatNumber(#{dataColCnt})}</td>
+    							<td class="alignr">#fn{fnFormatNumber(#{dataRowCnt})}</td>
+    							<td class="alignr">#fn{fnFormatNumber(#{dataKbSize})}KB</td>
+    							<td>
+    								<button class="btn sm" onclick="fnViewDatasetPop('S', '#{datasetSn}');">상세보기</button>
+    							</td>
+    						</tr>
+    					</tbody>
+    				</table>
+    			</div>
+    			
+    		</div>
+    		<div class="pagination_area marginb25" id="reg_dv_paging"></div>
+    	</div>
+    </div>
+    
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	fnInit();
+	
+	fnSearch();
+	
+	$("#lrnDatasetNm, #dataOrginlFlpth").on("keyup", function(event) {
+		if(event.keyCode == 13) 
+			fnSearch();
+	});
+	
+	$("#reg_searchKey").on("keyup", function(event) {
+		if(event.keyCode == 13) 
+			fnSrcDataSearch();
+	});
+	
+});
+
+
+function fnInit() {
+	
+	new CodeBinder()
+	.setCommonCode("DATASETTY", "datasetTyCd", "select")
+	.load();
+	
+}
+
+
+
+// 학습데이터셋 검색
+function fnSearch(pageNum) {
+	if(!pageNum) 
+		pageNum = 1;
+	
+	$.ajax({
+		url: "/json/dataset/getLearningDatasetList"
+		, method : "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum: pageNum
+			, datasetTyCode: $("#datasetTyCd").val()
+			, lrnDatasetNm: $("#lrnDatasetNm").val()
+			, dataOrginlFlpth: $("#dataOrginlFlpth").val()
+			, apiDataYn : "N"
+		})
+		, success: function(data){
+			
+			fnBindTableValue("tb_data_table", data.learningDataList, data.pagingInfo);
+			
+			fnSetPaging("dv_paging", data.pagingInfo);
+			
+		}
+	});
+	 
+} 
+
+
+
+// 학습데이터 신규등록 레이어 팝업창
+function fnLrnDataRegist() {
+	
+	$("#reg_searchKey").val("");
+	fnSrcDataSearch(1);
+	
+	$.ajax({
+		url: "/json/dataset/getSourceDatasetList"
+		, method: "POST"
+		, contentType: 'application/json'
+		, data: JSON.stringify({
+			pageNum: 1
+			, datasetNm: $("#datasetNm").val()
+			, dataOrginlFlpth: $("#dataOrginlFlpth").val()
+			, regUserId: $("#regUserId").val()
+			, apiDataYn : "N"
+			
+		})
+		, success: function(data){
+			
+			fnBindTableValue("reg_data_table", data.sourceDataList, data.pagingInfo);
+			
+			fnSetPaging("reg_dv_paging", data.pagingInfo, "fnSrcDataSearch();");
+			
+			fnShowModal("modal_reg");
+		}
+		
+	});
+	
+}
+
+
+//학습데이터 신규등록 -> 원천데이터셋 검색
+function fnSrcDataSearch(pageNum) {
+	if(!pageNum) 
+		pageNum = 1;
+	
+	$.ajax({
+		url: "/json/dataset/getSourceDatasetList"
+		, method: "POST"
+		, contentType: "application/json"
+		, data: JSON.stringify({
+			pageNum: pageNum
+			, datasetNm: $("#reg_searchKey").val()
+			, apiDataYn : "N"
+		})
+		, success: function(data) {
+			
+			fnBindTableValue("reg_data_table", data.sourceDataList, data.pagingInfo);
+			
+			fnSetPaging("reg_dv_paging", data.pagingInfo, "fnSrcDataSearch");
+		}
+	})
+}
+
+
+
+
+
+function fnOpenLrnDataDetail(lrnDatasetSn) {
+	location.href = '/view/dataset/viewLearningDatasetForm?pmode=M&lrnDatasetSn=' + lrnDatasetSn;
+}
+
+
+function fnOpenNewDataDetail(datasetSn) {
+	location.href = '/view/dataset/viewLearningDatasetForm?pmode=R&datasetSn=' + datasetSn;
+}
+
+
+
+function fnExit(modalId) {
+	fnCloseModal(modalId);
+}
+
+ 
+
+
+</script>
+</body>
+</html>
+
