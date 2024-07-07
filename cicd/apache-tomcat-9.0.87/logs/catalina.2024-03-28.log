@@ -1,0 +1,49 @@
+28-Mar-2024 18:21:33.379 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 서버 버전 이름:    Apache Tomcat/9.0.87
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server 빌드 시각:  Mar 11 2024 10:12:34 UTC
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server 버전 번호:  9.0.87.0
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 운영체제 이름:     Mac OS X
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 운영체제 버전:     14.2.1
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 아키텍처:          aarch64
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 자바 홈:           /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM 버전:          17.0.9+11-LTS-201
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM 벤더:          Oracle Corporation
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:     /Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87
+28-Mar-2024 18:21:33.381 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:     /Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  --add-opens=java.base/java.lang=ALL-UNNAMED
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  --add-opens=java.base/java.io=ALL-UNNAMED
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  --add-opens=java.base/java.util=ALL-UNNAMED
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Djava.util.logging.config.file=/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/conf/logging.properties
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Djdk.tls.ephemeralDHKeySize=2048
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Dignore.endorsed.dirs=
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Dcatalina.base=/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Dcatalina.home=/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87
+28-Mar-2024 18:21:33.388 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log 명령 행 아규먼트:  -Djava.io.tmpdir=/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/temp
+28-Mar-2024 18:21:33.393 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent 프로덕션 환경들에서 최적의 성능을 제공하는, APR 기반 Apache Tomcat Native 라이브러리가, 다음 java.library.path에서 발견되지 않습니다: [/Users/js/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.]
+28-Mar-2024 18:21:33.504 INFO [main] org.apache.coyote.AbstractProtocol.init 프로토콜 핸들러 ["http-nio-8088"]을(를) 초기화합니다.
+28-Mar-2024 18:21:33.519 INFO [main] org.apache.catalina.startup.Catalina.load [229] 밀리초 내에 서버가 초기화되었습니다.
+28-Mar-2024 18:21:33.536 INFO [main] org.apache.catalina.core.StandardService.startInternal 서비스 [Catalina]을(를) 시작합니다.
+28-Mar-2024 18:21:33.536 INFO [main] org.apache.catalina.core.StandardEngine.startInternal 서버 엔진을 시작합니다: [Apache Tomcat/9.0.87]
+28-Mar-2024 18:21:33.542 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR 웹 애플리케이션 아카이브 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/hello-world.war]을(를) 배치합니다.
+28-Mar-2024 18:21:34.006 INFO [main] org.apache.jasper.servlet.TldScanner.scanJars 적어도 하나의 JAR가 TLD들을 찾기 위해 스캔되었으나 아무 것도 찾지 못했습니다. 스캔했으나 TLD가 없는 JAR들의 전체 목록을 보시려면, 로그 레벨을 디버그 레벨로 설정하십시오. 스캔 과정에서 불필요한 JAR들을 건너뛰면, 시스템 시작 시간과 JSP 컴파일 시간을 단축시킬 수 있습니다.
+28-Mar-2024 18:21:34.396 INFO [main] org.apache.catalina.startup.HostConfig.deployWAR 웹 애플리케이션 아카이브 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/hello-world.war]의 배치가 [853] 밀리초에 완료되었습니다.
+28-Mar-2024 18:21:34.396 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/docs]을(를) 배치합니다.
+28-Mar-2024 18:21:34.405 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/docs]에 대한 배치가 [9] 밀리초에 완료되었습니다.
+28-Mar-2024 18:21:34.405 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/manager]을(를) 배치합니다.
+28-Mar-2024 18:21:34.418 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/manager]에 대한 배치가 [13] 밀리초에 완료되었습니다.
+28-Mar-2024 18:21:34.418 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/examples]을(를) 배치합니다.
+28-Mar-2024 18:21:34.485 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/examples]에 대한 배치가 [67] 밀리초에 완료되었습니다.
+28-Mar-2024 18:21:34.485 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/ROOT]을(를) 배치합니다.
+28-Mar-2024 18:21:34.491 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/ROOT]에 대한 배치가 [5] 밀리초에 완료되었습니다.
+28-Mar-2024 18:21:34.491 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/host-manager]을(를) 배치합니다.
+28-Mar-2024 18:21:34.497 INFO [main] org.apache.catalina.startup.HostConfig.deployDirectory 웹 애플리케이션 디렉토리 [/Users/js/Desktop/workspace/cicd/apache-tomcat-9.0.87/webapps/host-manager]에 대한 배치가 [6] 밀리초에 완료되었습니다.
+28-Mar-2024 18:21:34.498 INFO [main] org.apache.coyote.AbstractProtocol.start 프로토콜 핸들러 ["http-nio-8088"]을(를) 시작합니다.
+28-Mar-2024 18:21:34.503 INFO [main] org.apache.catalina.startup.Catalina.start 서버가 [984] 밀리초 내에 시작되었습니다.
+28-Mar-2024 19:45:10.938 INFO [Thread-1] org.apache.coyote.AbstractProtocol.pause 프로토콜 핸들러 ["http-nio-8088"]을(를) 일시 정지 중
+28-Mar-2024 19:45:10.955 INFO [Thread-1] org.apache.catalina.core.StandardService.stopInternal 서비스 [Catalina]을(를) 중지시킵니다.
+28-Mar-2024 19:45:11.057 INFO [Thread-1] org.apache.coyote.AbstractProtocol.stop 프로토콜 핸들러 ["http-nio-8088"]을(를) 중지시킵니다.
+28-Mar-2024 19:45:11.075 INFO [Thread-1] org.apache.coyote.AbstractProtocol.destroy 프로토콜 핸들러 ["http-nio-8088"]을(를) 소멸시킵니다.
